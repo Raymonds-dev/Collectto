@@ -1,0 +1,43 @@
+name: CI Validate
+
+on:
+  push:
+    branches:
+      - '**'
+  pull_request:
+    branches:
+      - main
+      - develop
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate project (types, lint, prettier)
+        run: npm run validate
+
+      - name: Check formatting for repo files (md/yml/yaml)
+        shell: bash
+        run: |
+          files=$(git ls-files '*.md' '*.yml' '*.yaml')
+          if [ -z "$files" ]; then
+            echo 'No markdown/yaml files to check.'
+            exit 0
+          fi
+
+          npx prettier -c $files

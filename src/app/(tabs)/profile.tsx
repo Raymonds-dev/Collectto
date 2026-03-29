@@ -9,8 +9,8 @@ export default function ProfileScreen() {
   const profileImageUri = Image.resolveAssetSource(require('@/assets/example/profile.png')).uri;
 
   return (
-    <ScrollView className="bg-surface-base flex-1" contentContainerClassName="pb-8">
-      <View className="bg-surface-base flex-1">
+    <ScrollView className="flex-1 bg-surface-base" contentContainerClassName="pb-8">
+      <View className="flex-1 bg-surface-base">
         <ProfileHeader isOwner={true} bannerImage={bannerUri} />
         <ProfileInfo
           isOwner={true}

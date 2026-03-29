@@ -47,9 +47,9 @@ function ActionButton({ label, iconName, isCircular = false, onPress }: ActionBu
       <Pressable
         accessibilityRole="button"
         onPress={onPress}
-        className={`bg-surface-base border-surface-borderStrong flex-row items-center justify-center border active:opacity-75 ${baseClass}`}>
+        className={`flex-row items-center justify-center border border-surface-borderStrong bg-surface-base active:opacity-75 ${baseClass}`}>
         {iconName ? <Ionicons name={iconName} size={18} color={tokens.colors.text.base} /> : null}
-        {label ? <Text className="text-text-base ml-2 text-sm font-semibold">{label}</Text> : null}
+        {label ? <Text className="ml-2 text-sm font-semibold text-text-base">{label}</Text> : null}
       </Pressable>
     </LinearGradient>
   );
@@ -58,8 +58,8 @@ function ActionButton({ label, iconName, isCircular = false, onPress }: ActionBu
 function StatChip({ label, value }: { label: string; value: number }) {
   return (
     <Pressable accessibilityRole="button" className="items-center justify-center rounded-md px-4">
-      <Text className="text-text-base text-lg font-semibold">{formatCount(value)}</Text>
-      <Text className="text-text-muted text-md">{label}</Text>
+      <Text className="text-lg font-semibold text-text-base">{formatCount(value)}</Text>
+      <Text className="text-md text-text-muted">{label}</Text>
     </Pressable>
   );
 }
@@ -87,7 +87,7 @@ export function ProfileInfo({
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.avatarGradient}>
-            <View className="bg-surface-base h-full w-full items-center justify-center rounded-full">
+            <View className="h-full w-full items-center justify-center rounded-full bg-surface-base">
               {profileImage ? (
                 <Image source={{ uri: profileImage }} className="h-full w-full rounded-full" />
               ) : (
@@ -98,9 +98,9 @@ export function ProfileInfo({
         </View>
 
         <View className="flex-1">
-          <Text className="text-text-base text-2xl font-bold">{name}</Text>
-          <Text className="text-text-muted mt-1 text-sm">@{username}</Text>
-          <Text className="text-text-base mt-2 w-full text-sm leading-5" numberOfLines={2}>
+          <Text className="text-2xl font-bold text-text-base">{name}</Text>
+          <Text className="mt-1 text-sm text-text-muted">@{username}</Text>
+          <Text className="mt-2 w-full text-sm leading-5 text-text-base" numberOfLines={2}>
             {bio}
           </Text>
         </View>

@@ -1,13 +1,7 @@
 name: CI Validate
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-    branches:
-      - main
-      - develop
+  workflow_call:
 
 permissions:
   contents: read
@@ -26,7 +20,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Validate project (types, lint, prettier)
         run: npm run validate

@@ -38,7 +38,7 @@ function HeaderAction({ isOwner, onEditPress, onOptionsPress }: HeaderActionProp
       onPress={handlePress}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      className={`border-surface-border bg-overlay-scrimSoft absolute right-3 top-3 z-10 h-9 w-9 items-center justify-center rounded-full border ${isPressed ? 'opacity-75' : 'opacity-100'}`}>
+      className={`absolute right-3 top-3 z-10 h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-overlay-scrimSoft ${isPressed ? 'opacity-75' : 'opacity-100'}`}>
       <Ionicons name={iconName} size={18} color={tokens.colors.text.inverse} />
     </Pressable>
   );
@@ -60,7 +60,7 @@ export function ProfileHeader({
   const hasBannerImage = Boolean(bannerImage);
 
   return (
-    <View className="bg-surface-muted relative h-[120px] w-full overflow-hidden">
+    <View className="relative h-[120px] w-full overflow-hidden bg-surface-muted">
       {hasBannerImage ? (
         <ImageBackground
           source={{ uri: bannerImage as string }}
@@ -68,7 +68,7 @@ export function ProfileHeader({
           className="h-full w-full"
         />
       ) : (
-        <View className="bg-surface-muted h-full w-full" />
+        <View className="h-full w-full bg-surface-muted" />
       )}
 
       <HeaderAction isOwner={isOwner} onEditPress={onEditPress} onOptionsPress={onOptionsPress} />

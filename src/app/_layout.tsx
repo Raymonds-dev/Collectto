@@ -35,7 +35,7 @@ function AuthGate() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} className="bg-surface-base flex-1">
+      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} className="flex-1 bg-surface-base">
         <AuthProvider>
           <AuthGate />
           <Stack screenOptions={{ headerShown: false }}>

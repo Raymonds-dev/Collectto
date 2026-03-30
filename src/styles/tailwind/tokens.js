@@ -16,6 +16,9 @@ const colors = {
   neutral: {
     black: '#151515',
     white: '#F8F8F8',
+    gray1: '#D9D9D9',
+    gray2: '#A4A3A3',
+    gray3: '#7D7B7B',
   },
   surface: {
     base: '#F8F8F8',

@@ -6,7 +6,7 @@ type IconProps = Omit<SvgProps, 'width' | 'height' | 'color'> & {
   color?: string;
 };
 
-export function Icon({ size = 20, color = '#FE5E00', ...props }: IconProps) {
+export function BrandIcon({ size = 20, color = '#FE5E00', ...props }: IconProps) {
   return (
     <Svg
       width={size}

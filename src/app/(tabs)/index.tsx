@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/Button';
 import { useAuth } from '@/hooks/useAuth';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { Text, View } from 'react-native';

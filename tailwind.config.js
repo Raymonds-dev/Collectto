@@ -21,10 +21,14 @@ module.exports = {
       spacing,
       borderRadius: radius,
       boxShadow: shadow,
-      fontFamily,
       backgroundImage: {
         'brand-journey': brandJourneyGradient,
         'brand-warm': brandWarmGradient,
+      },
+
+      fontFamily: {
+        ...fontFamily, // Adicione sua nova fonte aqui
+        poetsenone: ['PoetsenOne-Regular'], // O nome deve corresponder ao nome do arquivo da fonte
       },
     },
   },

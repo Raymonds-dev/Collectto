@@ -37,8 +37,24 @@ jobs:
             }
 
             const [type, ...nameParts] = head.split('/');
-            const summaryRaw = nameParts.join('/').replace(/[-_]+/g, ' ').trim();
-            const summary = summaryRaw ? summaryRaw : head;
+            const branchSummaryRaw = nameParts.join('/').replace(/[-_]+/g, ' ').trim();
+
+            // Sempre considera o commit mais recente (HEAD do push), mesmo em pushes com multiplos commits.
+            let latestCommitSubject = '';
+            try {
+              const latestCommit = await github.rest.repos.getCommit({
+                owner,
+                repo,
+                ref: context.sha,
+              });
+              latestCommitSubject = latestCommit.data.commit.message.split('\n')[0].trim();
+            } catch (error) {
+              core.warning(`Could not fetch latest commit message from ${context.sha}: ${error.message}`);
+              const payloadHeadMessage = context.payload?.head_commit?.message || '';
+              latestCommitSubject = payloadHeadMessage.split('\n')[0].trim();
+            }
+
+            const summary = latestCommitSubject || branchSummaryRaw || head;
             const title = `[${type}] ${summary}`;
 
             const body = [
@@ -46,6 +62,8 @@ jobs:
               '',
               `Branch de origem: \`${head}\``,
               'Branch de destino: `develop`',
+              `Commit mais recente considerado: \`${context.sha.slice(0, 7)}\``,
+              latestCommitSubject ? `Mensagem do commit mais recente: \`${latestCommitSubject}\`` : null,
               '',
               '### Resumo',
               '- Descreva o objetivo da mudança.',
@@ -58,7 +76,7 @@ jobs:
               '- [ ] Atualizei a documentacao quando necessario.',
               '',
               '_Este PR foi aberto automaticamente pelo workflow._'
-            ].join('\n');
+            ].filter(Boolean).join('\n');
 
             const existing = await github.rest.pulls.list({
               owner,

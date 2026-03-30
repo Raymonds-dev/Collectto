@@ -2,6 +2,7 @@ import { AuthProvider, useAuth } from '@/providers/AuthProvider';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { useFonts } from 'expo-font';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -33,6 +34,10 @@ function AuthGate() {
 }
 
 export default function RootLayout() {
+  useFonts({
+    'PoetsenOne-Regular': require('../assets/fonts/PoetsenOne-Regular.ttf'),
+  });
+
   return (
     <SafeAreaProvider>
       <SafeAreaView edges={['top', 'right', 'bottom', 'left']} className="flex-1 bg-surface-base">

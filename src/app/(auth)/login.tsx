@@ -32,7 +32,7 @@ export default function LoginScreen() {
       <View className='mb-10 items-center'>
         <Image 
           source={require('@/assets/logo.png')}
-          className="h-40 w-40"
+          className="h-45 w-45"
           resizeMode="contain"
         />
         <Text className='mt-8 text-black text-3xl font-poetsenone'>
@@ -40,7 +40,7 @@ export default function LoginScreen() {
         </Text>
       </View>
 
-      <View className="w-full max-w-md rounded-2xl  p-6 ">
+      <View className="w-full max-w-md rounded-2xl p-6 ">
         <TextInput
           autoCapitalize="none"
           className="mt-15 text-xl rounded-xl bg-black px-4 py-4 text-base font-poetsenone"
@@ -51,7 +51,7 @@ export default function LoginScreen() {
         />
 
         <TextInput
-          className="mt-8 text-xl rounded-xl bg-black px-4 py-4 font-poetsenone"
+          className="mt-10 text-xl rounded-xl bg-black px-4 py-4 font-poetsenone"
           onChangeText={setPassword}
           placeholder="SENHA"
           placeholderTextColor="#D9D9D9"
@@ -61,8 +61,9 @@ export default function LoginScreen() {
 
         {error ? <Text className="mt-3 text-sm text-red-600">{error}</Text> : null}
 
+      <View className='items-center'>
         <Pressable
-          className="mt-5 items-center rounded-xl bg-orange-500 px-4 py-3 w-30 "
+          className="mt-10 mb-6 w-32 text-4xl items-center rounded-xl bg-orange-500 px-6 py-3 "
           disabled={isSubmitting}
           onPress={handleLogin}>
           <Text className="text-base font-poetsenone text-white">
@@ -70,9 +71,10 @@ export default function LoginScreen() {
           </Text>
         </Pressable>
 
-        <Text className='mt-4 text xl font-bold-PoetsenOne text-black font-poetsenone'>
+        <Text className='mt-8 text-2xl font-bold-PoetsenOne text-black font-poetsenone'>
             Não tem conta? Cadastre-se
         </Text>
+        </View>
       </View>
     </View>
   );

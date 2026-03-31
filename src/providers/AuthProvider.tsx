@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           //Requisição
           const { data } = await api.post('auth/login', credentials);
-          const { accessToken } = data
+          const { accessToken } = data.data;
 
           await setSessionToken(accessToken); //Token Armazenado
 

@@ -1,6 +1,8 @@
+import api from '@/services/api';
 import { clearSessionToken, getSessionToken, setSessionToken } from '@/services/authSession';
 import { AuthUser, Credentials } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { AxiosError } from 'axios';
 
 interface AuthContextType {
   isLoading: boolean;
@@ -29,6 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await getSessionToken();
 
         if (token) {
+          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
           setUser(buildUser('user@collectto.app'));
         }
       } finally {
@@ -44,15 +47,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       user,
       signIn: async (credentials: Credentials) => {
-        if (!credentials.email || !credentials.password) {
-          throw new Error('Preencha email e senha.');
-        }
+        try {
+          if (!credentials.email || !credentials.password) {
+            throw new Error('Preencha email e senha.');
+          }
 
-        await setSessionToken('mock-session-token');
-        setUser(buildUser(credentials.email));
+          //Requisição
+          const { data } = await api.post('auth/login', credentials);
+          const { accessToken } = data
+
+          await setSessionToken(accessToken); //Token Armazenado
+
+          //Coloca o token para outras requisições
+          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+
+          //Usuario
+          setUser(buildUser(credentials.email));
+        } catch (error: any) {
+          if (error instanceof AxiosError && error.response) {
+            throw new Error(error.response.data.message || 'Credenciais inválidas.');
+          }
+          throw new Error('Falha no login')
+        }
       },
+
       signOut: async () => {
         await clearSessionToken();
+        delete api.defaults.headers.common['Authorization'];
         setUser(null);
       },
     }),

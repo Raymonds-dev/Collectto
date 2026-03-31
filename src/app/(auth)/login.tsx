@@ -28,7 +28,6 @@ export default function LoginScreen() {
 
   return (
     <View className="flex-1 items-center bg-white px-6 pt-10">
-      {/*Espaço do título e imagem collectto*/}
       <View className="mb-10 items-center">
         <Image source={require('@/assets/logo.png')} className="h-45 w-45" resizeMode="contain" />
         <Text className="mt-8 font-poetsenone text-3xl text-black">Faça Login</Text>
@@ -37,7 +36,7 @@ export default function LoginScreen() {
       <View className="w-full max-w-md rounded-2xl p-6 ">
         <TextInput
           autoCapitalize="none"
-          className="mt-15 rounded-xl bg-black px-4 py-4 font-poetsenone text-base text-xl"
+          className="mt-15 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl text-white"
           onChangeText={setEmail}
           placeholder="NOME DE USUARIO"
           placeholderTextColor="#D9D9D9"
@@ -45,7 +44,7 @@ export default function LoginScreen() {
         />
 
         <TextInput
-          className="mt-10 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl"
+          className="mt-10 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl text-white"
           onChangeText={setPassword}
           placeholder="SENHA"
           placeholderTextColor="#D9D9D9"
@@ -57,7 +56,7 @@ export default function LoginScreen() {
 
         <View className="items-center">
           <Pressable
-            className="mb-6 mt-10 w-32 items-center rounded-xl bg-orange-500 px-6 py-3 text-4xl "
+            className="mb-6 mt-10 w-32 items-center rounded-xl bg-orange-500 px-5 py-4 text-4xl active:bg-black"
             disabled={isSubmitting}
             onPress={handleLogin}>
             <Text className="font-poetsenone text-base text-white">

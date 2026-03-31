@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (error instanceof AxiosError && error.response) {
             throw new Error(error.response.data.message || 'Credenciais inválidas.');
           }
-          throw new Error('Falha no login')
+          throw new Error('Falha no login');
         }
       },
 

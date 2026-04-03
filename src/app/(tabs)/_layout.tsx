@@ -25,6 +25,12 @@ export default function TabsLayout() {
           title: 'Perfil',
         }}
       />
+      <Tabs.Screen
+        name="collections/[collectionId]"
+        options={{
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }

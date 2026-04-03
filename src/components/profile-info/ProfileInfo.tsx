@@ -11,9 +11,11 @@ type ProfileInfoProps = {
   name: string;
   username: string;
   bio: string;
-  followersCount: number;
-  followingCount: number;
-  hasLink: boolean;
+  followersCount?: number;
+  followingCount?: number;
+  hasLink?: boolean;
+  showActions?: boolean;
+  showStats?: boolean;
 };
 
 type ActionButtonProps = {
@@ -70,11 +72,14 @@ export function ProfileInfo({
   name,
   username,
   bio,
-  followersCount,
-  followingCount,
-  hasLink,
+  followersCount = 0,
+  followingCount = 0,
+  hasLink = false,
+  showActions = true,
+  showStats = true,
 }: ProfileInfoProps) {
   const [isFollowing, setIsFollowing] = useState(false);
+  const shouldShowActionsRow = showActions || showStats;
 
   return (
     <View className="px-[10px] pt-[5px]">
@@ -106,34 +111,37 @@ export function ProfileInfo({
         </View>
       </View>
       {/* Action Buttons */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        className="mt-5"
-        contentContainerClassName="pr-2">
-        <View className="flex-row items-center gap-3">
-          {isOwner ? (
-            <>
-              <StatChip label="Seguidores" value={followersCount} />
-              <StatChip label="Seguindo" value={followingCount} />
-              {hasLink ? <ActionButton label="Links" iconName="link-outline" /> : null}
-              <ActionButton isCircular iconName="share-social-outline" />
-            </>
-          ) : (
-            <>
-              <StatChip label="Seguidores" value={followersCount} />
-              <StatChip label="Seguindo" value={followingCount} />
-              <ActionButton
-                label={isFollowing ? 'Seguindo' : 'Seguir'}
-                iconName={isFollowing ? 'checkmark' : 'add'}
-                onPress={() => setIsFollowing((current) => !current)}
-              />
-              {hasLink ? <ActionButton isCircular iconName="link-outline" /> : null}
-              <ActionButton iconName="notifications-outline" isCircular />
-            </>
-          )}
-        </View>
-      </ScrollView>
+      {shouldShowActionsRow ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          className="mt-5"
+          contentContainerClassName="pr-2">
+          <View className="flex-row items-center gap-3">
+            {showStats ? <StatChip label="Seguidores" value={followersCount} /> : null}
+            {showStats ? <StatChip label="Seguindo" value={followingCount} /> : null}
+
+            {showActions ? (
+              isOwner ? (
+                <>
+                  {hasLink ? <ActionButton label="Links" iconName="link-outline" /> : null}
+                  <ActionButton isCircular iconName="share-social-outline" />
+                </>
+              ) : (
+                <>
+                  <ActionButton
+                    label={isFollowing ? 'Seguindo' : 'Seguir'}
+                    iconName={isFollowing ? 'checkmark' : 'add'}
+                    onPress={() => setIsFollowing((current) => !current)}
+                  />
+                  {hasLink ? <ActionButton isCircular iconName="link-outline" /> : null}
+                  <ActionButton iconName="notifications-outline" isCircular />
+                </>
+              )
+            ) : null}
+          </View>
+        </ScrollView>
+      ) : null}
     </View>
   );
 }

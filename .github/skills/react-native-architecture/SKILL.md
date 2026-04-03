@@ -1,6 +1,10 @@
 ---
 name: react-native-architecture
 description: Build production React Native apps with Expo, navigation, native modules, offline sync, and cross-platform patterns. Use when developing mobile apps, implementing native integrations, or architecting React Native projects.
+argument-hint: "Provide specific questions about React Native architecture, Expo features, navigation patterns, native module integration, offline-first strategies, or performance optimization. For example: 'How do I set up Expo Router for nested navigation?' or 'What are best practices for offline data sync in React Native?'"
+compatibility: 'Use this skill for any React Native project, especially those using Expo. Ideal for developers looking to implement modern architecture patterns, optimize performance, or integrate native features in their mobile apps.'
+disable-model-invocation: false
+user-invocable: true
 ---
 
 # React Native Architecture

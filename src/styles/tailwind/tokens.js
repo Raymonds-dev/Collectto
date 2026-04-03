@@ -121,7 +121,7 @@ const gradients = {
 };
 
 const fontFamily = {
-  logo: ['PoetsenOne', 'System'],
+  logo: ['PoetsenOne-Regular', 'System'],
   sans: ['Inter', 'System'],
   heading: ['Inter', 'System'],
   body: ['Inter', 'System'],

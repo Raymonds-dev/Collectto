@@ -156,3 +156,9 @@ npm run validate
 2. Inconsistencia de dependencias: rode `npm install` novamente.
 3. Erro de tipagem inesperado: rode `npm run type-check` isolado para focar no problema.
 4. Erro visual no NativeWind: confirme se o token existe em [src/styles/tailwind/tokens.js](src/styles/tailwind/tokens.js) e se [tailwind.config.js](tailwind.config.js) importa corretamente.
+
+## 14. Skills e quando usar
+
+1. `mock-centralization`: use quando houver mocks, fakes ou fixture data espalhados em telas, providers ou services, ou quando for preciso centralizar dados em [src/mocks](src/mocks).
+2. `react-native-architecture`: use quando a tarefa envolver Expo Router, navegacao, integracao nativa, state management, offline-first ou performance de app React Native.
+3. `ui-ux-pro-max`: use quando a tarefa envolver interface, layout, interacao, acessibilidade, animacoes, cores, tipografia ou refinamento visual.

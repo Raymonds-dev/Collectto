@@ -1,11 +1,14 @@
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
+import { useFonts } from 'expo-font';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
-import { useFonts } from 'expo-font';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+
+void SplashScreen.preventAutoHideAsync();
 
 function AuthGate() {
   const segments = useSegments();
@@ -34,9 +37,23 @@ function AuthGate() {
 }
 
 export default function RootLayout() {
-  useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     'PoetsenOne-Regular': require('../assets/fonts/PoetsenOne-Regular.ttf'),
   });
+
+  useEffect(() => {
+    if (fontError) {
+      throw fontError;
+    }
+
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync();
+    }
+  }, [fontError, fontsLoaded]);
+
+  if (!fontsLoaded && !fontError) {
+    return null;
+  }
 
   return (
     <SafeAreaProvider>

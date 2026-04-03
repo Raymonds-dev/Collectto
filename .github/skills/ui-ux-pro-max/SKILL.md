@@ -1,6 +1,10 @@
 ---
 name: ui-ux-pro-max
-description: 'UI/UX design intelligence for web and mobile. Includes 50+ styles, 161 color palettes, 57 font pairings, 161 product types, 99 UX guidelines, and 25 chart types across 10 stacks (React, Next.js, Vue, Svelte, SwiftUI, React Native, Flutter, Tailwind, shadcn/ui, and HTML/CSS). Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, and check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, and mobile app. Elements: button, modal, navbar, sidebar, card, table, form, and chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, and flat design. Topics: color systems, accessibility, animation, layout, typography, font pairing, spacing, interaction states, shadow, and gradient. Integrations: shadcn/ui MCP for component search and examples.'
+description: 'UI/UX design intelligence for web and mobile. Actions: plan, build, create, design, implement, review, fix, improve, optimize, enhance, refactor, and check UI/UX code. Projects: website, landing page, dashboard, admin panel, e-commerce, SaaS, portfolio, blog, and mobile app. Elements: button, modal, navbar, sidebar, card, table, form, and chart. Styles: glassmorphism, claymorphism, minimalism, brutalism, neumorphism, bento grid, dark mode, responsive, skeuomorphism, and flat design. Topics: color systems, accessibility, animation, layout, typography, font pairing, spacing, interaction states, shadow, and gradient. Integrations: shadcn/ui MCP for component search and examples.'
+argument-hint: "Ask specific questions about UI/UX design, style selection, interaction patterns, or visual consistency. For example: 'How do I choose a color palette for a fintech dashboard?' or 'What are best practices for mobile form design?'"
+compatibility: 'Use this skill for any web or mobile project involving user interfaces. Ideal for designers and developers looking to create polished, user-friendly, and visually consistent products across various styles and platforms.'
+disable-model-invocation: false
+user-invocable: true
 ---
 
 # UI/UX Pro Max - Design Intelligence

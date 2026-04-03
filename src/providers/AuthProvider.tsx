@@ -1,4 +1,9 @@
-import { clearSessionToken, getSessionToken, setSessionToken } from '@/services/authSession';
+import {
+  clearSessionToken,
+  getSessionToken,
+  setSessionToken,
+} from '@/services/storage/authSession';
+import { buildMockAuthUser, MOCK_AUTH_BOOTSTRAP_EMAIL, MOCK_AUTH_SESSION_TOKEN } from '@/mocks';
 import { AuthUser, Credentials } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -11,14 +16,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function buildUser(email: string): AuthUser {
-  return {
-    id: 'local-user',
-    email,
-    name: email.split('@')[0] || 'User',
-  };
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -29,7 +26,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await getSessionToken();
 
         if (token) {
-          setUser(buildUser('user@collectto.app'));
+          // TODO(api): validar token com backend e buscar perfil real do usuario autenticado.
+          setUser(buildMockAuthUser(MOCK_AUTH_BOOTSTRAP_EMAIL));
         }
       } finally {
         setIsLoading(false);
@@ -48,8 +46,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Preencha email e senha.');
         }
 
-        await setSessionToken('mock-session-token');
-        setUser(buildUser(credentials.email));
+        // TODO(api): substituir token mock por chamada real de login e armazenamento do access token.
+        await setSessionToken(MOCK_AUTH_SESSION_TOKEN);
+        setUser(buildMockAuthUser(credentials.email));
       },
       signOut: async () => {
         await clearSessionToken();

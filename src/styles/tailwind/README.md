@@ -55,6 +55,19 @@ import { gradients } from '@/styles/tailwind/tokens';
 />;
 ```
 
+## Motion System
+
+A documentacao de hooks, wrappers e exemplos de animacao esta em:
+
+- `src/hooks/useAnimation/README.md`
+
+Use esse guia para:
+
+- escolher presets semanticos;
+- combinar animacoes (fade + slide, scale + fade);
+- aplicar feedback de toque padronizado;
+- usar underline animado em tabs e filtros.
+
 ## Convencao recomendada
 
 - `brand-*`: identidade visual primaria e variacoes.

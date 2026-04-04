@@ -16,6 +16,9 @@ const colors = {
   neutral: {
     black: '#151515',
     white: '#F8F8F8',
+    gray1: '#D9D9D9',
+    gray2: '#A4A3A3',
+    gray3: '#7D7B7B',
   },
   surface: {
     base: '#F8F8F8',
@@ -117,8 +120,42 @@ const gradients = {
   darkBrandJourneyStops: [0, 0.35, 0.73, 1],
 };
 
+const motion = {
+  duration: {
+    instant: 120,
+    fast: 180,
+    normal: 280,
+    slow: 360,
+    pressIn: 120,
+    pressOut: 140,
+    shakeStep: 60,
+    none: 0,
+  },
+  distance: {
+    xs: 6,
+    sm: 12,
+    md: 24,
+    lg: 56,
+  },
+  scale: {
+    press: 0.97,
+    revealStart: 0.96,
+    popStart: 0.92,
+  },
+  opacity: {
+    pressed: 0.96,
+  },
+  stagger: {
+    fast: 40,
+    normal: 70,
+  },
+  underline: {
+    width: 40,
+  },
+};
+
 const fontFamily = {
-  logo: ['PoetsenOne', 'System'],
+  logo: ['PoetsenOne-Regular', 'System'],
   sans: ['Inter', 'System'],
   heading: ['Inter', 'System'],
   body: ['Inter', 'System'],
@@ -130,5 +167,6 @@ module.exports = {
   radius,
   shadow,
   gradients,
+  motion,
   fontFamily,
 };

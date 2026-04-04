@@ -1,4 +1,3 @@
-import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,6 +9,9 @@ import {
   Text,
   View,
 } from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import { usePressMotion } from '@/hooks/useAnimation';
 
 type ButtonVariant =
   | 'primary'
@@ -82,7 +84,7 @@ const hoverByVariant: Record<
   icon: 'bg-brand-200',
 };
 
-const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+const ReanimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 function normalizeVariant(
   variant: ButtonVariant
@@ -119,8 +121,11 @@ export function Button({
   const isIconButton = normalizedVariant === 'icon';
   const isDisabled = disabled || loading;
   const [isHovered, setIsHovered] = useState(false);
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(1);
+  const {
+    animatedStyle,
+    handlePressIn: animatePressIn,
+    handlePressOut: animatePressOut,
+  } = usePressMotion();
 
   const baseContainerClasses =
     'flex-row items-center justify-center rounded-2xl active:opacity-90 disabled:opacity-50';
@@ -134,20 +139,13 @@ export function Button({
       ? '#151515'
       : '#F8F8F8';
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
   function handlePressIn(event: GestureResponderEvent) {
-    scale.value = withTiming(0.97, { duration: 120 });
-    opacity.value = withTiming(0.96, { duration: 120 });
+    animatePressIn();
     onPressIn?.(event);
   }
 
   function handlePressOut(event: GestureResponderEvent) {
-    scale.value = withTiming(1, { duration: 140 });
-    opacity.value = withTiming(1, { duration: 140 });
+    animatePressOut();
     onPressOut?.(event);
   }
 
@@ -170,7 +168,7 @@ export function Button({
   const hoverClass = isHovered ? hoverByVariant[normalizedVariant] : '';
 
   return (
-    <AnimatedPressable
+    <ReanimatedPressable
       accessibilityLabel={accessibilityLabel ?? label ?? 'Botao'}
       accessibilityRole="button"
       disabled={isDisabled}
@@ -197,6 +195,6 @@ export function Button({
           )}
         </>
       )}
-    </AnimatedPressable>
+    </ReanimatedPressable>
   );
 }

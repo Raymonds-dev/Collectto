@@ -1,5 +1,10 @@
 import api from '@/services/api';
-import { clearSessionToken, getSessionToken, setSessionToken } from '@/services/authSession';
+import {
+  clearSessionToken,
+  getSessionToken,
+  setSessionToken,
+} from '@/services/storage/authSession';
+import { buildMockAuthUser, MOCK_AUTH_BOOTSTRAP_EMAIL, MOCK_AUTH_SESSION_TOKEN } from '@/mocks';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
@@ -14,14 +19,6 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function buildUser(email: string): AuthUser {
-  return {
-    id: 'local-user',
-    email,
-    name: email.split('@')[0] || 'User',
-  };
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -33,7 +30,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (token) {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          setUser(buildUser('user@collectto.app'));
+          // TODO: Conflito de merge - revisar lógica duplicada
+          // --- Lógica da sua branch ---
+          // ao encontrar token, reaplica o header Authorization para chamadas protegidas.
+          // --- Lógica da branch develop ---
+          // usa usuário mock no bootstrap enquanto a API de perfil não está integrada.
+          setUser(buildMockAuthUser(MOCK_AUTH_BOOTSTRAP_EMAIL));
         }
       } finally {
         setIsLoading(false);
@@ -53,17 +55,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error('Preencha email e senha.');
           }
 
-          //Requisição
-          const { data } = await api.post('auth/login', credentials);
-          const { accessToken } = data;
+          try {
+            const { data } = await api.post('auth/login', credentials);
+            const { accessToken } = data;
 
-          await setSessionToken(accessToken); //Token Armazenado
+            await setSessionToken(accessToken);
+            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+            setUser(buildMockAuthUser(credentials.email));
+          } catch (error: any) {
+            // TODO: Conflito de merge - revisar lógica duplicada
+            // --- Lógica da sua branch ---
+            // tentativa de autenticação real via backend.
+            // --- Lógica da branch develop ---
+            // fallback para sessão mock enquanto integração de API estiver em evolução.
+            await setSessionToken(MOCK_AUTH_SESSION_TOKEN);
+            setUser(buildMockAuthUser(credentials.email));
 
-          //Coloca o token para outras requisições
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-
-          //Usuario
-          setUser(buildUser(credentials.email));
+            if (error instanceof AxiosError && error.response) {
+              throw new Error(error.response.data.message || 'Credenciais inválidas.');
+            }
+            throw error;
+          }
         } catch (error: any) {
           if (error instanceof AxiosError && error.response) {
             throw new Error(error.response.data.message || 'Credenciais inválidas.');

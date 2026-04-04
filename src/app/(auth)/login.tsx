@@ -1,5 +1,5 @@
+import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -27,27 +27,26 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 items-center bg-white px-6 pt-10">
-      {/*Espaço do título e imagem collectto*/}
-      <View className="mb-10 items-center">
+    <View className="items-center flex-1 px-6 pt-10 bg-white">
+      <View className="items-center mb-10">
         <Image source={require('@/assets/logo.png')} className="h-45 w-45" resizeMode="contain" />
-        <Text className="mt-8 font-poetsenone text-3xl text-black">Faça Login</Text>
+        <Text className="mt-8 text-3xl font-bold text-black font-poetsenone">Faça Login</Text>
       </View>
 
-      <View className="w-full max-w-md rounded-2xl p-6 ">
+      <View className="w-full max-w-md p-6 rounded-2xl ">
         <TextInput
           autoCapitalize="none"
-          className="mt-15 rounded-xl bg-black px-4 py-4 font-poetsenone text-base text-xl"
+          className="px-4 py-4 text-xl text-white bg-black mt-15 rounded-xl font-poetsenone"
           onChangeText={setEmail}
-          placeholder="NOME DE USUARIO"
+          placeholder="E-mail"
           placeholderTextColor="#D9D9D9"
           value={email}
         />
 
         <TextInput
-          className="mt-10 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl"
+          className="px-4 py-4 mt-10 text-xl text-white bg-black rounded-xl font-poetsenone"
           onChangeText={setPassword}
-          placeholder="SENHA"
+          placeholder="Senha"
           placeholderTextColor="#D9D9D9"
           secureTextEntry
           value={password}
@@ -57,16 +56,19 @@ export default function LoginScreen() {
 
         <View className="items-center">
           <Pressable
-            className="mb-6 mt-10 w-32 items-center rounded-xl bg-orange-500 px-6 py-3 text-4xl "
+            className="items-center w-32 px-5 py-4 mt-10 mb-6 text-4xl bg-orange-500 rounded-xl active:bg-black"
             disabled={isSubmitting}
             onPress={handleLogin}>
-            <Text className="font-poetsenone text-base text-white">
+            <Text className="text-base text-white font-poetsenone">
               {isSubmitting ? 'Entrando...' : 'Entrar'}
             </Text>
           </Pressable>
 
-          <Text className="font-bold-PoetsenOne mt-8 font-poetsenone text-2xl text-black">
-            Não tem conta? Cadastre-se
+          <Text className="mt-8 text-2xl font-bold text-black font-poetsenone">
+            Não tem conta?{' '}
+            <Link href="/(auth)/user_create" className="text-orange-500 font-poetsenone">
+              Cadastre-se
+            </Link>
           </Text>
         </View>
       </View>

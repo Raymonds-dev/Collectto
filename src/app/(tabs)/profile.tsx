@@ -3,7 +3,7 @@ import { ProfileHashtagFilter } from '@/components/profile-hashtag-filter/Profil
 import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { OptionsBar, OptionsBarOption } from '@/components/ui/OptionsBar';
 import { useAuth } from '@/hooks/useAuth';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
@@ -30,16 +30,10 @@ const profileOptions: OptionsBarOption[] = [
 ];
 
 export default function ProfileScreen() {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
 
   return (
     <ScrollView className="flex-1 bg-surface-base" contentContainerClassName="pb-8">
-      <Pressable
-        onPress={signOut}
-        className="absolute right-5 top-10 z-10 rounded-lg bg-red-100 p-3">
-        <Text className="font-bold text-red-600">Sair (Dev)</Text>
-      </Pressable>
-
       <View className="flex-1 bg-surface-base">
         <ProfileHeader isOwner={true} bannerImage={MOCK_PROFILE_BANNER_URI} />
         <ProfileInfo

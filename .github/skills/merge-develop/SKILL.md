@@ -12,15 +12,19 @@ O princípio fundamental é **não apagar nenhuma lógica de negócio**. Se um c
 ## Passo a Passo
 
 ### 1. Verificação do Estado Atual
+
 - A skill verificará se há alterações não commitadas no seu repositório para garantir um merge limpo.
 
 ### 2. Fetch das Últimas Alterações
+
 - Executará `git fetch origin` para garantir que todas as referências remotas estejam atualizadas.
 
 ### 3. Merge da Branch 'develop'
+
 - A branch `develop` será mesclada na sua branch atual com o comando `git merge origin/develop`.
 
 ### 4. Análise de Conflitos
+
 - Se houver conflitos, a skill analisará os arquivos conflitantes.
 - **Conflitos simples**: Serão resolvidos automaticamente quando possível.
 - **Conflitos de lógica**: A skill identificará blocos de código conflitantes. Em vez de apagar uma das versões, ela combinará ambas e adicionará um comentário, como:
@@ -33,7 +37,9 @@ O princípio fundamental é **não apagar nenhuma lógica de negócio**. Se um c
   ```
 
 ### 5. Análise de Novas Funcionalidades
+
 - Após o merge (e a resolução dos conflitos), a skill analisará o `git diff` para apresentar um resumo das novas funcionalidades e alterações que foram integradas da `develop`.
 
 ### 6. Finalização
+
 - Ao final, você terá um resumo do que foi feito e uma lista de `TODOs` para os conflitos que precisam de revisão manual.

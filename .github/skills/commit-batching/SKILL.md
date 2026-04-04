@@ -1,6 +1,6 @@
 ---
 name: commit-batching
-description: 'Padronize commits Git com boas praticas: analise o diff completo, agrupe mudancas por assunto, valide qualidade antes de commitar, escreva mensagens claras e publique os commits agrupados com push organizado. Use quando precisar separar alteracoes grandes em commits relevantes, revisar historico de branch e publicar mudancas com fluxo consistente.'
+description: 'Padronize commits Git com boas praticas: analise o diff completo, agrupe mudancas por assunto, valide qualidade antes de commitar, escreva mensagens claras em portugues e publique os commits agrupados com push organizado. Use quando precisar separar alteracoes grandes em commits relevantes, revisar historico de branch e publicar mudancas com fluxo consistente.'
 argument-hint: 'Qual branch/escopo devo analisar e como voce quer agrupar os commits (por camada, feature, fix, chore)?'
 user-invocable: true
 compatibility: 'Github MCP, terminal'
@@ -74,9 +74,14 @@ Skill para transformar um conjunto grande de alteracoes em um historico de commi
   - `refactor: ...`
   - `feat: ...`
   - `fix: ...`
+- Escrever o texto do commit em portugues (pt-BR).
 - Regra pratica:
   - titulo: objetivo principal;
   - corpo (opcional): contexto, risco, migracao.
+- Exemplos recomendados:
+  - `feat: adiciona fluxo de colecoes no perfil`
+  - `fix: corrige validacao de campos no login`
+  - `chore: atualiza configuracao do lint`
 
 7. Verificacao final e publicacao
 

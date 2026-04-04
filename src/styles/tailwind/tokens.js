@@ -120,6 +120,40 @@ const gradients = {
   darkBrandJourneyStops: [0, 0.35, 0.73, 1],
 };
 
+const motion = {
+  duration: {
+    instant: 120,
+    fast: 180,
+    normal: 280,
+    slow: 360,
+    pressIn: 120,
+    pressOut: 140,
+    shakeStep: 60,
+    none: 0,
+  },
+  distance: {
+    xs: 6,
+    sm: 12,
+    md: 24,
+    lg: 56,
+  },
+  scale: {
+    press: 0.97,
+    revealStart: 0.96,
+    popStart: 0.92,
+  },
+  opacity: {
+    pressed: 0.96,
+  },
+  stagger: {
+    fast: 40,
+    normal: 70,
+  },
+  underline: {
+    width: 40,
+  },
+};
+
 const fontFamily = {
   logo: ['PoetsenOne-Regular', 'System'],
   sans: ['Inter', 'System'],
@@ -133,5 +167,6 @@ module.exports = {
   radius,
   shadow,
   gradients,
+  motion,
   fontFamily,
 };

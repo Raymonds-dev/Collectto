@@ -4,12 +4,13 @@ import {
   FlatList,
   Image,
   type ImageStyle,
-  Pressable,
   StyleSheet,
   Text,
   useWindowDimensions,
   View,
 } from 'react-native';
+
+import { AnimatedPressable } from '@/components/ui/animated';
 
 export type CollectionGridItem = {
   id?: string;
@@ -47,35 +48,41 @@ export function CollectionItemsGrid({ items, onPressItem }: CollectionItemsGridP
         renderItem={({ item, index }) => {
           const imageStack = item.images.slice(0, ITEM_STACK_LIMIT);
           const mainImage = imageStack[0] ?? MOCK_ITEMS_PLACEHOLDER_IMAGE;
+          const itemName = item.title ?? `Item ${index + 1}`;
 
           return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Abrir item ${item.title ?? index + 1}`}
-              onPress={() => onPressItem(item, index)}
-              style={{ width: cardSize }}
-              className="relative aspect-square">
-              {imageStack.length > 2 ? (
-                <Image
-                  source={{ uri: imageStack[2] }}
-                  style={styles.stackDeep}
-                  className="absolute h-full w-full rounded-[18px] bg-surface-muted"
-                />
-              ) : null}
+            <View style={{ width: cardSize }} className="gap-1.5 pb-1">
+              <AnimatedPressable
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir item ${itemName}`}
+                onPress={() => onPressItem(item, index)}
+                className="mt-5 aspect-square">
+                {imageStack.length > 2 ? (
+                  <Image
+                    source={{ uri: imageStack[2] }}
+                    style={styles.stackDeep}
+                    className="absolute h-full w-full rounded-[18px] bg-surface-muted"
+                  />
+                ) : null}
 
-              {imageStack.length > 1 ? (
-                <Image
-                  source={{ uri: imageStack[1] }}
-                  style={styles.stackMiddle}
-                  className="absolute h-full w-full rounded-[18px] bg-surface-muted"
-                />
-              ) : null}
+                {imageStack.length > 1 ? (
+                  <Image
+                    source={{ uri: imageStack[1] }}
+                    style={styles.stackMiddle}
+                    className="absolute h-full w-full rounded-[18px] bg-surface-muted"
+                  />
+                ) : null}
 
-              <Image
-                source={{ uri: mainImage }}
-                className="h-full w-full rounded-[18px] border border-surface-border bg-surface-muted"
-              />
-            </Pressable>
+                <Image
+                  source={{ uri: mainImage }}
+                  className="h-full w-full rounded-[18px] border border-surface-border bg-surface-muted"
+                />
+              </AnimatedPressable>
+
+              <Text numberOfLines={1} className="text-center font-body text-[11px] text-text-muted">
+                {itemName}
+              </Text>
+            </View>
           );
         }}
         ListEmptyComponent={

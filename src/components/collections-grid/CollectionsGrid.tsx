@@ -28,7 +28,7 @@ type CollectionsGridProps = {
 };
 
 const GRID_HORIZONTAL_PADDING = 16;
-const GRID_GAP = 10;
+const GRID_GAP = 5;
 
 const FALLBACK_STACK_COLORS = [
   tokens.colors.neutral.gray1,
@@ -79,42 +79,45 @@ export function CollectionsGrid({
   }
 
   return (
-    <View className="px-4 pt-5">
+    <View className="items-center justify-center">
       <FlatList
         data={collections}
         keyExtractor={(item) => item.id}
         numColumns={3}
         scrollEnabled={false}
-        columnWrapperStyle={{ gap: GRID_GAP }}
-        contentContainerStyle={{ gap: GRID_GAP }}
         renderItem={({ item, index }) => {
           const image1 = item.images[0];
           const image2 = item.images[1];
           const image3 = item.images[2];
 
           return (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Abrir colecao ${index + 1}`}
-              onPress={() => handleOpenCollection(item.id)}
-              style={{ width: cardSize }}
-              className="relative aspect-square items-center justify-center">
-              <CollectionStackLayer
-                imageUri={image3}
-                fallbackColor={FALLBACK_STACK_COLORS[2]}
-                style={styles.layer3}
-              />
-              <CollectionStackLayer
-                imageUri={image2}
-                fallbackColor={FALLBACK_STACK_COLORS[1]}
-                style={styles.layer2}
-              />
-              <CollectionStackLayer
-                imageUri={image1}
-                fallbackColor={FALLBACK_STACK_COLORS[0]}
-                style={styles.layer1}
-              />
-            </Pressable>
+            <View style={{ width: cardSize }} className="pb-1 ">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Abrir colecao ${index + 1}`}
+                onPress={() => handleOpenCollection(item.id)}
+                className="relative aspect-square items-center justify-center">
+                <CollectionStackLayer
+                  imageUri={image3}
+                  fallbackColor={FALLBACK_STACK_COLORS[2]}
+                  style={styles.layer3}
+                />
+                <CollectionStackLayer
+                  imageUri={image2}
+                  fallbackColor={FALLBACK_STACK_COLORS[1]}
+                  style={styles.layer2}
+                />
+                <CollectionStackLayer
+                  imageUri={image1}
+                  fallbackColor={FALLBACK_STACK_COLORS[0]}
+                  style={styles.layer1}
+                />
+              </Pressable>
+
+              <Text numberOfLines={1} className="text-center font-body text-xs text-text-muted">
+                {item.name}
+              </Text>
+            </View>
           );
         }}
       />
@@ -143,8 +146,8 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '78%',
     height: '78%',
-    left: '11%',
-    top: '11%',
+    left: '0%',
+    top: '12%',
     borderRadius: 20,
     overflow: 'hidden',
     borderWidth: 1,

@@ -1,5 +1,8 @@
 import { cloneElement, isValidElement, ReactElement, useEffect, useMemo, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import Animated from 'react-native-reanimated';
+
+import { useUnderlineSlideMotion } from '@/hooks/useAnimation';
 
 export type OptionsBarOption = {
   key: string;
@@ -41,6 +44,20 @@ function DefaultTabContent({ activeTab }: { activeTab: string }) {
 export function OptionsBar({ options, renderContent }: OptionsBarProps) {
   const firstKey = useMemo(() => options[0]?.key ?? '', [options]);
   const [activeTab, setActiveTab] = useState(firstKey);
+  const [tabsWidth, setTabsWidth] = useState(0);
+  const activeIndex = useMemo(
+    () =>
+      Math.max(
+        0,
+        options.findIndex((option) => option.key === activeTab)
+      ),
+    [activeTab, options]
+  );
+  const { animatedStyle: underlineStyle } = useUnderlineSlideMotion({
+    activeIndex,
+    itemCount: options.length,
+    containerWidth: tabsWidth,
+  });
 
   useEffect(() => {
     if (!options.some((option) => option.key === activeTab)) {
@@ -54,7 +71,11 @@ export function OptionsBar({ options, renderContent }: OptionsBarProps) {
 
   return (
     <View className="w-full">
-      <View className="w-full flex-row items-center">
+      <View
+        className="w-full flex-row items-center"
+        onLayout={(event) => {
+          setTabsWidth(event.nativeEvent.layout.width);
+        }}>
         {options.map((option) => {
           const isActive = option.key === activeTab;
           const iconColor = isActive ? option.icon.active_color : option.icon.inactive_color;
@@ -77,16 +98,16 @@ export function OptionsBar({ options, renderContent }: OptionsBarProps) {
               <View className="h-9 w-9 items-center justify-center rounded-full bg-transparent">
                 {iconNode}
               </View>
-
-              {isActive ? (
-                <View
-                  className="absolute bottom-0 h-[2px] w-10 rounded-full"
-                  style={{ backgroundColor: option.icon.active_color }}
-                />
-              ) : null}
             </Pressable>
           );
         })}
+
+        {options[activeIndex] ? (
+          <Animated.View
+            className="absolute bottom-0 h-[2px] w-10 rounded-full"
+            style={[{ backgroundColor: options[activeIndex].icon.active_color }, underlineStyle]}
+          />
+        ) : null}
       </View>
 
       <View className="h-px w-full bg-surface-border" />

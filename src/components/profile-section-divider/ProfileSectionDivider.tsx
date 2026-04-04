@@ -20,7 +20,7 @@ export function ProfileSectionDivider() {
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
         style={styles.topBorderShell}>
-        <View className="mt-[4px] h-[12px] w-full rounded-t-full bg-surface-base shadow-card" />
+        <View className="mt-[4px] h-[12px] w-full rounded-t-full bg-surface-base" />
       </LinearGradient>
     </View>
   );

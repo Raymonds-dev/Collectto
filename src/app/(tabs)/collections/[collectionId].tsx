@@ -1,7 +1,23 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Modal, Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { useCallback, useMemo, useState } from 'react';
+import {
+  BackHandler,
+  Pressable,
+  ScrollView,
+  Share,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import Animated, {
+  Extrapolation,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 
 import {
   type CollectionGridItem,
@@ -37,7 +53,7 @@ type CollectionViewScreenProps = {
 function getDefaultCollectionData(collectionId: string): CollectionViewScreenProps {
   return {
     isOwner: false,
-    collectionTitle: `Colecao ${collectionId}`,
+    collectionTitle: `${collectionId}`,
     items: MOCK_COLLECTION_ITEMS,
     profile: MOCK_COLLECTION_PROFILE,
     isFollowing: MOCK_COLLECTION_IS_FOLLOWING,
@@ -52,9 +68,64 @@ export function CollectionViewScreen({
   isFollowing,
 }: CollectionViewScreenProps) {
   const router = useRouter();
+  const { height } = useWindowDimensions();
   const [following, setFollowing] = useState(isFollowing);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [selectedItem, setSelectedItem] = useState<CollectionGridItem | null>(null);
+  const scrollY = useSharedValue(0);
+  const collapseDistance = Math.max(height * 0.3, 180);
+
+  const collapseScrollHandler = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+
+  const headerMotionStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, collapseDistance * 0.45, collapseDistance],
+      [1, 0.45, 0],
+      Extrapolation.CLAMP
+    );
+    const translateY = interpolate(
+      scrollY.value,
+      [0, collapseDistance],
+      [0, -28],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity,
+      transform: [{ translateY }],
+    };
+  });
+
+  const itemMotionStyle = useAnimatedStyle(() => {
+    const opacity = interpolate(
+      scrollY.value,
+      [0, collapseDistance],
+      [0.92, 1],
+      Extrapolation.CLAMP
+    );
+    const translateY = interpolate(
+      scrollY.value,
+      [0, collapseDistance],
+      [20, 0],
+      Extrapolation.CLAMP
+    );
+    const scale = interpolate(
+      scrollY.value,
+      [0, collapseDistance],
+      [0.986, 1],
+      Extrapolation.CLAMP
+    );
+
+    return {
+      opacity,
+      transform: [{ translateY }, { scale }],
+    };
+  });
 
   const activeItem = useMemo(() => {
     if (!selectedItem) {
@@ -73,78 +144,95 @@ export function CollectionViewScreen({
     };
   }, [collectionTitle, selectedItem]);
 
-  async function handleShareCollection() {
+  const handleShareCollection = useCallback(async () => {
     await Share.share({
       message: `${collectionTitle} no Collectto`,
     });
-  }
+  }, [collectionTitle]);
+
+  const handleOpenItem = useCallback((item: CollectionGridItem) => {
+    setSelectedItem(item);
+  }, []);
+
+  const handleCloseItem = useCallback(() => {
+    setSelectedItem(null);
+  }, []);
+
+  const handleBackPress = useCallback(() => {
+    if (selectedItem) {
+      handleCloseItem();
+      return;
+    }
+
+    router.back();
+  }, [handleCloseItem, router, selectedItem]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (selectedItem) {
+          handleCloseItem();
+          return true;
+        }
+
+        return false;
+      });
+
+      return () => {
+        subscription.remove();
+      };
+    }, [handleCloseItem, selectedItem])
+  );
 
   return (
     <View className="flex-1 bg-surface-base">
-      <ScrollView className="flex-1" contentContainerClassName="pb-8">
-        <View className="px-4 pb-2 pt-4">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Voltar"
-            onPress={() => router.push('/(tabs)/profile')}
-            className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
-            <Ionicons name="chevron-back" size={20} color={tokens.colors.text.base} />
-          </Pressable>
-        </View>
+      <View className="px-4 pb-2 pt-4">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={selectedItem ? 'Voltar para itens da colecao' : 'Voltar'}
+          onPress={handleBackPress}
+          className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
+          <Ionicons
+            name={selectedItem ? 'close' : 'chevron-back'}
+            size={20}
+            color={tokens.colors.text.base}
+          />
+        </Pressable>
+      </View>
 
-        <ProfileInfo
-          isOwner={isOwner}
-          profileImage={profile.profileImage}
-          name={profile.name}
-          username={profile.username}
-          bio={profile.bio}
-          showActions={false}
-          showStats={false}
-        />
+      {selectedItem && activeItem ? (
+        <Animated.ScrollView
+          className="flex-1"
+          contentContainerClassName="pb-8"
+          onScroll={collapseScrollHandler}
+          scrollEventThrottle={16}
+          showsVerticalScrollIndicator={false}>
+          <Animated.View style={headerMotionStyle}>
+            <ProfileInfo
+              isOwner={isOwner}
+              profileImage={profile.profileImage}
+              name={profile.name}
+              username={profile.username}
+              bio={profile.bio}
+              showActions={false}
+              showStats={false}
+            />
 
-        <ProfileActionsBar
-          isOwner={isOwner}
-          isFollowing={following}
-          onFollowToggle={() => setFollowing((current) => !current)}
-          onShare={() => {
-            void handleShareCollection();
-          }}
-          onNotificationPress={() => setIsNotificationsEnabled((current) => !current)}
-        />
+            <ProfileActionsBar
+              isOwner={isOwner}
+              isFollowing={following}
+              onFollowToggle={() => setFollowing((current) => !current)}
+              onShare={() => {
+                void handleShareCollection();
+              }}
+              onNotificationPress={() => setIsNotificationsEnabled((current) => !current)}
+            />
+          </Animated.View>
 
-        <ProfileSectionDivider />
+          <ProfileSectionDivider />
 
-        <View className="px-4 pt-6">
-          <Text className="text-center font-poetsenone text-4xl leading-[42px] text-text-base">
-            {collectionTitle}
-          </Text>
-        </View>
-
-        <CollectionItemsGrid
-          items={items}
-          onPressItem={(item) => {
-            setSelectedItem(item);
-          }}
-        />
-      </ScrollView>
-
-      <Modal
-        visible={Boolean(activeItem)}
-        animationType="slide"
-        onRequestClose={() => setSelectedItem(null)}>
-        <View className="flex-1 bg-surface-base">
-          <View className="px-4 pb-1 pt-5">
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Fechar detalhe do item"
-              onPress={() => setSelectedItem(null)}
-              className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
-              <Ionicons name="close" size={20} color={tokens.colors.text.base} />
-            </Pressable>
-          </View>
-
-          <ScrollView className="flex-1" contentContainerClassName="pb-8">
-            {activeItem ? (
+          <Animated.View style={itemMotionStyle}>
+            <View className="rounded-t-full bg-surface-base">
               <ItemCollection
                 title={activeItem.title}
                 images={activeItem.images}
@@ -153,10 +241,47 @@ export function CollectionViewScreen({
                 description={activeItem.description}
                 characteristics={activeItem.characteristics}
               />
-            ) : null}
-          </ScrollView>
-        </View>
-      </Modal>
+            </View>
+          </Animated.View>
+        </Animated.ScrollView>
+      ) : (
+        <ScrollView className="flex-1" contentContainerClassName="pb-8">
+          <ProfileInfo
+            isOwner={isOwner}
+            profileImage={profile.profileImage}
+            name={profile.name}
+            username={profile.username}
+            bio={profile.bio}
+            showActions={false}
+            showStats={false}
+          />
+
+          <ProfileActionsBar
+            isOwner={isOwner}
+            isFollowing={following}
+            onFollowToggle={() => setFollowing((current) => !current)}
+            onShare={() => {
+              void handleShareCollection();
+            }}
+            onNotificationPress={() => setIsNotificationsEnabled((current) => !current)}
+          />
+
+          <ProfileSectionDivider />
+
+          <View className="px-4 pb-2 pt-6">
+            <Text className="text-center font-poetsenone text-4xl leading-[42px] text-brand-primary">
+              {collectionTitle}
+            </Text>
+          </View>
+
+          <CollectionItemsGrid
+            items={items}
+            onPressItem={(item) => {
+              handleOpenItem(item);
+            }}
+          />
+        </ScrollView>
+      )}
 
       {isNotificationsEnabled ? (
         <View className="absolute bottom-6 left-4 right-4 rounded-xl border border-surface-border bg-surface-card px-4 py-3">

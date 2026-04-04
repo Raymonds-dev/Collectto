@@ -1,6 +1,6 @@
 ---
 name: commit-batching
-description: 'Padronize commits Git com boas praticas: analise o diff completo, agrupe mudancas por assunto, valide qualidade antes de commitar, escreva mensagens claras e publique os commits agrupados com push organizado. Use quando precisar separar alteracoes grandes em commits relevantes, revisar historico de branch, preparar PR e gerar resumo de commits via MCP GitHub.'
+description: 'Padronize commits Git com boas praticas: analise o diff completo, agrupe mudancas por assunto, valide qualidade antes de commitar, escreva mensagens claras e publique os commits agrupados com push organizado. Use quando precisar separar alteracoes grandes em commits relevantes, revisar historico de branch e publicar mudancas com fluxo consistente.'
 argument-hint: 'Qual branch/escopo devo analisar e como voce quer agrupar os commits (por camada, feature, fix, chore)?'
 user-invocable: true
 compatibility: 'Github MCP, terminal'
@@ -16,14 +16,12 @@ Skill para transformar um conjunto grande de alteracoes em um historico de commi
 - Ha muitas mudancas misturadas no working tree.
 - Voce quer dividir em commits por intencao (infra, refactor, feature, docs).
 - Voce precisa revisar commits ja feitos e reagrupa-los em blocos logicos.
-- Voce quer um resumo de PR baseado nos commits da branch.
 
 ## Resultado esperado
 
 - Commits pequenos a medios, cada um com um objetivo claro.
 - Mensagens de commit consistentes e orientadas a impacto.
 - Branch validada antes do push, com commits agrupados ja publicados no remoto.
-- Resumo final da branch pronto para PR.
 
 ## Fluxo padrao
 
@@ -110,31 +108,9 @@ Skill para transformar um conjunto grande de alteracoes em um historico de commi
 - [ ] Cada commit tem um unico proposito.
 - [ ] Mensagens de commit estao claras e semanticas.
 - [ ] Branch foi publicada sem erros.
-- [ ] Resumo de commits para PR foi gerado.
-
-## Resumo de PR com MCP GitHub (opcional)
-
-1. Identificar PR aberto da branch
-
-- Buscar PR por head branch no repositorio.
-
-2. Se houver PR aberto
-
-- Coletar ultimos commits e escopo por commit.
-- Publicar resumo unico consolidado como comentario de review (`COMMENT`) com:
-  - objetivo da branch;
-  - lista de commits (hash curto + titulo);
-  - agrupamento logico por tipo (`feat`, `fix`, `refactor`, `chore`, `docs`);
-  - principais areas alteradas;
-  - status da validacao.
-
-3. Se nao houver PR aberto
-
-- Informar bloqueio claramente.
-- Sugerir abrir PR primeiro e depois publicar resumo.
 
 ## Prompt examples
 
 - `Use /commit-batching para analisar minha branch e separar em commits relevantes por tema.`
 - `Use /commit-batching e publique os commits agrupados em chore, refactor e feat.`
-- `Use /commit-batching para revisar, publicar os commits agrupados e gerar um resumo pronto para comentario de PR.`
+- `Use /commit-batching para revisar e publicar os commits agrupados com push na branch atual.`

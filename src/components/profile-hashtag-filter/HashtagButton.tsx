@@ -1,4 +1,6 @@
-import { Pressable, Text } from 'react-native';
+import { Text } from 'react-native';
+
+import { AnimatedPressable } from '@/components/ui/animated';
 
 type HashtagButtonProps = {
   label: string;
@@ -8,14 +10,15 @@ type HashtagButtonProps = {
 
 export function HashtagButton({ label, isSelected, onPress }: HashtagButtonProps) {
   return (
-    <Pressable
+    <AnimatedPressable
       accessibilityRole="button"
+      accessibilityLabel={`Filtrar por hashtag ${label}`}
       onPress={onPress}
-      className={`rounded-full border px-3 py-1 ${isSelected ? 'border-brand-primary bg-brand-primary' : 'border-surface-border bg-surface-card'} active:opacity-80`}>
+      className={`rounded-full border px-3 py-1 ${isSelected ? 'border-brand-primary bg-brand-primary' : 'border-surface-border bg-surface-card'}`}>
       <Text
         className={`text-sm font-semibold ${isSelected ? 'text-text-inverse' : 'text-text-base'}`}>
         {label}
       </Text>
-    </Pressable>
+    </AnimatedPressable>
   );
 }

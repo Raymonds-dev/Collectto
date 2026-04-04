@@ -57,10 +57,15 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'right', 'bottom', 'left']} className="flex-1 bg-surface-base">
+      <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
         <AuthProvider>
           <AuthGate />
-          <Stack screenOptions={{ headerShown: false }}>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              animation: 'fade',
+              gestureEnabled: true,
+            }}>
             <Stack.Screen name="(auth)" />
             <Stack.Screen name="(tabs)" />
           </Stack>

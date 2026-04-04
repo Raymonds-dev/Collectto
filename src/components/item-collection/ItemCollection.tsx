@@ -6,7 +6,6 @@ import {
   Image,
   type ImageStyle,
   Modal,
-  Pressable,
   StyleSheet,
   Text,
   type TextLayoutEvent,
@@ -14,6 +13,7 @@ import {
   View,
 } from 'react-native';
 
+import { AnimatedPressable } from '@/components/ui/animated';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 type ItemCharacteristic = {
@@ -102,7 +102,7 @@ export function ItemCollection({
 
   return (
     <View className="w-full gap-5 px-5 py-6">
-      <Text className="text-center font-poetsenone text-[30px] leading-[34px] text-text-base">
+      <Text className="text-center font-poetsenone text-[30px] leading-[34px] text-brand-primary">
         {title}
       </Text>
 
@@ -114,7 +114,7 @@ export function ItemCollection({
             {imageStack.length > 2 ? renderStackLayer(imageStack[2], 2) : null}
             {imageStack.length > 1 ? renderStackLayer(imageStack[1], 1) : null}
 
-            <Pressable
+            <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel={`Abrir galeria de ${title}`}
               onPress={() => handleOpenGallery(0)}
@@ -124,7 +124,7 @@ export function ItemCollection({
                 resizeMode="cover"
                 className="h-full w-full"
               />
-            </Pressable>
+            </AnimatedPressable>
           </View>
         </View>
       </View>
@@ -150,14 +150,15 @@ export function ItemCollection({
         </Text>
 
         {hasDescriptionOverflow ? (
-          <Pressable
+          <AnimatedPressable
             accessibilityRole="button"
+            accessibilityLabel={isDescriptionExpanded ? 'Recolher descricao' : 'Expandir descricao'}
             onPress={() => setIsDescriptionExpanded((current) => !current)}
             className="self-start py-1">
             <Text className="font-poetsenone text-xs text-brand-primary">
               {isDescriptionExpanded ? 'ver menos' : 'ver mais'}
             </Text>
-          </Pressable>
+          </AnimatedPressable>
         ) : null}
       </View>
 
@@ -183,13 +184,13 @@ export function ItemCollection({
         }}
         onRequestClose={() => setIsGalleryOpen(false)}>
         <View className="flex-1 bg-overlay-scrim">
-          <Pressable
+          <AnimatedPressable
             accessibilityRole="button"
             accessibilityLabel="Fechar galeria"
             onPress={() => setIsGalleryOpen(false)}
             className="absolute right-6 top-16 z-10 rounded-full border border-surface-border bg-surface-card px-4 py-2">
             <Text className="font-poetsenone text-sm text-text-base">Fechar</Text>
-          </Pressable>
+          </AnimatedPressable>
 
           <FlatList
             ref={galleryListRef}

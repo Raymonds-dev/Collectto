@@ -1,5 +1,5 @@
 {
-  "name": "Collectto",
+  "name": "collectto",
   "version": "1.0.0",
   "scripts": {
     "android": "expo start --android",
@@ -16,7 +16,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
+    "@react-native-picker/picker": "2.11.1",
+    "axios": "1.14.0",
     "expo": "^54.0.0",
+    "expo-checkbox": "~5.0.8",
     "expo-constants": "~18.0.13",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.11",

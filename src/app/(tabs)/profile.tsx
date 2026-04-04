@@ -5,7 +5,6 @@ import { OptionsBar, OptionsBarOption } from '@/components/ui/OptionsBar';
 import { useAuth } from '@/hooks/useAuth';
 import { ScrollView, View } from 'react-native';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
-import React from 'react';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 import { CollectionsGrid } from '@/components/collections-grid/CollectionsGrid';

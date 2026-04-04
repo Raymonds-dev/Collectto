@@ -1,5 +1,5 @@
+import { Link, useRouter } from 'expo-router';
 import { useAuth } from '@/hooks/useAuth';
-import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Image, Pressable, Text, TextInput, View } from 'react-native';
 
@@ -30,7 +30,7 @@ export default function LoginScreen() {
     <View className="flex-1 items-center bg-white px-6 pt-10">
       <View className="mb-10 items-center">
         <Image source={require('@/assets/logo.png')} className="h-45 w-45" resizeMode="contain" />
-        <Text className="mt-8 font-poetsenone text-3xl text-black">Faça Login</Text>
+        <Text className="mt-8 font-poetsenone text-3xl font-bold text-black">Faça Login</Text>
       </View>
 
       <View className="w-full max-w-md rounded-2xl p-6 ">
@@ -64,8 +64,11 @@ export default function LoginScreen() {
             </Text>
           </Pressable>
 
-          <Text className="font-bold-PoetsenOne mt-8 font-poetsenone text-2xl text-black">
-            Não tem conta? Cadastre-se
+          <Text className="mt-8 font-poetsenone text-2xl font-bold text-black">
+            Não tem conta?{' '}
+            <Link href="/(auth)/user_create" className="font-poetsenone text-orange-500">
+              Cadastre-se
+            </Link>
           </Text>
         </View>
       </View>

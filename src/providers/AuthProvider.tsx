@@ -1,6 +1,6 @@
 import api from '@/services/api';
 import { clearSessionToken, getSessionToken, setSessionToken } from '@/services/authSession';
-import { AuthUser, Credentials } from '@/types/auth';
+import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 
@@ -9,6 +9,7 @@ interface AuthContextType {
   user: AuthUser | null;
   signIn: (credentials: Credentials) => Promise<void>;
   signOut: () => Promise<void>;
+  signUp: (data: RegisterData) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -54,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           //Requisição
           const { data } = await api.post('auth/login', credentials);
-          const { accessToken } = data.data;
+          const { accessToken } = data;
 
           await setSessionToken(accessToken); //Token Armazenado
 
@@ -68,6 +69,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error(error.response.data.message || 'Credenciais inválidas.');
           }
           throw new Error('Falha no login');
+        }
+      },
+
+      signUp: async (registerData: RegisterData) => {
+        try {
+          if (
+            !registerData.email ||
+            !registerData.password ||
+            !registerData.name ||
+            !registerData.username
+          ) {
+            throw new Error('Preencha todos os campos');
+          }
+
+          await api.post('users/create', registerData);
+        } catch (error: any) {
+          if (error instanceof AxiosError && error.response) {
+            throw new Error(error.response.data.message || 'Falha ao realizar cadastro');
+          }
+          throw new Error('Falha ao realizar o cadastro');
         }
       },
 

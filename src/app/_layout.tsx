@@ -67,7 +67,7 @@ export default function RootLayout() {
               gestureEnabled: true,
             }}>
             <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />          
+            <Stack.Screen name="(tabs)" />
           </Stack>
         </AuthProvider>
         <StatusBar style="auto" />

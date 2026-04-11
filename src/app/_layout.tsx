@@ -24,7 +24,7 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!user && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/tela_inicial');
       return;
     }
 
@@ -67,7 +67,7 @@ export default function RootLayout() {
               gestureEnabled: true,
             }}>
             <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
+            <Stack.Screen name="(tabs)" />          
           </Stack>
         </AuthProvider>
         <StatusBar style="auto" />

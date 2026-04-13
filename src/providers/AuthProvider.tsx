@@ -9,6 +9,42 @@ import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 
+const USEMOCK = true;
+
+const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (error instanceof AxiosError && error.response) {
+    const responseData = error.response.data as { message?: string } | undefined;
+    return responseData?.message || fallbackMessage;
+  }
+
+  return fallbackMessage;
+};
+
+const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): AuthUser => {
+  if (!payload || typeof payload !== 'object') {
+    return buildMockAuthUser(fallbackEmail);
+  }
+
+  const rawPayload = payload as Record<string, unknown>;
+  const source =
+    rawPayload.user && typeof rawPayload.user === 'object'
+      ? (rawPayload.user as Record<string, unknown>)
+      : rawPayload;
+
+  const email =
+    typeof source.email === 'string' && source.email.length > 0 ? source.email : fallbackEmail;
+  const name =
+    typeof source.name === 'string' && source.name.length > 0
+      ? source.name
+      : email.split('@')[0] || 'User';
+
+  return {
+    id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
+    email,
+    name,
+  };
+};
+
 interface AuthContextType {
   isLoading: boolean;
   user: AuthUser | null;
@@ -30,12 +66,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (token) {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          // TODO: Conflito de merge - revisar lógica duplicada
-          // --- Lógica da sua branch ---
-          // ao encontrar token, reaplica o header Authorization para chamadas protegidas.
-          // --- Lógica da branch develop ---
-          // usa usuário mock no bootstrap enquanto a API de perfil não está integrada.
-          setUser(buildMockAuthUser(MOCK_AUTH_BOOTSTRAP_EMAIL));
+
+          if (USEMOCK) {
+            setUser(buildMockAuthUser(MOCK_AUTH_BOOTSTRAP_EMAIL));
+          }
         }
       } finally {
         setIsLoading(false);
@@ -50,37 +84,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       user,
       signIn: async (credentials: Credentials) => {
+        if (!credentials.email || !credentials.password) {
+          throw new Error('Preencha email e senha.');
+        }
+
+        if (USEMOCK) {
+          await setSessionToken(MOCK_AUTH_SESSION_TOKEN);
+          api.defaults.headers.common['Authorization'] = `Bearer ${MOCK_AUTH_SESSION_TOKEN}`;
+          setUser(buildMockAuthUser(credentials.email));
+          return;
+        }
+
         try {
-          if (!credentials.email || !credentials.password) {
-            throw new Error('Preencha email e senha.');
+          const { data } = await api.post('auth/login', credentials);
+          const accessToken =
+            typeof data?.accessToken === 'string' && data.accessToken.length > 0
+              ? data.accessToken
+              : null;
+
+          if (!accessToken) {
+            throw new Error('Token de acesso não retornado pelo backend.');
           }
 
-          try {
-            const { data } = await api.post('auth/login', credentials);
-            const { accessToken } = data;
-
-            await setSessionToken(accessToken);
-            api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-            setUser(buildMockAuthUser(credentials.email));
-          } catch (error: any) {
-            // TODO: Conflito de merge - revisar lógica duplicada
-            // --- Lógica da sua branch ---
-            // tentativa de autenticação real via backend.
-            // --- Lógica da branch develop ---
-            // fallback para sessão mock enquanto integração de API estiver em evolução.
-            await setSessionToken(MOCK_AUTH_SESSION_TOKEN);
-            setUser(buildMockAuthUser(credentials.email));
-
-            if (error instanceof AxiosError && error.response) {
-              throw new Error(error.response.data.message || 'Credenciais inválidas.');
-            }
-            throw error;
-          }
-        } catch (error: any) {
-          if (error instanceof AxiosError && error.response) {
-            throw new Error(error.response.data.message || 'Credenciais inválidas.');
-          }
-          throw new Error('Falha no login');
+          await setSessionToken(accessToken);
+          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          setUser(resolveAuthUserFromLogin(data, credentials.email));
+        } catch (error: unknown) {
+          throw new Error(resolveErrorMessage(error, 'Falha no login'));
         }
       },
 
@@ -95,12 +125,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error('Preencha todos os campos');
           }
 
-          await api.post('users/create', registerData);
-        } catch (error: any) {
-          if (error instanceof AxiosError && error.response) {
-            throw new Error(error.response.data.message || 'Falha ao realizar cadastro');
+          if (USEMOCK) {
+            return;
           }
-          throw new Error('Falha ao realizar o cadastro');
+
+          await api.post('users/create', registerData);
+        } catch (error: unknown) {
+          throw new Error(resolveErrorMessage(error, 'Falha ao realizar o cadastro'));
         }
       },
 

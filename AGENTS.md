@@ -124,6 +124,14 @@ npm run validate
 2. Se usar Expo Router, mantenha os peers obrigatorios instalados: `expo-constants`, `expo-linking` e `react-native-screens`.
 3. Quando houver erro estranho em runtime, tente `npm run cache:clear` primeiro.
 
+### 10.1 Feed e listas rolaveis
+
+1. Em telas de feed com acoes no header, prefira header em overlay absoluto ao inves de `stickyHeaderIndices` quando houver perda de interacao durante scroll.
+2. Ao usar header em overlay, compense a lista com `paddingTop` equivalente a altura do header mais `safe area`.
+3. A acao de voltar ao topo deve usar scroll animado para `offset 0` e garantir estabilizacao final no topo.
+4. `Pull-to-refresh` deve ser nao destrutivo: so resetar snapshot quando houver posts novos; sem novidade, manter estado e ordem atual.
+5. Em paginação com `onEndReached`, aplique guardas de momentum e `in-flight` para evitar disparos duplicados, flicker e travamentos.
+
 ## 11. Performance e seguranca
 
 1. Evite re-renders desnecessarios em componentes React.

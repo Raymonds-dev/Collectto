@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { type StyleProp, type ViewStyle } from 'react-native';
 import Animated from 'react-native-reanimated';
 
@@ -32,16 +32,39 @@ export const MotionView = ({
     delay,
     distance,
   });
+  const hasEnteredRef = useRef(false);
+  const motionActionsRef = useRef({
+    animateIn,
+    animateOut,
+    resetToHidden,
+  });
+
+  motionActionsRef.current = {
+    animateIn,
+    animateOut,
+    resetToHidden,
+  };
 
   useEffect(() => {
+    const {
+      animateIn: runAnimateIn,
+      animateOut: runAnimateOut,
+      resetToHidden: runResetToHidden,
+    } = motionActionsRef.current;
+
     if (visible) {
-      resetToHidden();
-      animateIn();
+      if (!hasEnteredRef.current) {
+        runResetToHidden();
+        runAnimateIn();
+        hasEnteredRef.current = true;
+      }
+
       return;
     }
 
-    animateOut();
-  }, [animateIn, animateOut, resetToHidden, visible]);
+    hasEnteredRef.current = false;
+    runAnimateOut();
+  }, [visible]);
 
   return (
     <Animated.View className={className} style={[animatedStyle, style]}>

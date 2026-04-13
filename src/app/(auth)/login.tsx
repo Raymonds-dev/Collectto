@@ -38,7 +38,7 @@ export default function LoginScreen() {
           autoCapitalize="none"
           className="mt-15 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl text-white"
           onChangeText={setEmail}
-          placeholder="NOME DE USUARIO"
+          placeholder="E-mail"
           placeholderTextColor="#D9D9D9"
           value={email}
         />
@@ -46,7 +46,7 @@ export default function LoginScreen() {
         <TextInput
           className="mt-10 rounded-xl bg-black px-4 py-4 font-poetsenone text-xl text-white"
           onChangeText={setPassword}
-          placeholder="SENHA"
+          placeholder="Senha"
           placeholderTextColor="#D9D9D9"
           secureTextEntry
           value={password}

@@ -7,7 +7,9 @@ export default function AuthLayout() {
         headerShown: false,
         animation: 'fade',
       }}>
+      <Stack.Screen name="tela_inicial" />
       <Stack.Screen name="login" />
+      <Stack.Screen name="user_create" />
     </Stack>
   );
 }

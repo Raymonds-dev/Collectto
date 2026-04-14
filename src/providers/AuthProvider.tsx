@@ -9,7 +9,7 @@ import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 
-const USEMOCK = false;
+const USEMOCK = true;
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof AxiosError && error.response) {

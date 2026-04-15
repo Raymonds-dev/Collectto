@@ -214,11 +214,6 @@ const ExploreScreen = () => {
                   ))}
                 </View>
 
-                <Text className="mb-1 text-sm font-medium text-text-base">Legenda</Text>
-                <Text className="text-sm leading-5 text-text-muted">
-                  {selectedSpotlight.caption}
-                </Text>
-
                 <AnimatedPressable
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir coleção ${selectedSpotlight.title}`}

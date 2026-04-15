@@ -95,3 +95,7 @@ export const MOCK_ITEMS_PLACEHOLDER_IMAGE =
 // TODO(api): remover fallback de imagem quando backend garantir imagens validas por item.
 export const MOCK_ITEM_DETAIL_PLACEHOLDER_IMAGE =
   'https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=1200&q=80';
+
+export const getMockCollectionItemById = (itemId: string): CollectionGridItem | undefined => {
+  return MOCK_COLLECTION_ITEMS.find((item) => item.id === itemId);
+};

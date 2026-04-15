@@ -2,7 +2,18 @@
 name: Collectto Standards Governor
 description: 'Use when reviewing a proposed change to decide whether PRODUCTS.md or AGENTS.md must be updated. Best for changes that may affect product scope, repository-wide guardrails, patterns, style rules, or skill context, and for coordinating a code impact review before refactoring.'
 argument-hint: 'Descreva a mudanca, o arquivo ou a ideia que precisa de decisao de atualizacao'
-tools: [read, search, edit, todo, agent]
+tools:
+  [
+    vscode/getProjectSetupInfo,
+    vscode/memory,
+    vscode/vscodeAPI,
+    read,
+    agent,
+    edit,
+    search,
+    web,
+    todo,
+  ]
 agents: [Collectto Standards Orchestrator]
 user-invocable: true
 disable-model-invocation: false

@@ -1,26 +1,571 @@
-import { Button } from '@/components/ui/Button';
-import { useAuth } from '@/hooks/useAuth';
+import { Post, type PostItemPreview } from '@/components/post';
+import { CollectionItemDetailView } from '@/components/item-collection/CollectionItemDetailView';
+import { AnimatedPressable } from '@/components/ui/animated';
+import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
+import {
+  getMockCollectionItemById,
+  MOCK_FEED_POSTS,
+  MOCK_PROFILE_IMAGE_URI,
+  type MockFeedPost,
+} from '@/mocks';
 import { tokens } from '@/styles/tailwind/tokens.native';
-import { Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ActivityIndicator,
+  FlatList,
+  type FlatList as FlatListRef,
+  Image,
+  type ListRenderItemInfo,
+  Modal,
+  Share,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-export default function HomeScreen() {
-  const { user } = useAuth();
+const PAGE_SIZE = 4;
+const MAX_FEED_PAGES = 3;
+const INITIAL_SKELETON_COUNT = 3;
+const LOAD_MORE_DELAY_MS = 900;
+const SKELETON_ACTION_KEYS = ['like', 'comment', 'save', 'share'] as const;
+const brandJourney = tokens.gradients.brandJourney as string[];
+const skeletonActionButtonGradient: readonly [string, string, string, string] = [
+  brandJourney[0] ?? tokens.colors.brand.primary,
+  brandJourney[1] ?? tokens.colors.feedback.success,
+  brandJourney[2] ?? tokens.colors.feedback.error,
+  brandJourney[3] ?? tokens.colors.feedback.warning,
+];
 
+const createFeedPage = (page: number, pageSize: number): MockFeedPost[] => {
+  return Array.from({ length: pageSize }, (_, index) => {
+    const source = MOCK_FEED_POSTS[index % MOCK_FEED_POSTS.length];
+    return {
+      ...source,
+      id: `${source.id}-page-${page}-item-${index}`,
+      publishedLabel: page === 1 ? source.publishedLabel : `${page + index}h`,
+    };
+  });
+};
+
+const Header = ({
+  topInset,
+  onPressProfile,
+  onPressLogo,
+  onPressSettings,
+}: {
+  topInset: number;
+  onPressProfile: () => void;
+  onPressLogo: () => void;
+  onPressSettings: () => void;
+}) => {
   return (
-    <View className="flex-1 items-center justify-center bg-white px-6">
-      <View className="w-full max-w-md rounded-2xl border border-slate-200 bg-slate-50 p-6">
-        <Text className="text-2xl font-bold text-slate-900">Collectto</Text>
-        <Text className="mt-3 text-base text-slate-700">Você está autenticado no app.</Text>
-        <Text className="mt-1 text-sm text-slate-500">Usuário atual: {user?.email}</Text>
-        <Button
-          variant="icon"
-          label="Teste"
-          accessibilityLabel="Teste"
-          icon={<Ionicons name="heart" size={24} color={tokens.colors.brand.primary} />}
-          className="w-full"
+    <View style={{ paddingTop: topInset }} className="bg-surface-base">
+      <View className="h-14 w-full flex-row items-center justify-between border-b border-feedback-error px-5">
+        <AnimatedPressable
+          accessibilityRole="button"
+          accessibilityLabel="Abrir perfil"
+          hitSlop={10}
+          onPress={onPressProfile}
+          className="h-11 w-11 items-center justify-center rounded-full">
+          <Image
+            source={{ uri: MOCK_PROFILE_IMAGE_URI }}
+            className="h-8 w-8 rounded-full border border-surface-border"
+            accessibilityIgnoresInvertColors
+          />
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          accessibilityRole="button"
+          accessibilityLabel="Voltar ao topo do feed"
+          hitSlop={10}
+          onPress={onPressLogo}
+          className="h-11 min-w-[68px] items-center justify-center rounded-xl">
+          <BrandIcon size={26} />
+        </AnimatedPressable>
+
+        <AnimatedPressable
+          accessibilityRole="button"
+          accessibilityLabel="Abrir configuracoes"
+          hitSlop={10}
+          onPress={onPressSettings}
+          className="h-11 w-11 items-center justify-center rounded-full">
+          <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
+        </AnimatedPressable>
+      </View>
+    </View>
+  );
+};
+
+const PostSkeleton = () => {
+  return (
+    <View className="w-full rounded-2xl bg-surface-base p-[10px]">
+      <View className="w-full flex-row items-start gap-[10px] p-[10px]">
+        <View className="h-10 w-10 rounded-full bg-surface-muted" />
+        <View className="min-w-0 flex-1 gap-2">
+          <View className="h-2.5 w-[55%] rounded-md bg-surface-muted" />
+          <View className="h-2.5 w-full rounded-md bg-surface-muted" />
+          <View className="h-2.5 w-[85%] rounded-md bg-surface-muted" />
+        </View>
+      </View>
+
+      <View className="w-full px-[2px] pb-[4px] pt-[8px]">
+        <View className="relative h-[375px] w-full">
+          <View className="absolute left-0 right-0 top-0 h-[357px] rounded-[12px] bg-surface-border" />
+          <View className="absolute left-0 right-0 top-[8px] h-[357px] rounded-[12px] bg-surface-muted" />
+          <View className="absolute left-0 right-0 top-[16px] h-[357px] rounded-[12px] bg-surface-muted" />
+        </View>
+      </View>
+
+      <View className="w-full flex-row items-center justify-center gap-4 px-[10px] py-[6px]">
+        {SKELETON_ACTION_KEYS.map((actionKey) => (
+          <LinearGradient
+            key={`skeleton-action-${actionKey}`}
+            colors={skeletonActionButtonGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.skeletonActionButtonGradient}>
+            <View
+              className="border border-surface-borderStrong bg-surface-base"
+              style={styles.skeletonActionButtonInner}
+            />
+          </LinearGradient>
+        ))}
+      </View>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  skeletonActionButtonGradient: {
+    borderRadius: 6,
+    overflow: 'hidden',
+    padding: 0.5,
+  },
+  skeletonActionButtonInner: {
+    borderRadius: 6,
+    height: 28,
+    width: 62,
+  },
+});
+
+export default function FeedScreen() {
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + 56;
+  const listRef = useRef<FlatListRef<MockFeedPost>>(null);
+  const initialLoadTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const loadMoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollToTopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const refreshLatestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasStartedScrollRef = useRef(false);
+  const canLoadMoreOnMomentumRef = useRef(false);
+  const isLoadMoreInFlightRef = useRef(false);
+
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshingLatest, setIsRefreshingLatest] = useState(false);
+  const [hasMorePosts, setHasMorePosts] = useState(true);
+  const [loadedPage, setLoadedPage] = useState(0);
+  const [posts, setPosts] = useState<MockFeedPost[]>([]);
+  const [selectedPost, setSelectedPost] = useState<MockFeedPost | null>(null);
+  const [isDetailFollowing, setIsDetailFollowing] = useState(false);
+  const [isDetailNotificationsEnabled, setIsDetailNotificationsEnabled] = useState(false);
+
+  const loadPage = useCallback((page: number): MockFeedPost[] => {
+    return createFeedPage(page, PAGE_SIZE);
+  }, []);
+
+  const applyFeedSnapshot = useCallback((snapshot: MockFeedPost[]): void => {
+    setPosts(snapshot);
+    setLoadedPage(1);
+    setHasMorePosts(true);
+    setIsLoadingMore(false);
+    hasStartedScrollRef.current = false;
+    canLoadMoreOnMomentumRef.current = false;
+    isLoadMoreInFlightRef.current = false;
+  }, []);
+
+  const finishInitialLoad = useCallback((): void => {
+    const firstPage = loadPage(1);
+    applyFeedSnapshot(firstPage);
+    setIsInitialLoading(false);
+  }, [applyFeedSnapshot, loadPage]);
+
+  useEffect(() => {
+    initialLoadTimeoutRef.current = setTimeout(finishInitialLoad, LOAD_MORE_DELAY_MS);
+
+    return () => {
+      if (initialLoadTimeoutRef.current) {
+        clearTimeout(initialLoadTimeoutRef.current);
+      }
+      if (loadMoreTimeoutRef.current) {
+        clearTimeout(loadMoreTimeoutRef.current);
+      }
+      if (scrollToTopTimeoutRef.current) {
+        clearTimeout(scrollToTopTimeoutRef.current);
+      }
+      if (refreshLatestTimeoutRef.current) {
+        clearTimeout(refreshLatestTimeoutRef.current);
+      }
+      isLoadMoreInFlightRef.current = false;
+    };
+  }, [finishInitialLoad]);
+
+  const handleOpenItemCollection = (_item: PostItemPreview, postId: string): void => {
+    const selected = posts.find((post) => post.id === postId);
+
+    if (!selected) {
+      return;
+    }
+
+    setSelectedPost(selected);
+    setIsDetailFollowing(false);
+    setIsDetailNotificationsEnabled(false);
+  };
+
+  const handleTogglePostLike = useCallback((postId: string): void => {
+    setPosts((current) => {
+      return current.map((post) => {
+        if (post.id !== postId) {
+          return post;
+        }
+
+        const nextIsLiked = !post.isLiked;
+        const currentLikes = typeof post.likesCount === 'number' ? post.likesCount : 0;
+        const nextLikes = nextIsLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+
+        return {
+          ...post,
+          isLiked: nextIsLiked,
+          likesCount: nextLikes,
+        };
+      });
+    });
+  }, []);
+
+  const handleSharePost = useCallback(
+    async (postId: string): Promise<void> => {
+      const post = posts.find((item) => item.id === postId);
+
+      if (!post) {
+        return;
+      }
+
+      await Share.share({
+        message: `${post.author.name} (@${post.author.username}) compartilhou ${post.item.title} no Collectto.\n\n${post.content}`,
+      });
+    },
+    [posts]
+  );
+
+  const handleOpenPostCollection = useCallback(
+    (postId: string): void => {
+      const post = posts.find((item) => item.id === postId);
+
+      if (!post) {
+        return;
+      }
+
+      router.push({
+        pathname: '/(tabs)/collections/[collectionId]',
+        params: {
+          collectionId: post.item.collectionId,
+          from: 'feed',
+          postId,
+        },
+      });
+    },
+    [posts, router]
+  );
+
+  const handleCloseItemDetail = (): void => {
+    setSelectedPost(null);
+  };
+
+  const detailItem = useMemo(() => {
+    if (!selectedPost) {
+      return null;
+    }
+
+    const collectionItem = getMockCollectionItemById(selectedPost.item.id);
+
+    return {
+      title: selectedPost.item.title,
+      images: collectionItem?.images ?? [selectedPost.item.imageUri],
+      acquiredDate: collectionItem?.acquiredDate ?? '--/--/----',
+      lastUsedDate: collectionItem?.lastUsedDate ?? '--/--/----',
+      description: collectionItem?.description ?? selectedPost.content,
+      characteristics: collectionItem?.characteristics ?? [
+        { label: 'Status', value: 'Sem informacoes' },
+      ],
+    };
+  }, [selectedPost]);
+
+  const detailProfile = useMemo(() => {
+    if (!selectedPost) {
+      return null;
+    }
+
+    return {
+      name: selectedPost.author.name,
+      username: selectedPost.author.username,
+      bio: 'Colecionador ativo na comunidade Collectto.',
+      profileImage: selectedPost.author.avatarUri,
+    };
+  }, [selectedPost]);
+
+  const handleShareSelectedItem = useCallback(async (): Promise<void> => {
+    if (!selectedPost) {
+      return;
+    }
+
+    await Share.share({
+      message: `${selectedPost.item.title} no Collectto`,
+    });
+  }, [selectedPost]);
+
+  const isItemDetailOpen = selectedPost !== null && detailItem !== null && detailProfile !== null;
+
+  const handleModalNotificationToggle = (): void => {
+    setIsDetailNotificationsEnabled((current) => !current);
+  };
+
+  const handleOpenProfile = (): void => {
+    router.push('/(tabs)/profile');
+  };
+
+  const handleOpenSettings = (): void => {
+    router.push('/(tabs)/settings');
+  };
+
+  const handleScrollToTop = (): void => {
+    if (!listRef.current) {
+      return;
+    }
+
+    canLoadMoreOnMomentumRef.current = false;
+    listRef.current.scrollToOffset({ offset: 0, animated: true });
+
+    if (scrollToTopTimeoutRef.current) {
+      clearTimeout(scrollToTopTimeoutRef.current);
+    }
+
+    scrollToTopTimeoutRef.current = setTimeout(() => {
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+    }, 380);
+  };
+
+  const handleScrollActivation = (): void => {
+    hasStartedScrollRef.current = true;
+    canLoadMoreOnMomentumRef.current = true;
+  };
+
+  const handleRefreshLatestPosts = useCallback((): void => {
+    if (isInitialLoading || isLoadingMore || isRefreshingLatest) {
+      return;
+    }
+
+    setIsRefreshingLatest(true);
+
+    const latestSnapshot = loadPage(1);
+    const currentTopPostId = posts[0]?.id;
+    const latestTopPostId = latestSnapshot[0]?.id;
+    const hasNewPosts =
+      posts.length === 0
+        ? latestSnapshot.length > 0
+        : typeof currentTopPostId === 'string' &&
+          typeof latestTopPostId === 'string' &&
+          currentTopPostId !== latestTopPostId;
+
+    if (!hasNewPosts) {
+      setIsRefreshingLatest(false);
+      return;
+    }
+
+    setSelectedPost(null);
+    setIsDetailFollowing(false);
+    setIsDetailNotificationsEnabled(false);
+    setIsInitialLoading(true);
+
+    if (refreshLatestTimeoutRef.current) {
+      clearTimeout(refreshLatestTimeoutRef.current);
+    }
+
+    refreshLatestTimeoutRef.current = setTimeout(() => {
+      applyFeedSnapshot(latestSnapshot);
+      listRef.current?.scrollToOffset({ offset: 0, animated: false });
+      setIsInitialLoading(false);
+      setIsRefreshingLatest(false);
+    }, LOAD_MORE_DELAY_MS);
+  }, [applyFeedSnapshot, isInitialLoading, isLoadingMore, isRefreshingLatest, loadPage, posts]);
+
+  const handleLoadMore = (): void => {
+    if (
+      !hasStartedScrollRef.current ||
+      !canLoadMoreOnMomentumRef.current ||
+      isInitialLoading ||
+      isLoadMoreInFlightRef.current ||
+      !hasMorePosts
+    ) {
+      return;
+    }
+
+    canLoadMoreOnMomentumRef.current = false;
+    isLoadMoreInFlightRef.current = true;
+    setIsLoadingMore(true);
+
+    loadMoreTimeoutRef.current = setTimeout(() => {
+      const nextPage = loadedPage + 1;
+
+      if (nextPage > MAX_FEED_PAGES) {
+        setHasMorePosts(false);
+        setIsLoadingMore(false);
+        isLoadMoreInFlightRef.current = false;
+        return;
+      }
+
+      const newPagePosts = loadPage(nextPage);
+      setPosts((current) => [...current, ...newPagePosts]);
+      setLoadedPage(nextPage);
+      setIsLoadingMore(false);
+      isLoadMoreInFlightRef.current = false;
+    }, LOAD_MORE_DELAY_MS);
+  };
+
+  const renderFooter = () => {
+    if (isLoadingMore) {
+      return (
+        <View className="items-center justify-center py-6">
+          <ActivityIndicator
+            size="small"
+            color={tokens.colors.brand.primary}
+            accessibilityLabel="Carregando mais posts"
+          />
+        </View>
+      );
+    }
+
+    if (!hasMorePosts && posts.length > 0) {
+      return (
+        <View className="items-center justify-center py-6">
+          <Text className="font-body text-xs text-text-subtle">Voce chegou ao fim</Text>
+        </View>
+      );
+    }
+
+    return <View className="h-4" />;
+  };
+
+  const feedData = isInitialLoading ? [] : posts;
+
+  const renderPostItem = ({ item, index }: ListRenderItemInfo<MockFeedPost>) => {
+    return (
+      <View className={index === 0 ? 'px-4 pt-6' : 'px-4'}>
+        <Post
+          {...item}
+          entranceDelay={index * 50}
+          onPressItem={handleOpenItemCollection}
+          onPressLike={handleTogglePostLike}
+          onPressComment={() => {}}
+          onPressOpenCollection={handleOpenPostCollection}
+          onPressShare={(postId) => {
+            void handleSharePost(postId);
+          }}
         />
       </View>
+    );
+  };
+
+  return (
+    <View className="flex-1 bg-surface-base">
+      <View className="absolute left-0 right-0 top-0 z-20">
+        <Header
+          topInset={insets.top}
+          onPressProfile={handleOpenProfile}
+          onPressLogo={handleScrollToTop}
+          onPressSettings={handleOpenSettings}
+        />
+      </View>
+
+      <FlatList
+        ref={listRef}
+        data={feedData}
+        keyExtractor={(post) => post.id}
+        removeClippedSubviews
+        initialNumToRender={3}
+        maxToRenderPerBatch={4}
+        updateCellsBatchingPeriod={50}
+        windowSize={5}
+        overScrollMode="always"
+        alwaysBounceVertical
+        onRefresh={handleRefreshLatestPosts}
+        refreshing={isRefreshingLatest}
+        progressViewOffset={headerHeight}
+        onScrollBeginDrag={handleScrollActivation}
+        onMomentumScrollBegin={handleScrollActivation}
+        onEndReachedThreshold={0.2}
+        onEndReached={handleLoadMore}
+        ListEmptyComponent={
+          isInitialLoading ? (
+            <View className="gap-4 px-4 pb-10 pt-6">
+              {Array.from({ length: INITIAL_SKELETON_COUNT }, (_, index) => (
+                <PostSkeleton key={`skeleton-post-${index + 1}`} />
+              ))}
+            </View>
+          ) : null
+        }
+        contentContainerStyle={{
+          paddingTop: headerHeight,
+          paddingBottom: 40,
+        }}
+        ItemSeparatorComponent={() => <View className="h-4" />}
+        ListFooterComponent={renderFooter}
+        renderItem={renderPostItem}
+      />
+
+      <Modal
+        visible={isItemDetailOpen}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={handleCloseItemDetail}>
+        <View className="flex-1 bg-surface-base">
+          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+            <AnimatedPressable
+              accessibilityRole="button"
+              accessibilityLabel="Fechar detalhes do item"
+              onPress={handleCloseItemDetail}
+              className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
+              <Ionicons name="close" size={20} color={tokens.colors.text.base} />
+            </AnimatedPressable>
+          </View>
+
+          {isItemDetailOpen ? (
+            <CollectionItemDetailView
+              isOwner={false}
+              profile={detailProfile}
+              isFollowing={isDetailFollowing}
+              item={detailItem}
+              onFollowToggle={() => setIsDetailFollowing((current) => !current)}
+              onShare={() => {
+                void handleShareSelectedItem();
+              }}
+              onNotificationPress={handleModalNotificationToggle}
+            />
+          ) : null}
+
+          {isDetailNotificationsEnabled ? (
+            <View className="absolute bottom-6 left-4 right-4 rounded-xl border border-surface-border bg-surface-card px-4 py-3">
+              <Text className="font-body text-sm text-text-base">
+                Notificacoes ativadas para este item.
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </Modal>
     </View>
   );
 }

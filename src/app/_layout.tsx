@@ -24,7 +24,7 @@ function AuthGate() {
     const inAuthGroup = segments[0] === '(auth)';
 
     if (!user && !inAuthGroup) {
-      router.replace('/(auth)/login');
+      router.replace('/(auth)/tela_inicial');
       return;
     }
 

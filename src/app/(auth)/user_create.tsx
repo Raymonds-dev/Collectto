@@ -253,7 +253,7 @@ export default function UserCreateScreen() {
                   <Text className="mb-4 font-poetsenone text-xl text-black">
                     DATA DE NASCIMENTO
                   </Text>
-                  <View className="flex-row items-center gap-4">
+                  <View className="flex-row gap-5">
                     <View className="">
                       <CustomPicker
                         placeholder="Dia"
@@ -272,7 +272,7 @@ export default function UserCreateScreen() {
                         selectedValue={month}
                         onValueChange={setMonth}
                         onPressOverride={openCalendar}
-                        triggerClassName="w-32 rounded-xl border-2 border-black px-2 py-3"
+                        triggerClassName="w-36 rounded-xl border-2 border-black px-2 py-3"
                         triggerTextClassName="text-xl text-black"
                       />
                     </View>
@@ -328,7 +328,7 @@ export default function UserCreateScreen() {
                 <Text className="mb-2 text-center text-sm text-red-600">{error}</Text>
               ) : null}
 
-              <View className="mt-6 flex-row items-center">
+              <View className="mt-6 ml-6 flex-row items-center">
                 <Checkbox
                   value={termsAccepted}
                   onValueChange={setTermsAccepted}

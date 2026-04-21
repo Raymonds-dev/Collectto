@@ -76,66 +76,65 @@ const ExploreScreen = () => {
 
   return (
     <View className="flex-1 bg-surface-base">
-      <MotionView className="mb-4" visible presets={['slideDown', 'fade']} duration={260}>
-        <View className="mb-3">
-          <Text className="self-center text-center font-poetsenone text-2xl uppercase tracking-[0.04em] text-text-base">
-            Explorar
-          </Text>
-          <Text className="text-mg ml-3 mt-2 leading-5 text-text-muted">
-            Encontre itens e coleções que combinam com seu interesse...
-          </Text>
-        </View>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <MotionView className="mb-4" visible presets={['slideDown', 'fade']} duration={260}>
+          <View className="mb-3">
+            <Text className="self-center text-center font-poetsenone text-2xl uppercase tracking-[0.04em] text-text-base">
+              Explorar
+            </Text>
+            <Text className="text-mg ml-3 mt-2 leading-5 text-text-muted">
+              Encontre itens e coleções que combinam com seu interesse...
+            </Text>
+          </View>
 
-        <View className="w-[94%] flex-row items-center gap-4 self-center rounded-2xl border border-black bg-surface-card px-4 py-2">
-          <Ionicons name="search" size={18} color={tokens.colors.brand.primary} />
-          <TextInput
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            placeholder="Pesquise por itens, carros, cards..."
-            placeholderTextColor={tokens.colors.text.muted}
-            className="flex-1 text-base text-text-base"
-            returnKeyType="search"
-          />
-        </View>
-      </MotionView>
-
-      <View className="mb-5">
-        <Text className="mb-3 ml-4 text-sm font-medium text-text-base">Filtros rápidos</Text>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsContent}>
-          {MOCK_EXPLORE_CATEGORIES.map((category) => (
-            <CategoryChip
-              key={category.id}
-              category={category}
-              isSelected={selectedCategoryId === category.id}
-              onPress={setSelectedCategoryId}
+          <View className="w-[94%] flex-row items-center gap-4 self-center rounded-2xl border border-black bg-surface-card px-4 py-2">
+            <Ionicons name="search" size={18} color={tokens.colors.brand.primary} />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="Pesquise por tenis, carros, cards..."
+              placeholderTextColor={tokens.colors.text.muted}
+              className="flex-1 text-base text-text-base"
+              returnKeyType="search"
             />
-          ))}
-        </ScrollView>
-      </View>
+          </View>
+        </MotionView>
 
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}>
-        {filteredCards.length ? (
-          <View className="flex-row gap-3">
-            <ExploreColumn cards={leftColumnCards} onOpenCard={handleOpenCard} />
-            <ExploreColumn cards={rightColumnCards} onOpenCard={handleOpenCard} />
-          </View>
-        ) : (
-          <View className="items-center rounded-3xl border border-dashed border-surface-border bg-surface-card px-5 py-10">
-            <Ionicons name="search-outline" size={28} color={tokens.colors.text.muted} />
-            <Text className="mt-3 text-center text-base font-medium text-text-base">
-              Nenhum resultado encontrado
-            </Text>
-            <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
-              Ajuste o filtro ou tente outra palavra-chave para encontrar coleções parecidas.
-            </Text>
-          </View>
-        )}
+        <View className="mb-3">
+          <Text className="mb-3 ml-6 text-sm font-bold text-text-base">Filtros rápidos</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.chipsContent}>
+            {MOCK_EXPLORE_CATEGORIES.map((category) => (
+              <CategoryChip
+                key={category.id}
+                category={category}
+                isSelected={selectedCategoryId === category.id}
+                onPress={setSelectedCategoryId}
+              />
+            ))}
+          </ScrollView>
+        </View>
+
+        <View style={styles.scrollContent}>
+          {filteredCards.length ? (
+            <View className="flex-row gap-2">
+              <ExploreColumn cards={leftColumnCards} onOpenCard={handleOpenCard} />
+              <ExploreColumn cards={rightColumnCards} onOpenCard={handleOpenCard} />
+            </View>
+          ) : (
+            <View className="items-center rounded-3xl border border-dashed border-surface-border bg-surface-card px-5 py-10">
+              <Ionicons name="search-outline" size={28} color={tokens.colors.text.muted} />
+              <Text className="mt-3 text-center text-base font-medium text-text-base">
+                Nenhum resultado encontrado
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
+                Ajuste o filtro ou tente outra palavra-chave para encontrar coleções parecidas.
+              </Text>
+            </View>
+          )}
+        </View>
       </ScrollView>
 
       <Modal
@@ -234,7 +233,7 @@ const ExploreScreen = () => {
 
 const ExploreColumn = ({ cards, onOpenCard }: ExploreColumnProps) => {
   return (
-    <View className="flex-1 gap-3">
+    <View className="flex-1 gap-2">
       {cards.map((card, index) => (
         <MotionView
           key={card.id}
@@ -243,14 +242,20 @@ const ExploreColumn = ({ cards, onOpenCard }: ExploreColumnProps) => {
           duration={280}
           delay={index * 70}
           style={[styles.cardShadow, { height: card.height }]}>
-          <AnimatedPressable
-            accessibilityRole="button"
-            accessibilityLabel={`Abrir detalhes da coleção ${card.title}`}
-            onPress={() => onOpenCard(card)}
-            style={styles.card}
-            motionStyle={styles.cardMotion}>
-            <StackedPreview images={card.images} tags={card.tags} caption={card.caption} />
-          </AnimatedPressable>
+          <View style={styles.card}>
+            <AnimatedPressable
+              accessibilityRole="button"
+              accessibilityLabel={`Abrir detalhes da coleção ${card.title}`}
+              onPress={() => onOpenCard(card)}
+              style={styles.cardPressLayer}
+            />
+            <StackedPreview
+              images={card.images}
+              tags={card.tags}
+              caption={card.caption}
+              postType={card.postType}
+            />
+          </View>
         </MotionView>
       ))}
     </View>
@@ -261,34 +266,62 @@ type StackedPreviewProps = {
   images: ImageSourcePropType[];
   tags: string[];
   caption: string;
+  postType: ExploreSpotlight['postType'];
 };
 
-const StackedPreview = ({ images, tags, caption }: StackedPreviewProps) => {
+const StackedPreview = ({ images, tags, caption, postType }: StackedPreviewProps) => {
   const primaryImage = images[0];
 
   if (!primaryImage) {
     return null;
   }
 
-  const middleImage = images[1] ?? primaryImage;
-  const backImage = images[2] ?? middleImage;
+  const upperImage = images[1] ?? primaryImage;
+  const middleImage = images[2] ?? upperImage;
+  const isCollectionPost = postType === 'collection';
 
   return (
-    <View style={styles.imageStackRoot}>
-      <Image source={backImage} style={[styles.stackImage, styles.stackBack]} blurRadius={10} />
-      <Image source={middleImage} style={[styles.stackImage, styles.stackMiddle]} blurRadius={6} />
-      <Image source={primaryImage} style={[styles.stackImage, styles.stackFront]} />
+    <View style={styles.imageStackRoot} pointerEvents="box-none">
+      <View style={styles.imageLayers} pointerEvents="none">
+        {isCollectionPost ? (
+          <>
+            <Image source={middleImage} style={[styles.stackImage, styles.stackMiddle]} blurRadius={10} />
+            <Image source={upperImage} style={[styles.stackImage, styles.stackUpper]} blurRadius={4} />
+            <Image source={primaryImage} style={[styles.stackImage, styles.stackFront]} />
+          </>
+        ) : (
+          <Image source={primaryImage} style={[styles.stackImage, styles.singleItemImage]} />
+        )}
+      </View>
 
-      <View style={styles.frontImageOverlay}>
-        <View className="mb-2 flex-row flex-wrap gap-1.5">
+      <View style={styles.frontImageOverlay} pointerEvents="box-none">
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageTagsScroll}
+          contentContainerStyle={styles.imageTagsRow}
+          onTouchStart={(event) => {
+            event.stopPropagation();
+          }}
+          onTouchMove={(event) => {
+            event.stopPropagation();
+          }}
+          onStartShouldSetResponder={() => true}
+          onMoveShouldSetResponder={() => true}
+          onStartShouldSetResponderCapture={() => true}>
           {tags.map((tag) => (
-            <View key={tag} className="rounded-full bg-overlay-scrimSoft px-2.5 py-1">
+            <View key={tag} style={styles.imageTagChip}>
               <Text className="text-[10px] font-semibold text-text-inverse">{tag}</Text>
             </View>
           ))}
-        </View>
+        </ScrollView>
 
-        <Text numberOfLines={2} className="text-sm font-medium leading-5 text-text-inverse">
+        <Text
+          pointerEvents="none"
+          numberOfLines={2}
+          className="text-sm font-medium leading-5 text-text-inverse">
           {caption}
         </Text>
       </View>
@@ -317,15 +350,16 @@ const CategoryChip = ({ category, isSelected, onPress }: CategoryChipProps) => {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingHorizontal: 14,
+    paddingTop: 5,
     paddingBottom: 32,
   },
   collectionScroll: {
     flex: 1,
   },
   chipsContent: {
-    gap: 8,
+    gap: 10,
+    paddingLeft: 15,
     paddingRight: 8,
   },
   card: {
@@ -338,19 +372,24 @@ const styles = StyleSheet.create({
   },
   cardShadow: {
     borderRadius: 24,
-    shadowColor: '#000000',
-    shadowOpacity: 0.2,
-    shadowRadius: 18,
-    shadowOffset: {
-      width: 0,
-      height: 12,
-    },
-    elevation: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.24)',
   },
   cardMotion: {
     width: '100%',
   },
+  cardPressLayer: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 1,
+  },
   imageStackRoot: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageLayers: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
@@ -358,32 +397,52 @@ const styles = StyleSheet.create({
   stackImage: {
     position: 'absolute',
     width: '94%',
-    height: '96%',
+    height: '94%',
     borderRadius: 20,
   },
   stackFront: {
-    zIndex: 3,
+    zIndex: 5,
+    transform: [{ translateY: 0 }, { scale: 1 }],
+  },
+  singleItemImage: {
+    zIndex: 4,
     transform: [{ translateY: 0 }, { scale: 1 }],
   },
   stackMiddle: {
     zIndex: 2,
-    opacity: 0.92,
-    transform: [{ translateY: -12 }, { scale: 0.96 }],
+    opacity: 0.78,
+    transform: [{ translateY: -35}, { scale: 1 }],
+    marginTop: 50
   },
-  stackBack: {
+  stackUpper: {
     zIndex: 1,
-    opacity: 0.86,
-    transform: [{ translateY: -24 }, { scale: 0.92 }],
+    opacity: 0.9,
+    transform: [{ translateY: -18}, { scale: 0.1 }],
   },
   frontImageOverlay: {
     position: 'absolute',
     zIndex: 4,
     width: '94%',
-    height: '96%',
+    height: '94%',
     borderRadius: 20,
     justifyContent: 'flex-end',
     padding: 12,
     backgroundColor: 'rgba(10, 10, 10, 0.2)',
+  },
+  imageTagsScroll: {
+    marginBottom: 1,
+    maxHeight: 30,
+  },
+  imageTagsRow: {
+    alignItems: 'center',
+    paddingRight: 8,
+  },
+  imageTagChip: {
+    marginRight: 6,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    backgroundColor: tokens.colors.overlay.scrimSoft,
   },
   chip: {
     minHeight: 38,

@@ -56,7 +56,7 @@ export default function LoginScreen() {
       <View className="items-center px-6 pb-8 pt-10">
         <View className="mb-8 items-center">
           <Image source={require('@/assets/logo.png')} className="h-45 w-45" resizeMode="contain" />
-          <Text className="mt-8 font-poetsenone text-4xl font-bold text-black">Faça Login</Text>
+          <Text className="mt-8 font-poetsenone text-4xl text-black">Faça Login</Text>
         </View>
         <View className="w-full max-w-md rounded-2xl p-5 ">
           <TextInput

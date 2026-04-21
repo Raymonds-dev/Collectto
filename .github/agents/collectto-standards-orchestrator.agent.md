@@ -98,7 +98,21 @@ For code edits, run:
 - npm run type-check
 - npm run lint
 - npm run format:check
+- npm run lint:fix (if lint errors are fixable)
+- npm run format (if format errors are fixable)
 - npm run validate
+
+```bash
+npm run type-check && npm run lint && npm run format:check
+```
+
+```bash
+npm run lint:fix && npm run format
+```
+
+```bash
+npm run validate
+```
 
 If one command fails due to unrelated pre-existing changes, report clearly what is related vs unrelated.
 

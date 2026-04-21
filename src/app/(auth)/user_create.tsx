@@ -312,6 +312,20 @@ export default function UserCreateScreen() {
             </View>
             {error ? <Text className="mb-2 text-center text-sm text-red-600">{error}</Text> : null}
 
+              <View className="ml-6 mt-6 flex-row items-center">
+                <Checkbox
+                  value={termsAccepted}
+                  onValueChange={setTermsAccepted}
+                  color={termsAccepted ? '#FF9500' : undefined}
+                  className="mr-3"
+                />
+                <Text className="flex-1 text-sm text-black">
+                  Li e aceito os <Text className="font-bold">Termos de Uso</Text> e a{' '}
+                  <Text className="font-bold">Política de Privacidade</Text>
+                </Text>
+              </View>
+            </>
+          )}
             <View className="ml-6 mt-6 flex-row items-center">
               <Checkbox
                 value={termsAccepted}

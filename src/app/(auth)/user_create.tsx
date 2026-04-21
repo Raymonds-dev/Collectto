@@ -328,7 +328,7 @@ export default function UserCreateScreen() {
                 <Text className="mb-2 text-center text-sm text-red-600">{error}</Text>
               ) : null}
 
-              <View className="mt-6 ml-6 flex-row items-center">
+              <View className="ml-6 mt-6 flex-row items-center">
                 <Checkbox
                   value={termsAccepted}
                   onValueChange={setTermsAccepted}

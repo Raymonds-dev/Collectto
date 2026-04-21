@@ -89,7 +89,11 @@ export default function LoginScreen() {
               value={password}
             />
 
-            {error ? (<View className="mt-3 w-full items-center"><Text className="text-center text-sm text-red-600">{error}</Text></View>) : null}
+            {error ? (
+              <View className="mt-3 w-full items-center">
+                <Text className="text-center text-sm text-red-600">{error}</Text>
+              </View>
+            ) : null}
 
             <View className="items-center">
               <Pressable

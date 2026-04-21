@@ -285,8 +285,16 @@ const StackedPreview = ({ images, tags, caption, postType }: StackedPreviewProps
       <View style={styles.imageLayers} pointerEvents="none">
         {isCollectionPost ? (
           <>
-            <Image source={middleImage} style={[styles.stackImage, styles.stackMiddle]} blurRadius={10} />
-            <Image source={upperImage} style={[styles.stackImage, styles.stackUpper]} blurRadius={4} />
+            <Image
+              source={middleImage}
+              style={[styles.stackImage, styles.stackMiddle]}
+              blurRadius={10}
+            />
+            <Image
+              source={upperImage}
+              style={[styles.stackImage, styles.stackUpper]}
+              blurRadius={4}
+            />
             <Image source={primaryImage} style={[styles.stackImage, styles.stackFront]} />
           </>
         ) : (
@@ -411,13 +419,13 @@ const styles = StyleSheet.create({
   stackMiddle: {
     zIndex: 2,
     opacity: 0.78,
-    transform: [{ translateY: -35}, { scale: 1 }],
-    marginTop: 50
+    transform: [{ translateY: -35 }, { scale: 1 }],
+    marginTop: 50,
   },
   stackUpper: {
     zIndex: 1,
     opacity: 0.9,
-    transform: [{ translateY: -18}, { scale: 0.1 }],
+    transform: [{ translateY: -18 }, { scale: 0.1 }],
   },
   frontImageOverlay: {
     position: 'absolute',

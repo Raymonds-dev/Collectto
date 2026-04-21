@@ -7,4 +7,5 @@
 export * from '@/mocks/auth';
 export * from '@/mocks/profile';
 export * from '@/mocks/collections';
+export * from '@/mocks/explore';
 export * from '@/mocks/posts';

@@ -33,6 +33,11 @@ export default function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (): Promise<void> => {
+    if (!email.trim() || !password.trim()) {
+      setError('Preencha email e senha.');
+      return;
+    }
+
     try {
       setIsSubmitting(true);
       setError(null);
@@ -84,7 +89,7 @@ export default function LoginScreen() {
               value={password}
             />
 
-            {error ? <Text className="mt-3 text-sm text-red-600">{error}</Text> : null}
+            {error ? (<View className="mt-3 w-full items-center"><Text className="text-center text-sm text-red-600">{error}</Text></View>) : null}
 
             <View className="items-center">
               <Pressable

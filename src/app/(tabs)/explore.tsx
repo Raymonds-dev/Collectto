@@ -1,4 +1,5 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import type { ImageSourcePropType } from 'react-native';
@@ -143,14 +144,12 @@ const ExploreScreen = () => {
         visible={Boolean(selectedSpotlight)}
         onRequestClose={handleCloseSheet}>
         <View style={styles.sheetBackdrop}>
-          {selectedSpotlight ? (
-            <Image
-              source={selectedSpotlight.images[0]}
-              style={styles.backdropBlurImage}
-              resizeMode="cover"
-              blurRadius={18}
-            />
-          ) : null}
+          <BlurView
+            intensity={58}
+            tint="dark"
+            experimentalBlurMethod="dimezisBlurView"
+            style={styles.backdropBlur}
+          />
           <View style={styles.backdropScrim} />
 
           <AnimatedPressable
@@ -192,33 +191,41 @@ const ExploreScreen = () => {
                   data={selectedSpotlight.images}
                   keyExtractor={(_, index) => `sheet-image-${index}`}
                   showsHorizontalScrollIndicator={false}
+                  style={styles.sheetImagesList}
                   contentContainerStyle={styles.sheetImagesContent}
                   renderItem={({ item }) => (
                     <Image source={item} style={styles.sheetImage} resizeMode="cover" />
                   )}
                 />
 
-                <Text className="mb-1 mt-3 text-sm font-medium text-text-base">
+                <Text className="mb-2 mt-5 font-poetsenone text-lg text-text-base">
                   Sobre a coleção
                 </Text>
-                <Text className="text-sm leading-5 text-text-muted">
+                <Text
+                  numberOfLines={3}
+                  ellipsizeMode="tail"
+                  className="text-large mb-2 font-poetsenone leading-5 text-text-muted">
                   {selectedSpotlight.subtitle}
                 </Text>
 
-                <View className="mb-2 mt-3 flex-row flex-wrap gap-2">
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.sheetTagsList}
+                  contentContainerStyle={styles.sheetTagsContent}>
                   {selectedSpotlight.tags.map((tag) => (
-                    <View key={tag} className="rounded-full bg-brand-50 px-3 py-1">
-                      <Text className="text-xs font-medium text-brand-primary">{tag}</Text>
+                    <View key={tag} className="rounded-full bg-brand-50 px-4 py-2">
+                      <Text className="text-sm font-medium text-brand-primary">{tag}</Text>
                     </View>
                   ))}
-                </View>
+                </ScrollView>
 
                 <AnimatedPressable
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir coleção ${selectedSpotlight.title}`}
                   onPress={() => handleOpenCollection(selectedSpotlight.collectionId)}
-                  className="mt-4 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
-                  <Text className="font-body text-sm font-semibold text-text-inverse">
+                  className="mt-2 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
+                  <Text className="font-poetsenone text-lg  text-text-inverse">
                     Ver coleção completa
                   </Text>
                 </AnimatedPressable>
@@ -485,12 +492,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backdropBlurImage: {
+  backdropBlur: {
     ...StyleSheet.absoluteFillObject,
   },
   backdropScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(10, 10, 10, 0.5)',
+    backgroundColor: 'rgba(10, 10, 10, 0.18)',
   },
   sheetDismissArea: {
     ...StyleSheet.absoluteFillObject,
@@ -506,9 +513,22 @@ const styles = StyleSheet.create({
     gap: 10,
     paddingRight: 6,
   },
+  sheetImagesList: {
+    flexGrow: 0,
+    maxHeight: 390,
+  },
+  sheetTagsList: {
+    marginTop: 12,
+    marginBottom: 16,
+    flexGrow: 0,
+  },
+  sheetTagsContent: {
+    gap: 8,
+    paddingRight: 6,
+  },
   sheetImage: {
-    width: 240,
-    height: 350,
+    width: 268,
+    height: 390,
     borderRadius: 14,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.08)',

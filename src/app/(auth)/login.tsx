@@ -83,6 +83,11 @@ export default function LoginScreen() {
               <Text className="text-center text-sm text-red-600">{error}</Text>
             </View>
           ) : null}
+          {error ? (
+            <View className="mt-3 w-full items-center">
+              <Text className="text-center text-sm text-red-600">{error}</Text>
+            </View>
+          ) : null}
 
           <View className="items-center">
             <Pressable
@@ -94,7 +99,7 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
 
-            <Text className="mt-8 font-poetsenone text-2xl font-bold text-black">
+            <Text className="mt-8 font-poetsenone text-2xl text-black">
               Não tem conta?{' '}
               <Link href="/(auth)/user_create" className="font-poetsenone text-orange-500">
                 Cadastre-se

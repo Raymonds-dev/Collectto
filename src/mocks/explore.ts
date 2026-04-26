@@ -6,6 +6,7 @@ export type ExploreCategory = {
 };
 
 export type ExploreSpotlight = {
+  postType: 'collection' | 'item';
   id: string;
   title: string;
   subtitle: string;
@@ -23,12 +24,11 @@ export const MOCK_EXPLORE_CATEGORIES: ExploreCategory[] = [
   { id: 'all', label: 'Todos' },
   { id: 'collections', label: 'Coleções' },
   { id: 'items', label: 'Itens' },
-  { id: 'vintage', label: 'Vintage' },
-  { id: 'recent', label: 'Recentes' },
 ];
 
 export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
   {
+    postType: 'collection',
     id: 'muscle-cars',
     title: 'American Muscle',
     subtitle: 'Coleção com foco em clássicos de alto impacto visual e história forte.',
@@ -46,6 +46,7 @@ export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
     height: 248,
   },
   {
+    postType: 'item',
     id: 'trading-cards',
     title: 'Cards Raros',
     subtitle: 'Cartas colecionáveis com destaque para peças premium e acabamento especial.',
@@ -63,6 +64,7 @@ export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
     height: 188,
   },
   {
+    postType: 'item',
     id: 'sneakers-wall',
     title: 'Sneakers em destaque',
     subtitle: 'Uma seleção visual de pares que merecem espaço em qualquer coleção.',
@@ -80,6 +82,7 @@ export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
     height: 222,
   },
   {
+    postType: 'collection',
     id: 'vinyl-corner',
     title: 'Discos e capas',
     subtitle: 'Referências com identidade forte, textura e composição fotográfica marcante.',
@@ -97,6 +100,7 @@ export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
     height: 190,
   },
   {
+    postType: 'item',
     id: 'camera-archive',
     title: 'Arquivos analógicos',
     subtitle: 'Objetos com estética de arquivo, nostalgia e presença forte no grid.',
@@ -114,6 +118,7 @@ export const MOCK_EXPLORE_SPOTLIGHTS: ExploreSpotlight[] = [
     height: 242,
   },
   {
+    postType: 'collection',
     id: 'garage-icons',
     title: 'Garagem icônica',
     subtitle: 'Seleção pensada para reforçar o lado visual e curado do Collectto.',

@@ -4,9 +4,11 @@
 **Created**: 2026-05-01
 
 ## Feature Summary
+
 Visualizar, ler e criar comentários no feed do Collectto com teaser social e fluxo inline.
 
 ## MVP Scope
+
 1. ✅ Cada item do feed exibe um comentário teaser (primeiro comentário)
 2. ✅ Usuário abre visualização de comentários via botão
 3. ✅ Usuário escreve e publica novo comentário
@@ -14,6 +16,7 @@ Visualizar, ler e criar comentários no feed do Collectto com teaser social e fl
 5. ✅ Componentes reutilizáveis em src/components/comments/
 
 ## Quick Setup
+
 ```bash
 # After tasks.md is ready:
 npm install                    # Ensure dependencies
@@ -30,6 +33,7 @@ npm run android               # Test on Android
 ## Key Files (Phase 2 Implementation)
 
 ### New Files to Create
+
 ```
 src/
 ├── components/
@@ -48,6 +52,7 @@ specs/001-feed-comments/
 ```
 
 ### Modify Existing Files
+
 ```
 src/
 ├── mocks/
@@ -63,31 +68,36 @@ src/
 ## Design Decisions
 
 ### Component Structure
+
 - **Comment.tsx**: Pure display, no state
 - **CommentThread.tsx**: Manages thread state (list + input + submission)
 - **CommentInput.tsx**: Reusable input field
 
 ### State Management
+
 - Local state in CommentThread via useState
 - No global state needed (scoped to item)
 - Future: lift state if multi-item editing needed
 
 ### Animations
+
 - SlideUp when opening comment thread
 - ScalePress on comment button (feedback)
 - FadeIn on new comment entry
 
 ### Mock Data
+
 ```typescript
 // src/mocks/comments.ts structure:
-export const MOCK_COMMENTS_BY_POST: Record<string, CommentDto[]>
-export function buildTeaser(postId: string): CommentDto | undefined
-export function getCommentsByPostId(postId: string): CommentDto[]
+export const MOCK_COMMENTS_BY_POST: Record<string, CommentDto[]>;
+export function buildTeaser(postId: string): CommentDto | undefined;
+export function getCommentsByPostId(postId: string): CommentDto[];
 ```
 
 ## Testing Strategy
 
 ### Manual Testing Checklist
+
 - [ ] Feed loads with teaser comment visible on each item
 - [ ] Tap comment button → opens thread with full list
 - [ ] Type comment → submit button enables
@@ -97,11 +107,13 @@ export function getCommentsByPostId(postId: string): CommentDto[]
 - [ ] Accessibility: button labels + hit targets ≥44pt
 
 ### Type Checking
+
 ```bash
 npm run type-check              # Should pass
 ```
 
 ### Linting & Formatting
+
 ```bash
 npm run lint:fix && npm run format
 npm run validate                # Final check

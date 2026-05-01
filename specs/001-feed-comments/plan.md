@@ -23,7 +23,7 @@ Adicionar a capacidade de visualizar, ler e criar comentários no feed do Collec
 
 ## Constitution Check
 
-*GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
+_GATE: Must pass before Phase 0 research. Re-check after Phase 1 design._
 
 ✅ **Visual First**: Comentários exibem-se inline com teaser visual sem bloqueio de tela.  
 ✅ **Fluidez**: Abertura de comentários via expansion inline/modal leve, sem nova rota.  
@@ -73,4 +73,3 @@ Mobile-first React Native app using Expo Router. Comment feature layers on top o
 ## Complexity Tracking
 
 > **No constitution violations**. All work aligns with Visual First, Fluidez, Consistência, and Microinterações principles.
-

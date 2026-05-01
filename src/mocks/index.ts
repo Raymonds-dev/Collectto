@@ -9,3 +9,4 @@ export * from '@/mocks/profile';
 export * from '@/mocks/collections';
 export * from '@/mocks/explore';
 export * from '@/mocks/posts';
+export * from '@/mocks/comments';

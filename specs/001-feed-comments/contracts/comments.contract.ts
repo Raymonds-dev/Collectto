@@ -4,7 +4,7 @@
  * Defines public interfaces for comment feature.
  * MOCK: Implemented via src/mocks/comments.ts
  * TODO(api): Replace with actual backend endpoint when ready
- * 
+ *
  * Schema da API (banco de dados):
  * - PK: comment_id UUID
  * - FK: item_id UUID (referência ao feed item)

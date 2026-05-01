@@ -1,50 +1,122 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+Version change: template → 1.0.0
+Modified principles:
+- Principle 1 placeholder → Visual First
+- Principle 2 placeholder → Fluidez Acima de Complexidade
+- Principle 3 placeholder → Consistência > Criatividade Isolada
+- Principle 4 placeholder → Coleção É Identidade
+- Principle 5 placeholder → Microinterações, Performance e Motion Oficial
+Added sections:
+- Diretrizes de Produto e UX
+- Diretrizes de Engenharia e Arquitetura
+Removed sections:
+- None
+Templates requiring updates:
+- ✅ .specify/templates/plan-template.md (reviewed; aligned)
+- ✅ .specify/templates/spec-template.md (reviewed; aligned)
+- ✅ .specify/templates/tasks-template.md (reviewed; aligned)
+Deferred items:
+- None
+-->
+
+# Collectto Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### Visual First
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+Every user-facing surface MUST prioritize imagery, cards, grids, carousels, and other
+visual cues over long copy. If a message can be shown visually, it MUST not be
+explained in extended text. Dense text blocks are reserved for help, legal, or
+editorial contexts where visual treatment cannot carry the meaning.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+Rationale: Collectto is a product about pride in collections, so the first read must
+be visual and immediate.
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+### Fluidez Acima de Complexidade
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+Interactions MUST feel lightweight, progressive, and local to the current surface.
+Prefer state changes, expansion, inline detail, and progressive disclosure before
+creating a new route or multi-step flow. Every simple user intent MUST take the fewest
+possible steps that preserve clarity.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+Rationale: movement without effort is part of the premium feel.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### Consistência > Criatividade Isolada
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+New work MUST reuse existing spacing, typography, tokens, motion, and component
+patterns before introducing new ones. When a new pattern is unavoidable, it MUST be
+implemented as a reusable component or system extension instead of a one-off visual
+exception.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+Rationale: familiarity reduces cognitive load and keeps the app feeling like one
+product.
+
+### Coleção É Identidade
+
+Profile and collection experiences MUST emphasize curation, ownership, and personal
+expression. Collection surfaces SHOULD favor strong covers, elegant organization,
+and shareable presentation over generic list semantics.
+
+Rationale: showing a collection is showing who the user is.
+
+### Microinterações, Performance e Motion Oficial
+
+Every interactive state MUST provide clear feedback, and all motion MUST use the
+official presets or wrappers already defined in the codebase. Ad-hoc animations are
+not permitted. Use SlideUp for details and expansion, FadeIn for gentle entry,
+ScalePress for touch feedback, and Stagger for lists and grids. Loading states MUST
+prefer skeletons, image-aware rendering, and efficient list behavior over blocking
+spinners.
+
+Rationale: microfeedback and consistent motion create the premium feel; performance
+is part of the experience.
+
+## Diretrizes de Produto e UX
+
+The product MUST remain social without visual pollution. Feeds, comments, and discovery
+surfaces SHOULD keep metrics restrained, actions obvious, and content dominant.
+
+Mobile UX MUST remain first-class: touch targets need comfortable sizing, scroll must
+feel natural, accessibility basics are mandatory, and contextual loading states MUST be
+used instead of bare spinners whenever the user is waiting.
+
+Navigation SHOULD prefer inline detail, expanding cards, and section swaps before
+creating a new screen. New routes are justified only when the interaction cannot be
+expressed cleanly on the current surface.
+
+When a Figma design or captured reference exists, it MUST be treated as the source of
+truth for layout and visual hierarchy. Behavior and UX may be adapted to the codebase,
+but the visual intent must not be reinvented.
+
+## Diretrizes de Engenharia e Arquitetura
+
+Screens control flow, page-level state, and navigation decisions. Components render UI
+and local interactions. Shared behavior MUST be extracted into reusable components or
+hooks when repetition appears or when a pattern is expected to scale.
+
+Local state MUST be preferred before global state. Global state is reserved for
+cross-screen coordination, persistence, or auth-level concerns that cannot stay local.
+
+Code MUST stay simple, explicit, and predictable. Complex control flow should be
+reduced with guard clauses, and public contracts SHOULD use explicit TypeScript types.
+Accessibility labels, touch feedback, and safe interaction states are required for
+user-facing actions.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+This constitution supersedes local style preferences, ad-hoc patterns, and conflicting
+implementation habits. Every feature plan, spec, and task set MUST be checked against
+these principles before work starts and again before merge.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+Amendments require a documented rationale, a semantic version bump, and an explicit
+review of affected templates and guidance files. Versioning follows semantic rules:
+MAJOR for incompatible principle changes, MINOR for new principles or materially
+expanded guidance, and PATCH for clarifications or wording improvements.
+
+Compliance review MUST verify visual hierarchy, motion discipline, accessibility,
+performance, and component reuse. If a change violates the constitution, the plan
+must record the violation and the reason a simpler compliant alternative was rejected.
+
+**Version**: 1.0.0 | **Ratified**: 2026-05-01 | **Last Amended**: 2026-05-01

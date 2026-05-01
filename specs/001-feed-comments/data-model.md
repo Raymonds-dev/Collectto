@@ -6,6 +6,7 @@
 ## Entities
 
 ### Comment
+
 Representa uma mensagem individual vinculada a um feed item. Mapeia para schema da API.
 
 ```typescript
@@ -14,25 +15,26 @@ Representa uma mensagem individual vinculada a um feed item. Mapeia para schema 
 
 interface Comment {
   // Chaves primárias e referências (do banco)
-  id: string;                    // comment_id (UUID da API)
-  postId: string;               // item_id (FK para feed item)
-  authorId: string;             // user_id (FK para usuário autor)
-  createdAt: number;            // created_at (timestamp milisegundos, calculado client-side)
-  
+  id: string; // comment_id (UUID da API)
+  postId: string; // item_id (FK para feed item)
+  authorId: string; // user_id (FK para usuário autor)
+  createdAt: number; // created_at (timestamp milisegundos, calculado client-side)
+
   // Conteúdo
-  text: string;                 // content (1–500 chars, TEXT na API)
-  
+  text: string; // content (1–500 chars, TEXT na API)
+
   // Snapshots do perfil do autor (desnormalizados para exibição offline)
-  authorName: string;           // Nome do autor no momento da criação (snapshot, imutável)
-  authorAvatar: string;         // Avatar URI do autor no momento da criação (snapshot, imutável)
-  
+  authorName: string; // Nome do autor no momento da criação (snapshot, imutável)
+  authorAvatar: string; // Avatar URI do autor no momento da criação (snapshot, imutável)
+
   // Transformações client-side (não vêm da API)
-  publishedLabel: string;       // "agora", "5 min atrás", etc. (calculado a partir de createdAt)
-  isAuthor?: boolean;           // Flag local: é o comentário do usuário autenticado (comparar com auth context)
+  publishedLabel: string; // "agora", "5 min atrás", etc. (calculado a partir de createdAt)
+  isAuthor?: boolean; // Flag local: é o comentário do usuário autenticado (comparar com auth context)
 }
 ```
 
 **Validation Rules**:
+
 - `id`: required, non-empty, UUID format
 - `postId`: required, must link to valid Post (item_id)
 - `authorId`: required, UUID format (user_id)
@@ -44,18 +46,20 @@ interface Comment {
 ---
 
 ### PostCommentMeta
+
 Metadados associados a um feed item para exibição de teaser e contagem.
 
 ```typescript
 interface PostCommentMeta {
-  postId: string;               // Referência ao Post
-  totalCount: number;           // Total de comentários reais
-  teaserComment?: Comment;      // Primeiro ou comentário destacado para preview
-  isExpanded?: boolean;         // Estado local: thread aberta ou fechada
+  postId: string; // Referência ao Post
+  totalCount: number; // Total de comentários reais
+  teaserComment?: Comment; // Primeiro ou comentário destacado para preview
+  isExpanded?: boolean; // Estado local: thread aberta ou fechada
 }
 ```
 
 **Validation Rules**:
+
 - `postId`: required, non-empty
 - `totalCount`: number ≥ 0
 - `teaserComment`: optional, se presente deve ser Comment válido
@@ -64,20 +68,22 @@ interface PostCommentMeta {
 ---
 
 ### CommentThreadState
+
 Estado local para a visualização de comentários de um item específico.
 
 ```typescript
 interface CommentThreadState {
-  postId: string;               // Qual item está sendo visualizado
-  comments: Comment[];          // Lista completa de comentários
-  isLoading: boolean;           // Carregando comentários
-  error?: string;               // Mensagem de erro (se houver)
-  inputText: string;            // Rascunho do novo comentário
-  isSubmitting: boolean;        // Enviando novo comentário
+  postId: string; // Qual item está sendo visualizado
+  comments: Comment[]; // Lista completa de comentários
+  isLoading: boolean; // Carregando comentários
+  error?: string; // Mensagem de erro (se houver)
+  inputText: string; // Rascunho do novo comentário
+  isSubmitting: boolean; // Enviando novo comentário
 }
 ```
 
 **Validation Rules**:
+
 - `postId`: required
 - `comments`: array, pode estar vazio
 - `inputText`: string, pode estar vazio (rascunho)
@@ -101,6 +107,7 @@ User ──────── Comment
 ## State Flows
 
 ### Opening Comment Thread
+
 ```
 User taps comment button on Post
   ↓
@@ -115,6 +122,7 @@ Render CommentThread component
 ```
 
 ### Creating Comment
+
 ```
 User types in CommentInput
   ↓
@@ -140,11 +148,11 @@ If valid:
 ```typescript
 // Quando API estiver pronta, POST /api/comments retornará:
 interface CreateCommentResponse {
-  comment_id: string;           // UUID
-  item_id: string;              // FK para post
-  user_id: string;              // FK para user
-  content: string;              // Texto do comentário
-  created_at: string;           // ISO 8601 timestamp (API)
+  comment_id: string; // UUID
+  item_id: string; // FK para post
+  user_id: string; // FK para user
+  content: string; // Texto do comentário
+  created_at: string; // ISO 8601 timestamp (API)
 }
 
 // Client map para Comment interface:
@@ -154,8 +162,8 @@ const apiToComment = (dto: any, authorName: string, authorAvatar: string): Comme
   authorId: dto.user_id,
   text: dto.content,
   createdAt: new Date(dto.created_at).getTime(),
-  authorName,    // Snapshot do user profile
-  authorAvatar,  // Snapshot do user profile
+  authorName, // Snapshot do user profile
+  authorAvatar, // Snapshot do user profile
   publishedLabel: getRelativeTime(dto.created_at),
   isAuthor: dto.user_id === currentUserId,
 });
@@ -165,40 +173,40 @@ const apiToComment = (dto: any, authorName: string, authorAvatar: string): Comme
 
 ```typescript
 export const MOCK_COMMENTS: Record<string, Comment[]> = {
-  "post-1": [
+  'post-1': [
     {
-      id: "c1",
-      postId: "post-1",
-      authorId: "u1",
-      text: "Adorei essa edição!",
-      createdAt: Date.now() - 5 * 60 * 1000,  // 5 min atrás
-      authorName: "Yosag Marques",
-      authorAvatar: "https://...",
-      publishedLabel: "5 min atrás",
+      id: 'c1',
+      postId: 'post-1',
+      authorId: 'u1',
+      text: 'Adorei essa edição!',
+      createdAt: Date.now() - 5 * 60 * 1000, // 5 min atrás
+      authorName: 'Yosag Marques',
+      authorAvatar: 'https://...',
+      publishedLabel: '5 min atrás',
       isAuthor: false,
     },
     {
-      id: "c2",
-      postId: "post-1",
-      authorId: "u2",
-      text: "Qual é a origem desse item?",
+      id: 'c2',
+      postId: 'post-1',
+      authorId: 'u2',
+      text: 'Qual é a origem desse item?',
       createdAt: Date.now() - 2 * 60 * 1000,
-      authorName: "Marina Silva",
-      authorAvatar: "https://...",
-      publishedLabel: "2 min atrás",
+      authorName: 'Marina Silva',
+      authorAvatar: 'https://...',
+      publishedLabel: '2 min atrás',
       isAuthor: false,
     },
   ],
-  "post-2": [
+  'post-2': [
     {
-      id: "c3",
-      postId: "post-2",
-      authorId: "u1",
-      text: "Excelente achado!",
+      id: 'c3',
+      postId: 'post-2',
+      authorId: 'u1',
+      text: 'Excelente achado!',
       createdAt: Date.now() - 30 * 60 * 1000,
-      authorName: "Yosag Marques",
-      authorAvatar: "https://...",
-      publishedLabel: "30 min atrás",
+      authorName: 'Yosag Marques',
+      authorAvatar: 'https://...',
+      publishedLabel: '30 min atrás',
       isAuthor: true,
     },
   ],

@@ -1,5 +1,5 @@
 ---
-description: "Task list for feed comments feature implementation"
+description: 'Task list for feed comments feature implementation'
 ---
 
 # Tasks: Comentários no Feed
@@ -25,7 +25,7 @@ description: "Task list for feed comments feature implementation"
 
 - [ ] T001 Create types for comments domain in src/types/comments.ts (Comment, CommentThreadState, PostCommentMeta interfaces)
 - [ ] T002 [P] Create mock data file src/mocks/comments.ts with MOCK_COMMENTS, buildTeaser, getCommentsByPostId builders following mock-centralization skill
-- [ ] T003 Update src/mocks/index.ts barrel to export comments domain (export * from './comments')
+- [ ] T003 Update src/mocks/index.ts barrel to export comments domain (export \* from './comments')
 
 ---
 
@@ -153,6 +153,7 @@ description: "Task list for feed comments feature implementation"
 ```
 
 Then sequentially:
+
 - T011 [US1] Test teaser display
 
 ---
@@ -167,6 +168,7 @@ Then sequentially:
 ```
 
 Then sequentially:
+
 - T014 [US2] Add ScalePress feedback
 - T016 [US2] Test workflow
 

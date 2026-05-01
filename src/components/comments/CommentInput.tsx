@@ -8,7 +8,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import tokens from '@/styles/tailwind/tokens';
+import { tokens } from '@/styles/tailwind/tokens.native';
 
 type CommentInputProps = {
   /** Current input text value */

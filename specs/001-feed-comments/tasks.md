@@ -23,9 +23,9 @@ description: 'Task list for feed comments feature implementation'
 
 **Purpose**: Project initialization, types, and mock data structure
 
-- [ ] T001 Create types for comments domain in src/types/comments.ts (Comment, CommentThreadState, PostCommentMeta interfaces)
-- [ ] T002 [P] Create mock data file src/mocks/comments.ts with MOCK_COMMENTS, buildTeaser, getCommentsByPostId builders following mock-centralization skill
-- [ ] T003 Update src/mocks/index.ts barrel to export comments domain (export \* from './comments')
+- [x] T001 Create types for comments domain in src/types/comments.ts (Comment, CommentThreadState, PostCommentMeta interfaces)
+- [x] T002 [P] Create mock data file src/mocks/comments.ts with MOCK_COMMENTS, buildTeaser, getCommentsByPostId builders following mock-centralization skill
+- [x] T003 Update src/mocks/index.ts barrel to export comments domain (export \* from './comments')
 
 ---
 
@@ -33,11 +33,11 @@ description: 'Task list for feed comments feature implementation'
 
 **Purpose**: Reusable components that support all user stories
 
-- [ ] T004 [P] Create Comment.tsx component in src/components/comments/ (pure display, no state; shows single comment with author avatar, name, text, timestamp)
-- [ ] T005 [P] Create CommentInput.tsx component in src/components/comments/ (reusable input field with validation, submit button, character counter)
-- [ ] T006 Create CommentThread.tsx component in src/components/comments/ (manages thread state, FlatList for comments, integration with CommentInput, open/close logic)
-- [ ] T007 Create src/components/comments/index.ts barrel export (export Comment, CommentThread, CommentInput)
-- [ ] T008 Review Post.tsx component to confirm onPressComment callback exists and is ready for integration (no changes needed if callback already present)
+- [x] T004 [P] Create Comment.tsx component in src/components/comments/ (pure display, no state; shows single comment with author avatar, name, text, timestamp)
+- [x] T005 [P] Create CommentInput.tsx component in src/components/comments/ (reusable input field with validation, submit button, character counter)
+- [x] T006 Create CommentThread.tsx component in src/components/comments/ (manages thread state, FlatList for comments, integration with CommentInput, open/close logic)
+- [x] T007 Create src/components/comments/index.ts barrel export (export Comment, CommentThread, CommentInput)
+- [x] T008 Review Post.tsx component to confirm onPressComment callback exists and is ready for integration (no changes needed if callback already present)
 
 **Checkpoint**: Foundational components ready - user story work can now begin in parallel
 
@@ -51,9 +51,9 @@ description: 'Task list for feed comments feature implementation'
 
 ### Implementation for User Story 1
 
-- [ ] T009 [P] [US1] Update Post.tsx to display teaser comment (integrate buildTeaser call, render first comment inline or in preview badge)
-- [ ] T010 [P] [US1] Add teaser comment styling in Post.tsx using tokens from src/styles/tailwind/tokens.js (brand colors, surface, text)
-- [ ] T011 [US1] Test teaser display: load feed, verify each item shows comment preview without user interaction
+- [x] T009 [P] [US1] Update Post.tsx to display teaser comment (integrate buildTeaser call, render first comment inline or in preview badge)
+- [x] T010 [P] [US1] Add teaser comment styling in Post.tsx using tokens from src/styles/tailwind/tokens.js (brand colors, surface, text)
+- [x] T011 [US1] Test teaser display: load feed, verify each item shows comment preview without user interaction
 
 **Checkpoint**: User Story 1 complete - teaser comments visible on all feed items
 
@@ -67,11 +67,11 @@ description: 'Task list for feed comments feature implementation'
 
 ### Implementation for User Story 2
 
-- [ ] T012 [P] [US2] Implement CommentThread.tsx comment list visualization (FlatList to display all comments from mock data)
-- [ ] T013 [P] [US2] Add modal or inline expansion UI to show/hide CommentThread (use MotionView with SlideUp preset for entrance)
-- [ ] T014 [US2] Wire onPressComment callback from Post component to trigger CommentThread open (modal or expanded state in feed screen)
-- [ ] T015 [US2] Add ScalePress motion feedback to comment button using AnimatedPressable (visual feedback on tap)
-- [ ] T016 [US2] Test comment thread workflow: tap button → thread opens → close → feed returns to same scroll position
+- [x] T012 [P] [US2] Implement CommentThread.tsx comment list visualization (FlatList to display all comments from mock data)
+- [x] T013 [P] [US2] Add modal or inline expansion UI to show/hide CommentThread (use MotionView with SlideUp preset for entrance)
+- [x] T014 [US2] Wire onPressComment callback from Post component to trigger CommentThread open (modal or expanded state in feed screen)
+- [x] T015 [US2] Add ScalePress motion feedback to comment button using AnimatedPressable (visual feedback on tap)
+- [x] T016 [US2] Test comment thread workflow: tap button → thread opens → close → feed returns to same scroll position
 
 **Checkpoint**: User Story 2 complete - read comments workflow functional and tested
 
@@ -85,12 +85,12 @@ description: 'Task list for feed comments feature implementation'
 
 ### Implementation for User Story 3
 
-- [ ] T017 [P] [US3] Implement CommentInput.tsx submission logic (trim input, validate non-empty, reject spaces-only)
-- [ ] T018 [P] [US3] Add new comment creation to CommentThread.tsx (append to local state, clear input, reset form)
-- [ ] T019 [US3] Integrate CommentInput into CommentThread.tsx (position at bottom of list, bind onSubmit handler)
+- [x] T017 [P] [US3] Implement CommentInput.tsx submission logic (trim input, validate non-empty, reject spaces-only)
+- [x] T018 [P] [US3] Add new comment creation to CommentThread.tsx (append to local state, clear input, reset form)
+- [x] T019 [US3] Integrate CommentInput into CommentThread.tsx (position at bottom of list, bind onSubmit handler)
 - [ ] T020 [US3] Add FadeIn animation on new comment entry using MotionView preset
-- [ ] T021 [US3] Add error/validation feedback on empty submit attempt (show temporary message or disable button state)
-- [ ] T022 [US3] Test comment creation: open thread → type valid text → submit → comment appears in list, input cleared
+- [x] T021 [US3] Add error/validation feedback on empty submit attempt (show temporary message or disable button state)
+- [x] T022 [US3] Test comment creation: open thread → type valid text → submit → comment appears in list, input cleared
 
 **Checkpoint**: User Story 3 complete - create comment workflow functional and tested
 

@@ -333,12 +333,13 @@ const StackedPreview = ({ images, tags, caption, postType }: StackedPreviewProps
           ))}
         </ScrollView>
 
-        <Text
-          pointerEvents="none"
-          numberOfLines={2}
-          className="text-sm font-medium leading-5 text-text-inverse">
-          {caption}
-        </Text>
+        <View pointerEvents="none">
+          <Text
+            numberOfLines={2}
+            className="text-sm font-medium leading-5 text-text-inverse">
+            {caption}
+          </Text>
+        </View>
       </View>
     </View>
   );

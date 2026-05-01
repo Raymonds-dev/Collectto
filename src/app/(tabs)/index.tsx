@@ -1,4 +1,5 @@
 import { Post, type PostItemPreview } from '@/components/post';
+import { CommentThread } from '@/components/comments';
 import { CollectionItemDetailView } from '@/components/item-collection/CollectionItemDetailView';
 import { AnimatedPressable } from '@/components/ui/animated';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
@@ -174,6 +175,7 @@ export default function FeedScreen() {
   const [selectedPost, setSelectedPost] = useState<MockFeedPost | null>(null);
   const [isDetailFollowing, setIsDetailFollowing] = useState(false);
   const [isDetailNotificationsEnabled, setIsDetailNotificationsEnabled] = useState(false);
+  const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
 
   const loadPage = useCallback((page: number): MockFeedPost[] => {
     return createFeedPage(page, PAGE_SIZE);
@@ -470,7 +472,7 @@ export default function FeedScreen() {
           entranceDelay={index * 50}
           onPressItem={handleOpenItemCollection}
           onPressLike={handleTogglePostLike}
-          onPressComment={() => {}}
+          onPressComment={setCommentThreadPostId}
           onPressOpenCollection={handleOpenPostCollection}
           onPressShare={(postId) => {
             void handleSharePost(postId);
@@ -564,6 +566,26 @@ export default function FeedScreen() {
               </Text>
             </View>
           ) : null}
+        </View>
+      </Modal>
+
+      <Modal
+        visible={!!commentThreadPostId}
+        animationType="slide"
+        presentationStyle="formSheet"
+        onRequestClose={() => setCommentThreadPostId(null)}>
+        <View className="flex-1 bg-surface-base">
+          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+            <AnimatedPressable
+              accessibilityRole="button"
+              accessibilityLabel="Fechar comentários"
+              onPress={() => setCommentThreadPostId(null)}
+              className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
+              <Ionicons name="close" size={20} color={tokens.colors.text.base} />
+            </AnimatedPressable>
+          </View>
+
+          {commentThreadPostId ? <CommentThread postId={commentThreadPostId} /> : null}
         </View>
       </Modal>
     </View>

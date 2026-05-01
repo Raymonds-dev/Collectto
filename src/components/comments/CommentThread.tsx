@@ -6,8 +6,8 @@
 
 import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
-import { v4 as uuidv4 } from 'uuid';
 
+import { generateRandomId } from '@/utils/generateRandomId';
 import { Comment } from './Comment';
 import { CommentInput } from './CommentInput';
 import { addCommentToPost, getCommentsByPostId } from '@/mocks/comments';
@@ -78,7 +78,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
 
     // Create new comment (mock)
     const newComment: CommentType = {
-      id: uuidv4(),
+      id: generateRandomId(),
       postId,
       authorId: 'current-user', // TODO(auth): Get from auth context
       text: trimmedText,

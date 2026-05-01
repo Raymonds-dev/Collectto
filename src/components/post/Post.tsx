@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
+import { buildTeaser } from '@/mocks/comments';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 export type PostItemPreview = {
@@ -134,6 +135,44 @@ export const Post = ({
             />
           </View>
         </AnimatedPressable>
+
+        {/* Teaser comment section */}
+        {(() => {
+          const teaserComment = buildTeaser(id);
+          if (!teaserComment) return null;
+
+          return (
+            <AnimatedPressable
+              accessibilityRole="button"
+              accessibilityLabel={`Comentário de ${teaserComment.authorName}: ${teaserComment.text}`}
+              hitSlop={8}
+              onPress={() => onPressComment?.(id)}
+              className="w-full px-[10px] py-[8px]">
+              <View className="rounded-lg bg-surface-muted px-3 py-2">
+                <View className="mb-1 flex-row items-center gap-2">
+                  <Image
+                    source={{ uri: teaserComment.authorAvatar }}
+                    className="h-6 w-6 rounded-full"
+                    accessibilityIgnoresInvertColors
+                  />
+                  <View className="flex-1">
+                    <Text className="font-body text-[9px] font-semibold text-text-base">
+                      {teaserComment.authorName}
+                    </Text>
+                    <Text className="font-body text-[8px] text-text-subtle">
+                      {teaserComment.publishedLabel}
+                    </Text>
+                  </View>
+                </View>
+                <Text
+                  numberOfLines={2}
+                  className="font-body text-[9px] leading-[12px] text-text-base">
+                  {teaserComment.text}
+                </Text>
+              </View>
+            </AnimatedPressable>
+          );
+        })()}
 
         <View className="w-full flex-row items-center justify-center gap-4 px-[10px] py-[6px]">
           <PostActionButton

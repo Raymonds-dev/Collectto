@@ -98,3 +98,8 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 - Branch and PR flow: BRANCHING.md
 - Tailwind and NativeWind tokens: src/styles/tailwind/README.md
 - Project rules: AGENTS.md
+
+<!-- SPECKIT START -->
+For additional context about technologies to be used, project structure,
+shell commands, and other important information, read the current plan
+<!-- SPECKIT END -->

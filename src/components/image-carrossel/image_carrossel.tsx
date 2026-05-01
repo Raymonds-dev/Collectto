@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   FlatList,
   Image,
@@ -27,6 +27,8 @@ interface CarrosselItemProps {
 interface ImageCarouselProps {
   items: { id: string; source: ImageSourcePropType }[];
 }
+
+const AUTO_SCROLL_DELAY = 3000;
 
 const CareosselItem: React.FC<CarrosselItemProps> = ({
   item,
@@ -59,12 +61,13 @@ const CareosselItem: React.FC<CarrosselItemProps> = ({
       style={[
         {
           width: itemWidth,
+          marginVertical: 10,
           borderRadius: 10,
           shadowColor: '#000',
-          shadowOpacity: 0.78,
-          shadowOffset: { width: 0, height: 14 },
-          shadowRadius: 28,
-          elevation: 26,
+          shadowOpacity: 0.24,
+          shadowOffset: { width: 0, height: 4 },
+          shadowRadius: 10,
+          elevation: 8,
         },
         animatedStyle,
       ]}>
@@ -85,6 +88,8 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
   const { width: windowWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList<{ id: string; source: ImageSourcePropType }> | null>(null);
+  const autoScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const currentIndexRef = useRef(0);
 
   const ITEM_WIDTH = windowWidth * 0.6;
   const ITEM_SEPARATOR_WIDTH = 20;
@@ -105,6 +110,38 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
 
   const initialScrollIndex = items.length > 0 ? BUFFER_ITEMS : 0;
 
+  const clearAutoScrollTimer = useCallback(() => {
+    if (autoScrollTimerRef.current) {
+      clearTimeout(autoScrollTimerRef.current);
+      autoScrollTimerRef.current = null;
+    }
+  }, []);
+
+  const scrollToIndex = useCallback(
+    (index: number, animated: boolean) => {
+      flatListRef.current?.scrollToOffset({
+        offset: index * FULL_ITEM_WIDTH,
+        animated,
+      });
+    },
+    [FULL_ITEM_WIDTH]
+  );
+
+  const scheduleAutoScroll = useCallback(() => {
+    clearAutoScrollTimer();
+
+    if (items.length < 2) {
+      return;
+    }
+
+    autoScrollTimerRef.current = setTimeout(() => {
+      const nextIndex = currentIndexRef.current + 1;
+      currentIndexRef.current = nextIndex;
+      scrollToIndex(nextIndex, true);
+      scheduleAutoScroll();
+    }, AUTO_SCROLL_DELAY);
+  }, [clearAutoScrollTimer, items.length, scrollToIndex]);
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollX.value = event.contentOffset.x;
@@ -116,6 +153,8 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
     const snappedIndex = Math.round(contentOffsetX / FULL_ITEM_WIDTH);
     const snappedOffset = snappedIndex * FULL_ITEM_WIDTH;
     const originalItemsCount = items.length;
+
+    currentIndexRef.current = snappedIndex;
 
     if (Math.abs(contentOffsetX - snappedOffset) > 0.5) {
       flatListRef.current?.scrollToOffset({
@@ -130,6 +169,7 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
 
     if (snappedIndex < BUFFER_ITEMS) {
       const newIndex = snappedIndex + originalItemsCount;
+      currentIndexRef.current = newIndex;
       flatListRef.current?.scrollToOffset({
         offset: newIndex * FULL_ITEM_WIDTH,
         animated: false,
@@ -139,6 +179,7 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
 
     if (snappedIndex >= originalItemsCount + BUFFER_ITEMS) {
       const newIndex = snappedIndex - originalItemsCount;
+      currentIndexRef.current = newIndex;
       flatListRef.current?.scrollToOffset({
         offset: newIndex * FULL_ITEM_WIDTH,
         animated: false,
@@ -151,11 +192,18 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
       return;
     }
 
+    currentIndexRef.current = BUFFER_ITEMS;
     flatListRef.current.scrollToOffset({
       offset: BUFFER_ITEMS * FULL_ITEM_WIDTH,
       animated: false,
     });
-  }, [BUFFER_ITEMS, FULL_ITEM_WIDTH, items.length]);
+
+    scheduleAutoScroll();
+
+    return () => {
+      clearAutoScrollTimer();
+    };
+  }, [BUFFER_ITEMS, FULL_ITEM_WIDTH, clearAutoScrollTimer, scheduleAutoScroll, items.length]);
 
   if (loopedItems.length === 0) {
     return null;
@@ -193,6 +241,8 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
         )}
         onScroll={scrollHandler}
         onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollBeginDrag={clearAutoScrollTimer}
+        onScrollEndDrag={scheduleAutoScroll}
         scrollEventThrottle={16}
         disableIntervalMomentum
       />

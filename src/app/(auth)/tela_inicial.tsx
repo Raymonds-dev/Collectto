@@ -11,7 +11,7 @@ const carrossel_images = [
 
 const inicialScreen = () => {
   return (
-    <View className="flex-1j bg-surface-background h-full items-center justify-start ">
+    <View className="bg-surface-background h-full flex-1 items-center justify-start overflow-visible">
       <View className="mb-5 items-center">
         <Image source={require('@/assets/logo_2.png')} className="h-44 w-44" resizeMode="contain" />
       </View>
@@ -25,7 +25,7 @@ const inicialScreen = () => {
         </Text>
       </View>
 
-      <View className="mb-5 h-[320px] w-full items-center justify-center">
+      <View className="mb-1 h-[340px] w-full items-center justify-center pb-8">
         <ImageCarrossel items={carrossel_images} />
       </View>
 

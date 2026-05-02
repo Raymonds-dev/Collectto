@@ -8,6 +8,7 @@ import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 import { generateRandomId } from '@/utils/generateRandomId';
+import { extractBasePostId } from '@/utils/extractBasePostId';
 import { Comment } from './Comment';
 import { CommentInput } from './CommentInput';
 import { addCommentToPost, getCommentsByPostId } from '@/mocks/comments';
@@ -31,10 +32,13 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
   onPressAuthor,
   onStateChange,
 }) => {
+  // Extract base post ID for mock lookups (feed posts have transformed IDs)
+  const basePostId = extractBasePostId(postId);
+
   // Initialize state with mock comments
   const [state, setState] = useState<CommentThreadState>({
     postId,
-    comments: getCommentsByPostId(postId),
+    comments: getCommentsByPostId(basePostId),
     isLoading: false,
     error: undefined,
     inputText: '',
@@ -99,15 +103,15 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
 
     // Simulate network delay
     setTimeout(() => {
-      // Add to mock data
-      addCommentToPost(postId, newComment);
+      // Add to mock data (use base post ID for mock lookups)
+      addCommentToPost(basePostId, newComment);
 
       setState((prev) => ({
         ...prev,
         isSubmitting: false,
       }));
     }, 300);
-  }, [state.inputText, postId]);
+  }, [state.inputText, postId, basePostId]);
 
   return (
     <View className="bg-surface-primary flex-1">
@@ -138,7 +142,7 @@ export const CommentThread: React.FC<CommentThreadProps> = ({
               </Text>
             </View>
           }
-          ItemSeparatorComponent={() => <View className="h-px bg-surface-border" />}
+          ItemSeparatorComponent={() => <View className="h-2" />}
           scrollEnabled
           nestedScrollEnabled
           accessibilityLabel="Lista de comentários"

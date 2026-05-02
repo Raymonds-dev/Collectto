@@ -2,8 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { TeaserComment } from '@/components/comments/TeaserComment';
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
 import { buildTeaser } from '@/mocks/comments';
+import { extractBasePostId } from '@/utils/extractBasePostId';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 export type PostItemPreview = {
@@ -100,12 +102,12 @@ export const Post = ({
         <View className="w-full flex-row items-start gap-[10px] p-[10px]">
           <Image
             source={{ uri: author.avatarUri }}
-            className="h-10 w-10 rounded-full border border-surface-border"
+            className="w-10 h-10 border rounded-full border-surface-border"
             accessibilityIgnoresInvertColors
           />
 
-          <View className="min-w-0 flex-1">
-            <View className="w-full flex-row items-center gap-1">
+          <View className="flex-1 min-w-0">
+            <View className="flex-row items-center w-full gap-1">
               <Text className="font-poetsenone text-[10px] text-text-base">{author.name}</Text>
               <Text className="font-body text-[8px] font-extralight text-text-subtle">
                 @{author.username}
@@ -138,40 +140,11 @@ export const Post = ({
 
         {/* Teaser comment section */}
         {(() => {
-          const teaserComment = buildTeaser(id);
+          const basePostId = extractBasePostId(id);
+          const teaserComment = buildTeaser(basePostId);
           if (!teaserComment) return null;
 
-          return (
-            <AnimatedPressable
-              accessibilityRole="button"
-              accessibilityLabel={`Comentário de ${teaserComment.authorName}: ${teaserComment.text}`}
-              hitSlop={8}
-              onPress={() => onPressComment?.(id)}
-              className="w-full px-[10px] py-[8px]">
-              <View className="rounded-lg bg-surface-muted px-3 py-2">
-                <View className="mb-1 flex-row items-center gap-2">
-                  <Image
-                    source={{ uri: teaserComment.authorAvatar }}
-                    className="h-6 w-6 rounded-full"
-                    accessibilityIgnoresInvertColors
-                  />
-                  <View className="flex-1">
-                    <Text className="font-body text-[9px] font-semibold text-text-base">
-                      {teaserComment.authorName}
-                    </Text>
-                    <Text className="font-body text-[8px] text-text-subtle">
-                      {teaserComment.publishedLabel}
-                    </Text>
-                  </View>
-                </View>
-                <Text
-                  numberOfLines={2}
-                  className="font-body text-[9px] leading-[12px] text-text-base">
-                  {teaserComment.text}
-                </Text>
-              </View>
-            </AnimatedPressable>
-          );
+          return <TeaserComment comment={teaserComment} postId={id} onPress={onPressComment} />;
         })()}
 
         <View className="w-full flex-row items-center justify-center gap-4 px-[10px] py-[6px]">

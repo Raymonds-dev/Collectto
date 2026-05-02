@@ -6,3 +6,4 @@
 export { Comment } from './Comment';
 export { CommentInput } from './CommentInput';
 export { CommentThread } from './CommentThread';
+export { TeaserComment } from './TeaserComment';

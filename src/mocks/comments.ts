@@ -5,54 +5,17 @@
  */
 
 import type { Comment } from '@/types/comments';
-
-/**
- * Helper to format relative timestamps
- * @param minutesAgo Number of minutes in the past
- * @returns Formatted label like "5 min atrás"
- */
-const formatPublishedLabel = (minutesAgo: number): string => {
-  if (minutesAgo === 0) return 'agora';
-  if (minutesAgo < 60) return `${minutesAgo} min atrás`;
-  const hoursAgo = Math.floor(minutesAgo / 60);
-  if (hoursAgo < 24) return `${hoursAgo}h atrás`;
-  const daysAgo = Math.floor(hoursAgo / 24);
-  return `${daysAgo}d atrás`;
-};
-
-/**
- * Helper to create Comment objects with timestamps
- * @param overrides Partial Comment object with required fields
- * @returns Complete Comment object
- */
-export const buildComment = (
-  overrides: Partial<Comment> & Required<Pick<Comment, 'id' | 'postId' | 'authorId' | 'text'>>
-): Comment => {
-  const now = Date.now();
-  const minutesAgo = Math.floor((overrides.createdAt ? now - overrides.createdAt : 0) / 1000 / 60);
-
-  return {
-    id: overrides.id,
-    postId: overrides.postId,
-    authorId: overrides.authorId,
-    text: overrides.text,
-    createdAt: overrides.createdAt ?? now,
-    authorName: overrides.authorName ?? 'Usuário Mock',
-    authorAvatar: overrides.authorAvatar ?? 'https://via.placeholder.com/44',
-    publishedLabel: overrides.publishedLabel ?? formatPublishedLabel(minutesAgo),
-    isAuthor: overrides.isAuthor,
-  };
-};
+import { buildComment } from '@/utils/comments';
 
 /**
  * Mock comments organized by post ID
  * Each post has 2-3 comments to simulate activity
  */
 export const MOCK_COMMENTS_BY_POST: Record<string, Comment[]> = {
-  'post-001': [
+  'post-1': [
     buildComment({
       id: 'comment-001-1',
-      postId: 'post-001',
+      postId: 'post-1',
       authorId: 'user-002',
       text: 'Adorei essa coleção! Que itens incríveis! 🤩',
       createdAt: Date.now() - 30 * 60 * 1000, // 30 minutes ago
@@ -78,10 +41,10 @@ export const MOCK_COMMENTS_BY_POST: Record<string, Comment[]> = {
       authorAvatar: 'https://via.placeholder.com/44?text=AC',
     }),
   ],
-  'post-002': [
+  'post-2': [
     buildComment({
       id: 'comment-002-1',
-      postId: 'post-002',
+      postId: 'post-2',
       authorId: 'user-005',
       text: 'Que raro! Tenho um parecido mas em excelente estado.',
       createdAt: Date.now() - 45 * 60 * 1000, // 45 minutes ago
@@ -98,10 +61,10 @@ export const MOCK_COMMENTS_BY_POST: Record<string, Comment[]> = {
       authorAvatar: 'https://via.placeholder.com/44?text=CS',
     }),
   ],
-  'post-003': [
+  'post-3': [
     buildComment({
       id: 'comment-003-1',
-      postId: 'post-003',
+      postId: 'post-3',
       authorId: 'user-007',
       text: 'Primeira vez que vejo um assim! É autêntico?',
       createdAt: Date.now() - 20 * 60 * 1000, // 20 minutes ago
@@ -109,10 +72,10 @@ export const MOCK_COMMENTS_BY_POST: Record<string, Comment[]> = {
       authorAvatar: 'https://via.placeholder.com/44?text=LF',
     }),
   ],
-  'post-004': [
+  'post-4': [
     buildComment({
       id: 'comment-004-1',
-      postId: 'post-004',
+      postId: 'post-4',
       authorId: 'user-008',
       text: 'Combinação perfeita de cores! Muito bom gosto!',
       createdAt: Date.now() - 15 * 60 * 1000, // 15 minutes ago

@@ -31,7 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const PAGE_SIZE = 4;
 const MAX_FEED_PAGES = 3;
 const INITIAL_SKELETON_COUNT = 3;
-const LOAD_MORE_DELAY_MS = 900;
+const LOAD_MORE_DELAY_MS = 100;
 const SKELETON_ACTION_KEYS = ['like', 'comment', 'save', 'share'] as const;
 const brandJourney = tokens.gradients.brandJourney as string[];
 const skeletonActionButtonGradient: readonly [string, string, string, string] = [

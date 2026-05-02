@@ -2,7 +2,10 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { TeaserComment } from '@/components/comments/TeaserComment';
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
+import { buildTeaser } from '@/mocks/comments';
+import { extractBasePostId } from '@/utils/extractBasePostId';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 export type PostItemPreview = {
@@ -134,6 +137,15 @@ export const Post = ({
             />
           </View>
         </AnimatedPressable>
+
+        {/* Teaser comment section */}
+        {(() => {
+          const basePostId = extractBasePostId(id);
+          const teaserComment = buildTeaser(basePostId);
+          if (!teaserComment) return null;
+
+          return <TeaserComment comment={teaserComment} postId={id} onPress={onPressComment} />;
+        })()}
 
         <View className="w-full flex-row items-center justify-center gap-4 px-[10px] py-[6px]">
           <PostActionButton

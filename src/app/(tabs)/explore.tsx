@@ -2,10 +2,12 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import type { ImageSourcePropType } from 'react-native';
 import {
   FlatList,
+  type GestureResponderEvent,
   Image,
+  type ImageSourcePropType,
+  type ListRenderItemInfo,
   Modal,
   ScrollView,
   StyleSheet,
@@ -189,11 +191,13 @@ const ExploreScreen = () => {
                 <FlatList
                   horizontal
                   data={selectedSpotlight.images}
-                  keyExtractor={(_, index) => `sheet-image-${index}`}
+                  keyExtractor={(_item: ImageSourcePropType, index: number) =>
+                    `sheet-image-${index}`
+                  }
                   showsHorizontalScrollIndicator={false}
                   style={styles.sheetImagesList}
                   contentContainerStyle={styles.sheetImagesContent}
-                  renderItem={({ item }) => (
+                  renderItem={({ item }: ListRenderItemInfo<ImageSourcePropType>) => (
                     <Image source={item} style={styles.sheetImage} resizeMode="cover" />
                   )}
                 />
@@ -317,10 +321,10 @@ const StackedPreview = ({ images, tags, caption, postType }: StackedPreviewProps
           showsHorizontalScrollIndicator={false}
           style={styles.imageTagsScroll}
           contentContainerStyle={styles.imageTagsRow}
-          onTouchStart={(event) => {
+          onTouchStart={(event: GestureResponderEvent) => {
             event.stopPropagation();
           }}
-          onTouchMove={(event) => {
+          onTouchMove={(event: GestureResponderEvent) => {
             event.stopPropagation();
           }}
           onStartShouldSetResponder={() => true}

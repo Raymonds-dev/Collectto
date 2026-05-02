@@ -1,13 +1,13 @@
-import { Route } from 'expo-router';
 import { ComponentProps } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 
 export type IconName = ComponentProps<typeof Ionicons>['name'];
 
 export interface SettingsItemConfig {
+  id: string;
   label: string;
   description: string;
-  screen: Route<string>;
+  action: string;
   isDangerous?: boolean;
 }
 

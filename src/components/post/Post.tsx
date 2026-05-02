@@ -102,12 +102,12 @@ export const Post = ({
         <View className="w-full flex-row items-start gap-[10px] p-[10px]">
           <Image
             source={{ uri: author.avatarUri }}
-            className="w-10 h-10 border rounded-full border-surface-border"
+            className="h-10 w-10 rounded-full border border-surface-border"
             accessibilityIgnoresInvertColors
           />
 
-          <View className="flex-1 min-w-0">
-            <View className="flex-row items-center w-full gap-1">
+          <View className="min-w-0 flex-1">
+            <View className="w-full flex-row items-center gap-1">
               <Text className="font-poetsenone text-[10px] text-text-base">{author.name}</Text>
               <Text className="font-body text-[8px] font-extralight text-text-subtle">
                 @{author.username}

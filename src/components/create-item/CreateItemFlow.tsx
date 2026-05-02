@@ -13,7 +13,11 @@ import { useItemCreation } from '@/hooks/useItemCreation';
  * - CollectionSelector: Select or create collection
  * - ItemSaveFlow: Orchestrate save operation
  */
-export const CreateItemFlow: React.FC = () => {
+interface CreateItemFlowProps {
+  onClose?: () => void;
+}
+
+export const CreateItemFlow: React.FC<CreateItemFlowProps> = ({ onClose }) => {
   const { formData, localPhotos } = useItemCreation();
 
   return (

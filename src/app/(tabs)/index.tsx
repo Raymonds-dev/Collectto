@@ -48,11 +48,13 @@ const Header = ({
   onPressProfile,
   onPressLogo,
   onPressSettings,
+  onPressCreate,
 }: {
   topInset: number;
   onPressProfile: () => void;
   onPressLogo: () => void;
   onPressSettings: () => void;
+  onPressCreate: () => void;
 }) => {
   return (
     <View style={{ paddingTop: topInset }} className="bg-surface-base">
@@ -79,14 +81,25 @@ const Header = ({
           <BrandIcon size={26} />
         </AnimatedPressable>
 
-        <AnimatedPressable
-          accessibilityRole="button"
-          accessibilityLabel="Abrir configuracoes"
-          hitSlop={10}
-          onPress={onPressSettings}
-          className="h-11 w-11 items-center justify-center rounded-full">
-          <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
-        </AnimatedPressable>
+        <View className="flex-row items-center gap-3">
+          <AnimatedPressable
+            accessibilityRole="button"
+            accessibilityLabel="Criar novo item ou coleção"
+            hitSlop={10}
+            onPress={onPressCreate}
+            className="h-11 w-11 items-center justify-center rounded-full">
+            <Ionicons name="add" size={28} color={tokens.colors.text.base} />
+          </AnimatedPressable>
+
+          <AnimatedPressable
+            accessibilityRole="button"
+            accessibilityLabel="Abrir configuracoes"
+            hitSlop={10}
+            onPress={onPressSettings}
+            className="h-11 w-11 items-center justify-center rounded-full">
+            <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
+          </AnimatedPressable>
+        </View>
       </View>
     </View>
   );
@@ -261,6 +274,10 @@ export default function FeedScreen() {
     router.push('/(tabs)/settings');
   };
 
+  const handleCreateItem = (): void => {
+    router.push('/(tabs)/create-item');
+  };
+
   const handleScrollToTop = (): void => {
     if (!listRef.current) {
       return;
@@ -407,6 +424,7 @@ export default function FeedScreen() {
           onPressProfile={handleOpenProfile}
           onPressLogo={handleScrollToTop}
           onPressSettings={handleOpenSettings}
+          onPressCreate={handleCreateItem}
         />
       </View>
 

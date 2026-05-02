@@ -7,6 +7,7 @@ import { AnimatedPressable, MotionView } from '@/components/ui/animated';
 import { buildTeaser } from '@/mocks/comments';
 import { extractBasePostId } from '@/utils/extractBasePostId';
 import { tokens } from '@/styles/tailwind/tokens.native';
+import { useState } from 'react';
 
 export type PostItemPreview = {
   id: string;
@@ -96,15 +97,32 @@ export const Post = ({
   onPressOpenCollection,
   onPressShare,
 }: PostProps) => {
+  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState(false);
+
   return (
     <MotionView visible presets={['slideUp', 'fade']} delay={entranceDelay} className="w-full">
       <View className="w-full rounded-2xl bg-surface-base p-[10px]">
         <View className="w-full flex-row items-start gap-[10px] p-[10px]">
-          <Image
-            source={{ uri: author.avatarUri }}
-            className="h-10 w-10 rounded-full border border-surface-border"
-            accessibilityIgnoresInvertColors
-          />
+          {avatarLoading ? (
+            <View className="h-10 w-10 rounded-full border border-surface-border bg-surface-muted" />
+          ) : null}
+          {!avatarError ? (
+            <Image
+              source={{ uri: author.avatarUri }}
+              className="h-10 w-10 rounded-full border border-surface-border"
+              accessibilityIgnoresInvertColors
+              onLoadEnd={() => setAvatarLoading(false)}
+              onError={() => {
+                setAvatarError(true);
+                setAvatarLoading(false);
+              }}
+            />
+          ) : (
+            <View className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-muted">
+              <Ionicons name="person-circle" size={24} color={tokens.colors.text.subtle} />
+            </View>
+          )}
 
           <View className="min-w-0 flex-1">
             <View className="w-full flex-row items-center gap-1">

@@ -28,13 +28,13 @@ export const Comment = ({ comment, onPressAuthor }: CommentProps) => {
   return (
     <View className="flex-row gap-3 px-4 py-3">
       {avatarLoadError ? (
-        <View className="items-center justify-center w-10 h-10 rounded-full">
+        <View className="h-10 w-10 items-center justify-center rounded-full">
           <Ionicons name="person-circle" size={38} color={tokens.colors.text.subtle} />
         </View>
       ) : (
         <Image
           source={{ uri: comment.authorAvatar }}
-          className="w-10 h-10 rounded-full"
+          className="h-10 w-10 rounded-full"
           accessibilityLabel={`Avatar de ${comment.authorName}`}
           onError={() => setAvatarLoadError(true)}
         />
@@ -51,11 +51,11 @@ export const Comment = ({ comment, onPressAuthor }: CommentProps) => {
             accessibilityLabel={`Perfil de ${comment.authorName}`}>
             {comment.authorName}
           </Text>
-          <Text className="text-xs font-body text-text-subtle">{comment.publishedLabel}</Text>
+          <Text className="font-body text-xs text-text-subtle">{comment.publishedLabel}</Text>
         </View>
 
         {/* Comment text */}
-        <Text className="mt-1 text-sm font-body text-text-base" numberOfLines={0}>
+        <Text className="mt-1 font-body text-sm text-text-base" numberOfLines={0}>
           {comment.text}
         </Text>
       </View>

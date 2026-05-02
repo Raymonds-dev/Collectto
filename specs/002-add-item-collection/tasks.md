@@ -34,15 +34,15 @@ Project builds successfully with all dependencies installed; no runtime errors o
 
 ---
 
-- [ ] T001 Create project directories for item creation feature in `src/components/create-item/`, `src/services/photo-storage/`, `src/mocks/items/`, `src/mocks/collections/`, `src/hooks/`
+- [x] T001 Create project directories for item creation feature in `src/components/create-item/`, `src/services/photo-storage/`, `src/mocks/items/`, `src/mocks/collections/`, `src/hooks/`
 
-- [ ] T002 Install dependencies: `expo-media-library`, `react-native-image-crop-picker`, `expo-permissions`, `expo-file-system` via `npm install`
+- [x] T002 Install dependencies: `expo-media-library`, `react-native-image-crop-picker`, `expo-permissions`, `expo-file-system` via `npm install`
 
-- [ ] T003 Create TypeScript interfaces and contracts in `src/types/items.ts`, `src/types/collections.ts`, `src/types/photo-storage.ts` (import from `specs/002-add-item-collection/contracts/`)
+- [x] T003 Create TypeScript interfaces and contracts in `src/types/items.ts`, `src/types/collections.ts`, `src/types/photo-storage.ts` (import from `specs/002-add-item-collection/contracts/`)
 
-- [ ] T004 Setup Context providers directory: create `src/providers/ItemContextProvider.tsx`, `src/providers/CollectionContextProvider.tsx` with empty exports
+- [x] T004 Setup Context providers directory: create `src/providers/ItemContextProvider.tsx`, `src/providers/CollectionContextProvider.tsx` with empty exports
 
-- [ ] T005 Create main entry component `src/components/create-item/CreateItemFlow.tsx` (shell component)
+- [x] T005 Create main entry component `src/components/create-item/CreateItemFlow.tsx` (shell component)
 
 ---
 
@@ -63,36 +63,36 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ### PhotoStorageProvider Abstraction
 
-- [ ] T006 [P] Create `src/services/photo-storage/types.ts` with PhotoStorageProvider interface (import from `specs/002-add-item-collection/contracts/PhotoStorageProvider.ts`)
+- [x] T006 [P] Create `src/services/photo-storage/types.ts` with PhotoStorageProvider interface (import from `specs/002-add-item-collection/contracts/PhotoStorageProvider.ts`)
 
-- [ ] T007 [P] Create `src/services/photo-storage/local-provider.ts` implementing LocalStorageProvider with:
+- [x] T007 [P] Create `src/services/photo-storage/local-provider.ts` implementing LocalStorageProvider with:
   - `saveToLocal()` - copies photo to `${FileSystem.documentDirectory}collectto/photos/temp/`
   - `moveToPermament()` - moves file to permanent directory with metadata
   - `delete()` - removes file from storage
   - `cleanupLocal()` - removes files older than 24 hours
 
-- [ ] T008 [P] Create `src/services/photo-storage/factory.ts` exporting `createPhotoStorageProvider()` factory function (returns LocalStorageProvider currently)
+- [x] T008 [P] Create `src/services/photo-storage/factory.ts` exporting `createPhotoStorageProvider()` factory function (returns LocalStorageProvider currently)
 
-- [ ] T009 [P] Create `src/services/photo-storage/index.ts` barrel export with all photo storage functions
+- [x] T009 [P] Create `src/services/photo-storage/index.ts` barrel export with all photo storage functions
 
 ### Permission System
 
-- [ ] T010 [P] Create `src/hooks/usePhotoPermissions.ts` hook with:
+- [x] T010 [P] Create `src/hooks/usePhotoPermissions.ts` hook with:
   - `requestCameraPermission()` - requests camera access
   - `requestGalleryPermission()` - requests photo library access
   - `hasPermission` state tracking
   - Error handling and permission status checking
 
-- [ ] T011 [P] Create `src/hooks/usePhotoSource.ts` hook to abstract camera/gallery picker with:
+- [x] T011 [P] Create `src/hooks/usePhotoSource.ts` hook to abstract camera/gallery picker with:
   - `launchCamera()` - opens camera using `react-native-image-crop-picker`
   - `launchGallery()` - opens photo picker
   - Error handling and cancellation support
 
 ### Mock Services
 
-- [ ] T012 [P] Create `src/mocks/items/types.ts` - mock service types and test fixtures
+- [x] T012 [P] Create `src/mocks/items/types.ts` - mock service types and test fixtures
 
-- [ ] T013 [P] Create `src/mocks/items/index.ts` implementing MockItemService:
+- [x] T013 [P] Create `src/mocks/items/index.ts` implementing MockItemService:
   - `create(input)` - creates item with generated UUID
   - `getById(itemId)` - retrieves item from Map
   - `getByCollection(collectionId)` - filters items by collection
@@ -100,9 +100,9 @@ Build foundational infrastructure: photo storage abstraction, permission system,
   - `delete(itemId)` - soft deletes item
   - `getUserItems(userId)` - returns all user items
 
-- [ ] T014 [P] Create `src/mocks/collections/types.ts` - mock service types and test fixtures
+- [x] T014 [P] Create `src/mocks/collections/types.ts` - mock service types and test fixtures
 
-- [ ] T015 [P] Create `src/mocks/collections/index.ts` implementing MockCollectionService:
+- [x] T015 [P] Create `src/mocks/collections/index.ts` implementing MockCollectionService:
   - `create(input)` - creates collection with generated UUID
   - `getById(collectionId)` - retrieves collection from Map
   - `getMe()` - returns current user's collections
@@ -112,21 +112,21 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ### Context Providers
 
-- [ ] T016 [P] Create `src/providers/ItemContextProvider.tsx` with:
+- [x] T016 [P] Create `src/providers/ItemContextProvider.tsx` with:
   - ItemContext wrapping MockItemService
   - `useItemService()` hook for component access
   - Memoization for performance
 
-- [ ] T017 [P] Create `src/providers/CollectionContextProvider.tsx` with:
+- [x] T017 [P] Create `src/providers/CollectionContextProvider.tsx` with:
   - CollectionContext wrapping MockCollectionService
   - `useCollectionService()` hook for component access
   - Memoization for performance
 
-- [ ] T018 Create `src/providers/index.tsx` barrel export combining all providers as `createItemCollectionProviders()` wrapper
+- [x] T018 Create `src/providers/index.tsx` barrel export combining all providers as `createItemCollectionProviders()` wrapper
 
 ### Custom Hook for Form State
 
-- [ ] T019 Create `src/hooks/useItemCreation.ts` managing item creation state:
+- [x] T019 Create `src/hooks/useItemCreation.ts` managing item creation state:
   - `formData` state (name, description, collection_id)
   - `localPhotos` array (temporary photo references)
   - `addPhoto(photoData)` - adds photo via PhotoStorageProvider
@@ -158,54 +158,54 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T020 [US1] Create `src/components/create-item/PermissionGate.tsx` component:
+- [x] T020 [US1] Create `src/components/create-item/PermissionGate.tsx` component:
   - Checks camera and gallery permissions on mount
   - Displays permission request buttons if not granted
   - Passes through to children if permissions granted
   - Shows inline error message with link to settings on denial
 
-- [ ] T021 [US1] Create `src/components/create-item/PhotoPicker.tsx` component:
+- [x] T021 [US1] Create `src/components/create-item/PhotoPicker.tsx` component:
   - Button to open camera (uses `usePhotoSource` hook)
   - Button to open gallery (uses `usePhotoSource` hook)
   - Permission request handling via `usePhotoPermissions`
   - Displays captured/selected photo to parent
   - Handles errors and cancellation gracefully
 
-- [ ] T022 [US1] Create `src/components/create-item/PhotoGallery.tsx` component:
+- [x] T022 [US1] Create `src/components/create-item/PhotoGallery.tsx` component:
   - Displays array of local photo references
   - Shows preview thumbnail for each photo
   - "Remove" button per photo
   - Horizontal scroll gallery layout
   - Uses Tailwind tokens for styling
 
-- [ ] T023 [US1] Create `src/components/create-item/PhotoPreview.tsx` component:
+- [x] T023 [US1] Create `src/components/create-item/PhotoPreview.tsx` component:
   - Displays single photo with remove button
   - Responsive image sizing
   - Accessibility labels and touch targets
 
-- [ ] T024 [US1] Create `src/app/(tabs)/create-item.tsx` screen:
+- [x] T024 [US1] Create `src/app/(tabs)/create-item.tsx` screen:
   - Wraps `CreateItemFlow` component
   - Sets up route parameters and navigation context
   - Handles back navigation and cleanup
 
-- [ ] T025 [US1] Update `src/app/(tabs)/_layout.tsx` to add "+" button:
+- [x] T025 [US1] Update `src/app/(tabs)/_layout.tsx` to add "+" button:
   - Button navigates to create-item screen
   - Uses existing tab layout button styling
   - Positioned in header or footer (per design)
 
-- [ ] T026 [US1] Create `src/hooks/usePhotoPermissionsFlow.ts` custom hook:
+- [x] T026 [US1] Create `src/hooks/usePhotoPermissionsFlow.ts` custom hook:
   - Orchestrates permission request flow
   - Tracks permission grant status
   - Provides error messaging
   - Retry logic for denied permissions
 
-- [ ] T027 [US1] [P] Implement `src/components/create-item/PermissionRequest.tsx` component:
+- [x] T027 [US1] [P] Implement `src/components/create-item/PermissionRequest.tsx` component:
   - Shows permission request explanation
   - "Allow" button triggers permission request
   - "Deny" button shows alternatives or app settings link
   - Accessibility labels included
 
-- [ ] T028 [US1] [P] Create mock test data in `src/mocks/__fixtures__/photos.ts`:
+- [x] T028 [US1] [P] Create mock test data in `src/mocks/__fixtures__/photos.ts`:
   - Sample photo URIs for testing
   - Photo metadata (size, dimensions, MIME type)
 

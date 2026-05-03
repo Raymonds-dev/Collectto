@@ -39,7 +39,7 @@ export default function SecurityScreen() {
         </View>
 
         {/* Account Deletion */}
-        <View className="rounded-2xl border border-feedback-errorSoft bg-feedback-errorSoft p-4">
+        <View className="rounded-2xl border border-feedback-error bg-feedback-errorSoft p-4">
           <Text className="text-lg font-semibold text-feedback-error">Atenção</Text>
           <Text className="mt-2 text-sm text-feedback-error">
             Excluir sua conta é uma ação irreversível. Todos os seus dados serão removidos
@@ -47,7 +47,7 @@ export default function SecurityScreen() {
           </Text>
 
           <Button
-            label="Excluir Minha Conta"
+            label="Excluir Conta"
             variant="cancel"
             size="md"
             className="mt-4"

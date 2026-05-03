@@ -70,10 +70,10 @@ export default function SettingsScreen() {
           </View>
         </View>
         <View
-          className="mt-2 mb-6 self-center rounded-lg bg-orange-500 p-4"
+          className="mt-2 mb-6 self-start rounded-lg p-4"
           testID="settings-footer-view">
-          <Text className="text-md" testID="settings-footer-text">
-            Logado como <Text className="font-semibold">{user?.email}</Text>
+          <Text className="text-md font-bold" testID="settings-footer-text">
+            Logado como <Text className=" text-orange-500 font-semibold">{user?.email}</Text>
           </Text>
         </View>
       </View>

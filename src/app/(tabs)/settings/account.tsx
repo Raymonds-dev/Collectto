@@ -56,7 +56,7 @@ export default function AccountScreen() {
         </View>
 
         {/* Profile Information Card */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
+        <View className="mb-5 rounded-2xl border border-surface-border bg-surface-card p-4">
           <Text className="text-lg font-semibold text-text-base">Dados Pessoais</Text>
 
           <View className="mt-4 space-y-3">
@@ -86,7 +86,7 @@ export default function AccountScreen() {
 
           <Button
             label="Alterar Senha"
-            variant="secondary"
+            variant="primary"
             size="md"
             className="mt-4"
             onPress={() => setChangePasswordVisible(true)}
@@ -102,9 +102,9 @@ export default function AccountScreen() {
         onRequestClose={() => setEditProfileVisible(false)}>
         <View className="flex-1 bg-surface-base">
           <View className="flex-1 px-4 py-6">
-            <Text className="text-2xl font-bold text-text-base">Editar Perfil</Text>
+            <Text className="text-2xl mt-10 font-bold text-text-base">Editar Perfil</Text>
 
-            <View className="mt-6 space-y-4">
+            <View className="mt-4 space-y-4">
               <View>
                 <Text className="text-sm font-medium text-text-subtle">Nome Completo</Text>
                 <TextInput
@@ -116,7 +116,7 @@ export default function AccountScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-medium text-text-subtle">E-mail</Text>
+                <Text className="mt-4 text-sm font-medium text-text-subtle">E-mail</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="seu@email.com"
@@ -155,13 +155,13 @@ export default function AccountScreen() {
         onRequestClose={() => setChangePasswordVisible(false)}>
         <View className="flex-1 bg-surface-base">
           <View className="flex-1 px-4 py-6">
-            <Text className="text-2xl font-bold text-text-base">Alterar Senha</Text>
+            <Text className="mt-10 text-2xl font-bold text-text-base">Alterar Senha</Text>
 
             <View className="mt-6 space-y-4">
               <View>
                 <Text className="text-sm font-medium text-text-subtle">Senha Atual</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 mb-4 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Digite sua senha atual"
                   secureTextEntry
                   value={passwordData.currentPassword}
@@ -174,7 +174,7 @@ export default function AccountScreen() {
               <View>
                 <Text className="text-sm font-medium text-text-subtle">Nova Senha</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 mb-4 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Digite uma nova senha"
                   secureTextEntry
                   value={passwordData.newPassword}

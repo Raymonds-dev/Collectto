@@ -23,7 +23,7 @@ export default function SecurityScreen() {
     <ScrollView className="flex-1 bg-surface-base">
       <View className="space-y-4 px-4 py-6">
         {/* Session Management */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
+        <View className="mb-10 rounded-2xl border border-surface-border bg-surface-card p-4">
           <Text className="text-lg font-semibold text-text-base">Gerenciar Sessão</Text>
           <Text className="mt-2 text-sm text-text-muted">
             Encerre sua sessão neste dispositivo. Você precisará fazer login novamente.
@@ -40,7 +40,7 @@ export default function SecurityScreen() {
 
         {/* Account Deletion */}
         <View className="rounded-2xl border border-feedback-errorSoft bg-feedback-errorSoft p-4">
-          <Text className="text-lg font-semibold text-feedback-error">Zona de Risco</Text>
+          <Text className="text-lg font-semibold text-feedback-error">Atenção</Text>
           <Text className="mt-2 text-sm text-feedback-error">
             Excluir sua conta é uma ação irreversível. Todos os seus dados serão removidos
             permanentemente.

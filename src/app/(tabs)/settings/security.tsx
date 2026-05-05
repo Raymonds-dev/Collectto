@@ -24,7 +24,7 @@ export default function SecurityScreen() {
       <View className="space-y-4 px-4 py-6">
         {/* Session Management */}
         <View className="mb-10 rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="text-lg font-semibold text-text-base">Gerenciar Sessão</Text>
+          <Text className="font-poetsenone text-lg text-text-base">Gerenciar Sessão</Text>
           <Text className="mt-2 text-sm text-text-muted">
             Encerre sua sessão neste dispositivo. Você precisará fazer login novamente.
           </Text>
@@ -40,7 +40,7 @@ export default function SecurityScreen() {
 
         {/* Account Deletion */}
         <View className="rounded-2xl border border-feedback-error bg-feedback-errorSoft p-4">
-          <Text className="text-lg font-semibold text-feedback-error">Atenção</Text>
+          <Text className="font-poetsenone text-lg text-feedback-error">Atenção</Text>
           <Text className="mt-2 text-sm text-feedback-error">
             Excluir sua conta é uma ação irreversível. Todos os seus dados serão removidos
             permanentemente.
@@ -64,7 +64,7 @@ export default function SecurityScreen() {
         onRequestClose={() => setSignOutModalVisible(false)}>
         <View className="flex-1 items-center justify-center bg-overlay-scrim">
           <View className="mx-4 w-full max-w-sm rounded-2xl bg-surface-card p-6">
-            <Text className="text-xl font-bold text-text-base">Confirmar Saída</Text>
+            <Text className="font-poetsenone text-xl text-text-base">Confirmar Saída</Text>
             <Text className="mt-3 text-base text-text-muted">
               Tem certeza que deseja sair da sua conta?
             </Text>
@@ -97,13 +97,11 @@ export default function SecurityScreen() {
         onRequestClose={() => setDeleteAccountModalVisible(false)}>
         <View className="flex-1 items-center justify-center bg-overlay-scrim">
           <View className="mx-4 w-full max-w-sm rounded-2xl bg-surface-card p-6">
-            <Text className="text-xl font-bold text-feedback-error">Excluir Conta</Text>
+            <Text className="font-poetsenone text-xl text-feedback-error">Excluir Conta</Text>
             <Text className="mt-3 text-base text-text-muted">
-              Esta ação não pode ser desfeita. Todos os seus dados, coleções e itens serão
-              permanentemente removidos.
-            </Text>
-            <Text className="mt-4 text-sm font-semibold text-feedback-error">
-              Digite sua senha para confirmar:
+              Esta ação não pode ser desfeita.{'\n'}
+              Para confirmar, clique em{' '}
+              <Text className="font-bold text-feedback-error">EXCLUIR </Text>abaixo.
             </Text>
 
             <View className="mt-6 flex-row gap-3">

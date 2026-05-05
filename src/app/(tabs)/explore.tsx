@@ -82,11 +82,11 @@ const ExploreScreen = () => {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <MotionView className="mb-4" visible presets={['slideDown', 'fade']} duration={260}>
           <View className="mb-3">
-            <Text className="self-center text-center font-poetsenone text-2xl uppercase tracking-[0.04em] text-text-base">
+            <Text className="mt-4 self-center text-center font-poetsenone text-3xl text-text-base">
               Explorar
             </Text>
-            <Text className="text-mg ml-3 mt-2 leading-5 text-text-muted">
-              Encontre itens e coleções que combinam com seu interesse...
+            <Text className="ml-4 mt-2 text-lg leading-5 text-text-muted">
+              Encontre itens e coleções que combinam com você...
             </Text>
           </View>
 

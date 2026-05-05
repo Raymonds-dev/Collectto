@@ -7,6 +7,12 @@ export default function SettingsStackLayout() {
         headerShown: true,
         headerBackTitle: 'Voltar',
         headerTintColor: '#FE5E00',
+        headerTitleStyle: {
+          fontFamily: 'PoetsenOne-Regular',
+        },
+        headerBackTitleStyle: {
+          fontFamily: 'PoetsenOne-Regular',
+        },
       }}>
       <Stack.Screen
         name="index"

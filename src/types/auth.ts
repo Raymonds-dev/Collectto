@@ -2,6 +2,8 @@ export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  photoUrl?: string;
+  birthdayDate?: string;
 }
 
 export interface Credentials {

@@ -37,11 +37,15 @@ const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): Auth
     typeof source.name === 'string' && source.name.length > 0
       ? source.name
       : email.split('@')[0] || 'User';
+  const photoUrl = typeof source.photoUrl === 'string' ? source.photoUrl : undefined;
+  const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
 
   return {
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
+    photoUrl,
+    birthdayDate,
   };
 };
 
@@ -51,6 +55,8 @@ interface AuthContextType {
   signIn: (credentials: Credentials) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (data: RegisterData) => Promise<void>;
+  updateUserPhoto: (photoUrl: string) => void;
+  updateUserProfile: (data: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -139,6 +145,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await clearSessionToken();
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
+      },
+      updateUserPhoto: (photoUrl: string) => {
+        setUser((currentUser) => {
+          if (!currentUser) {
+            return null;
+          }
+          return { ...currentUser, photoUrl };
+        });
+      },
+      updateUserProfile: (data: Partial<AuthUser>) => {
+        setUser((currentUser) => {
+          if (!currentUser) {
+            return null;
+          }
+          return { ...currentUser, ...data };
+        });
       },
     }),
     [isLoading, user]

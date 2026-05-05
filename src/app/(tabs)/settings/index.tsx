@@ -25,24 +25,29 @@ export default function SettingsScreen() {
         <Ionicons name={icon as any} size={24} color="#FE5E00" />
       </View>
       <View className="ml-4 flex-1">
-        <Text className="text-md font-semibold text-text-base">{title}</Text>
-        <Text className="mt-1 text-md text-text-muted">{subtitle}</Text>
+        <Text className="text-md font-poetsenone text-text-base">{title}</Text>
+        <Text className="text-md mt-1 text-text-muted">{subtitle}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color="#A4A3A3" />
     </Pressable>
   );
 
   return (
-    <ScrollView className="flex-1 bg-surface-base" testID="settings-screen-scroll-view">
+    <ScrollView
+      className="flex-1 bg-surface-base"
+      contentContainerClassName="flex-grow"
+      testID="settings-screen-scroll-view">
       <View className="px-4 py-6" testID="settings-header-view">
-        <Text className="text-3xl font-poetsenone text-text-base" testID="settings-header-title">
+        <Text
+          className="self-center font-poetsenone text-3xl text-text-base"
+          testID="settings-header-title">
           Configurações
         </Text>
         <Text className="mt-2 text-lg text-text-muted" testID="settings-header-subtitle">
           Gerencie sua conta e preferências
         </Text>
       </View>
-      <View className="px-4 pb-8" testID="settings-menu-view">
+      <View className="flex-1 justify-between px-4 pb-8" testID="settings-menu-view">
         <View className="space-y-3">
           <View className="mb-8" testID="setting-card-account">
             <SettingCard
@@ -69,12 +74,18 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
-        <View
-          className="mt-2 mb-6 self-start rounded-lg p-4"
-          testID="settings-footer-view">
-          <Text className="text-md font-bold" testID="settings-footer-text">
-            Logado como <Text className=" text-orange-500 font-semibold">{user?.email}</Text>
-          </Text>
+        <View>
+          <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
+            <Text className="font-poetsenone text-lg text-text-base">Entre em Contato</Text>
+            <Text className="mt-2 font-poetsenone text-sm text-text-muted">
+              E-mail: suporte@collectto.com
+            </Text>
+          </View>
+          <View className="mb-6 mt-2 self-center rounded-lg p-4" testID="settings-footer-view">
+            <Text className="text-md font-poetsenone" testID="settings-footer-text">
+              Logado como <Text className=" font-semibold text-orange-500">{user?.email}</Text>
+            </Text>
+          </View>
         </View>
       </View>
     </ScrollView>

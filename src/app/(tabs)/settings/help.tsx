@@ -51,8 +51,8 @@ export default function HelpScreen() {
     <Pressable className="flex-row items-center rounded-lg border border-surface-border bg-surface-card px-4 py-3">
       <Ionicons name={icon as any} size={24} color="#FE5E00" />
       <View className="ml-3 flex-1">
-        <Text className="text-base font-semibold text-text-base">{title}</Text>
-        <Text className="mt-1 text-xs text-text-muted">{subtitle}</Text>
+        <Text className="font-poetsenone text-base text-text-base">{title}</Text>
+        <Text className="text-md mt-1 text-text-muted">{subtitle}</Text>
       </View>
       <Ionicons name="chevron-forward" size={20} color="#A4A3A3" />
     </Pressable>
@@ -61,24 +61,22 @@ export default function HelpScreen() {
   return (
     <ScrollView className="flex-1 bg-surface-base">
       <View className="space-y-4 px-4 py-6">
-        {/* FAQ Section */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="text-lg font-semibold text-text-base">Perguntas Frequentes</Text>
-          <Text className="mt-2 text-sm text-text-muted">
+        <View className="mb-4 rounded-2xl border border-surface-border bg-surface-card p-4">
+          <Text className="font-poetsenone text-lg text-text-base">Perguntas Frequentes</Text>
+          <Text className="text-md mt-2 text-text-muted">
             Encontre respostas para as dúvidas mais comuns.
           </Text>
 
           <Pressable className="mt-4 flex-row items-center justify-between">
-            <Text className="text-base text-brand-primary">Acessar FAQ</Text>
+            <Text className="font-poetsenone text-base text-brand-primary">Acessar FAQ</Text>
             <Ionicons name="open-outline" size={20} color="#FE5E00" />
           </Pressable>
         </View>
 
-        {/* Documentation Links */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="mb-4 text-lg font-semibold text-text-base">Documentação</Text>
+        <View className="mb-4 rounded-2xl border border-surface-border bg-surface-card p-4">
+          <Text className="mb-4 font-poetsenone text-lg text-text-base">Documentação</Text>
 
-          <View className="space-y-3">
+          <View className="gap-2 space-y-3">
             <HelpLink
               icon="document-text-outline"
               title="Termos de Serviço"
@@ -97,11 +95,10 @@ export default function HelpScreen() {
           </View>
         </View>
 
-        {/* Support Actions */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="mb-4 text-lg font-semibold text-text-base">Suporte</Text>
+        <View className="mb-2 rounded-2xl border border-surface-border bg-surface-card p-4">
+          <Text className="mb-4 font-poetsenone text-lg text-text-base">Suporte</Text>
 
-          <View className="space-y-3">
+          <View className="gap-2 space-y-3">
             <Button
               label="Enviar Feedback"
               variant="secondary"
@@ -118,27 +115,20 @@ export default function HelpScreen() {
             />
           </View>
         </View>
-
-        {/* Contact Information */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="text-lg font-semibold text-text-base">Entre em Contato</Text>
-          <Text className="mt-2 text-sm text-text-muted">E-mail: support@collectto.com</Text>
-        </View>
       </View>
 
-      {/* Feedback Modal */}
       <Modal
         visible={feedbackModalVisible}
         animationType="slide"
         transparent={false}
         onRequestClose={() => setFeedbackModalVisible(false)}>
-        <View className="flex-1 bg-surface-base">
+        <View className="mt-8 flex-1 bg-surface-base">
           <View className="flex-1 px-4 py-6">
             <Text className="text-2xl font-bold text-text-base">Enviar Feedback</Text>
 
-            <View className="mt-6 space-y-4">
+            <View className="mt-4 space-y-4">
               <View>
-                <Text className="text-sm font-medium text-text-subtle">Assunto</Text>
+                <Text className="text-lg font-medium text-text-subtle">Assunto</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Qual é o assunto do seu feedback?"
@@ -148,7 +138,7 @@ export default function HelpScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-medium text-text-subtle">Mensagem</Text>
+                <Text className="mt-4 text-lg font-medium text-text-subtle">Mensagem</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Compartilhe seu feedback..."
@@ -181,19 +171,18 @@ export default function HelpScreen() {
         </View>
       </Modal>
 
-      {/* Report Modal */}
       <Modal
         visible={reportModalVisible}
         animationType="slide"
         transparent={false}
         onRequestClose={() => setReportModalVisible(false)}>
-        <View className="flex-1 bg-surface-base">
+        <View className="mt-8 flex-1 bg-surface-base">
           <View className="flex-1 px-4 py-6">
             <Text className="text-2xl font-bold text-text-base">Reportar Problema</Text>
 
             <View className="mt-6 space-y-4">
               <View>
-                <Text className="text-sm font-medium text-text-subtle">Tipo de Problema</Text>
+                <Text className="text-lg font-medium text-text-subtle">Tipo de Problema</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Ex: Bug, Erro de Carregamento, etc."
@@ -203,7 +192,7 @@ export default function HelpScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-medium text-text-subtle">Descrição</Text>
+                <Text className="mt-4 text-lg font-medium text-text-subtle">Descrição</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Descreva o problema em detalhes..."

@@ -119,19 +119,22 @@ export default function HelpScreen() {
 
       <Modal
         visible={feedbackModalVisible}
-        animationType="slide"
-        transparent={false}
+        animationType="fade"
+        transparent
         onRequestClose={() => setFeedbackModalVisible(false)}>
-        <View className="mt-8 flex-1 bg-surface-base">
-          <View className="flex-1 px-4 py-6">
+        <View
+          className="flex-1 items-center justify-center bg-overlay-scrim"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View className="w-11/12 rounded-2xl bg-surface-base p-6">
             <Text className="text-2xl font-bold text-text-base">Enviar Feedback</Text>
 
             <View className="mt-4 space-y-4">
               <View>
                 <Text className="text-lg font-medium text-text-subtle">Assunto</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-4 text-lg text-text-base"
                   placeholder="Qual é o assunto do seu feedback?"
+                  placeholderTextColor="#4B4B4B"
                   value={feedbackData.subject}
                   onChangeText={(text) => setFeedbackData({ ...feedbackData, subject: text })}
                 />
@@ -140,8 +143,9 @@ export default function HelpScreen() {
               <View>
                 <Text className="mt-4 text-lg font-medium text-text-subtle">Mensagem</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-6 text-text-base"
                   placeholder="Compartilhe seu feedback..."
+                  placeholderTextColor="#4B4B4B"
                   multiline
                   numberOfLines={5}
                   value={feedbackData.message}
@@ -173,19 +177,22 @@ export default function HelpScreen() {
 
       <Modal
         visible={reportModalVisible}
-        animationType="slide"
-        transparent={false}
+        animationType="fade"
+        transparent
         onRequestClose={() => setReportModalVisible(false)}>
-        <View className="mt-8 flex-1 bg-surface-base">
-          <View className="flex-1 px-4 py-6">
+        <View
+          className="flex-1 items-center justify-center bg-overlay-scrim"
+          style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <View className="w-11/12 rounded-2xl bg-surface-base p-6">
             <Text className="text-2xl font-bold text-text-base">Reportar Problema</Text>
 
             <View className="mt-6 space-y-4">
               <View>
                 <Text className="text-lg font-medium text-text-subtle">Tipo de Problema</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-4 text-lg"
                   placeholder="Ex: Bug, Erro de Carregamento, etc."
+                  placeholderTextColor="#4B4B4B"
                   value={reportData.issueType}
                   onChangeText={(text) => setReportData({ ...reportData, issueType: text })}
                 />
@@ -194,8 +201,9 @@ export default function HelpScreen() {
               <View>
                 <Text className="mt-4 text-lg font-medium text-text-subtle">Descrição</Text>
                 <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
+                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-6 text-lg"
                   placeholder="Descreva o problema em detalhes..."
+                  placeholderTextColor="#4B4B4B"
                   multiline
                   numberOfLines={5}
                   value={reportData.description}

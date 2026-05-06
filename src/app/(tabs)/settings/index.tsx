@@ -43,7 +43,9 @@ export default function SettingsScreen() {
           testID="settings-header-title">
           Configurações
         </Text>
-        <Text className="mt-2 text-lg text-text-muted" testID="settings-header-subtitle">
+        <Text
+          className="mt-2 self-center text-lg text-text-muted"
+          testID="settings-header-subtitle">
           Gerencie sua conta e preferências
         </Text>
       </View>

@@ -4,12 +4,17 @@ import {
   getSessionToken,
   setSessionToken,
 } from '@/services/storage/authSession';
-import { buildMockAuthUser, MOCK_AUTH_BOOTSTRAP_EMAIL, MOCK_AUTH_SESSION_TOKEN } from '@/mocks';
+import {
+  buildMockAuthUser,
+  MOCK_AUTH_BOOTSTRAP_EMAIL,
+  MOCK_AUTH_SESSION_TOKEN,
+  seedMockAuthUser,
+} from '@/mocks';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
 
-const USEMOCK = true;
+const USEMOCK = false;
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof AxiosError && error.response) {
@@ -132,6 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (USEMOCK) {
+            seedMockAuthUser({
+              id: 'local-user',
+              email: registerData.email,
+              name: registerData.name,
+              birthdayDate: registerData.birthdayDate,
+            });
             return;
           }
 

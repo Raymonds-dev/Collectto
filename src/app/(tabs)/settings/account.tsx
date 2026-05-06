@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -13,27 +13,23 @@ interface ProfileFormData {
   birthdayDate?: string;
 }
 
-interface PasswordFormData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
 export default function AccountScreen() {
   const { user, updateUserPhoto, updateUserProfile } = useAuth();
   const { requestGallery, galleryGranted } = usePhotoPermissionsFlow();
   const [editProfileVisible, setEditProfileVisible] = useState(false);
-  const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [profileData, setProfileData] = useState<ProfileFormData>({
     name: user?.name || '',
     email: user?.email || '',
     birthdayDate: user?.birthdayDate,
   });
-  const [passwordData, setPasswordData] = useState<PasswordFormData>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
-  });
+
+  useEffect(() => {
+    setProfileData({
+      name: user?.name || '',
+      email: user?.email || '',
+      birthdayDate: user?.birthdayDate,
+    });
+  }, [user]);
 
   const handleEditProfile = (): void => {
     // TODO: API call to update profile
@@ -49,7 +45,6 @@ export default function AccountScreen() {
     if (!galleryGranted) {
       const granted = await requestGallery();
       if (!granted) {
-        // TODO: Show a message to the user that permission is required
         return;
       }
     }
@@ -67,17 +62,6 @@ export default function AccountScreen() {
       // For this example, we'll just use the local URI
       updateUserPhoto(selectedImage.uri);
     }
-  };
-
-  const handleChangePassword = (): void => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      console.error('Passwords do not match');
-      return;
-    }
-    // TODO: API call to change password
-    console.log('Password changed');
-    setChangePasswordVisible(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
   };
 
   return (
@@ -100,27 +84,29 @@ export default function AccountScreen() {
               </View>
             </View>
           </Pressable>
-          <Text className="mt-4 font-poetsenone text-3xl text-text-base">{user?.name}</Text>
+          <Text className="mt-2 font-poetsenone text-3xl text-text-base">{user?.name}</Text>
           <Text className="text-md mt-2 text-text-muted">{user?.email}</Text>
         </View>
 
-        <View className="mb-5 rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="font-poetsenone text-lg text-text-base">Dados Pessoais</Text>
+        <View className="mb-5 rounded-xl border border-surface-border bg-surface-card p-4">
+          <Text className="self-center font-poetsenone text-2xl text-text-base">
+            Dados Pessoais
+          </Text>
 
-          <View className="mt-4 space-y-3">
+          <View className="mt-2 space-y-3">
             <View>
-              <Text className="text-sm font-medium text-text-subtle">Nome</Text>
-              <Text className="mt-1 text-base text-text-base">{user?.name}</Text>
+              <Text className="text-xl font-medium text-text-base">Nome:</Text>
+              <Text className="mt-1 text-lg text-text-base">{user?.name}</Text>
             </View>
 
             <View className="mt-4">
-              <Text className="text-sm font-medium text-text-subtle">E-mail</Text>
-              <Text className="mt-1 text-base text-text-base">{user?.email}</Text>
+              <Text className="text-xl font-medium text-text-base">E-mail:</Text>
+              <Text className="mt-1 text-lg text-text-base">{user?.email}</Text>
             </View>
 
             <View className="mt-4">
-              <Text className="text-sm font-medium text-text-subtle">Data de Nascimento</Text>
-              <Text className="mt-1 text-base text-text-base">
+              <Text className="text-xl font-medium text-text-base">Data de Nascimento</Text>
+              <Text className="mt-1 text-lg text-text-base">
                 {user?.birthdayDate
                   ? new Date(user.birthdayDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
                   : 'Não informada'}
@@ -136,21 +122,8 @@ export default function AccountScreen() {
             onPress={() => setEditProfileVisible(true)}
           />
         </View>
-
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="font-poetsenone text-lg text-text-base">Segurança</Text>
-
-          <Button
-            label="Alterar Senha"
-            variant="primary"
-            size="md"
-            className="mt-4"
-            onPress={() => setChangePasswordVisible(true)}
-          />
-        </View>
       </View>
 
-      {/* Edit Profile Modal */}
       <Modal
         visible={editProfileVisible}
         animationType="slide"
@@ -207,74 +180,6 @@ export default function AccountScreen() {
                 size="md"
                 className="flex-1"
                 onPress={handleEditProfile}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={changePasswordVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setChangePasswordVisible(false)}>
-        <View className="flex-1 bg-surface-base">
-          <View className="flex-1 px-4 py-6">
-            <Text className="mt-10 text-2xl font-bold text-text-base">Alterar Senha</Text>
-
-            <View className="mt-6 space-y-4">
-              <View>
-                <Text className="text-lg font-medium text-text-subtle">Senha Atual</Text>
-                <TextInput
-                  className="mb-4 mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Digite sua senha atual"
-                  secureTextEntry
-                  value={passwordData.currentPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, currentPassword: text })
-                  }
-                />
-              </View>
-
-              <View>
-                <Text className="text-lg font-medium text-text-subtle">Nova Senha</Text>
-                <TextInput
-                  className="mb-4 mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Digite uma nova senha"
-                  secureTextEntry
-                  value={passwordData.newPassword}
-                  onChangeText={(text) => setPasswordData({ ...passwordData, newPassword: text })}
-                />
-              </View>
-
-              <View>
-                <Text className="text-lg font-medium text-text-subtle">Confirmar Senha</Text>
-                <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Confirme sua nova senha"
-                  secureTextEntry
-                  value={passwordData.confirmPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, confirmPassword: text })
-                  }
-                />
-              </View>
-            </View>
-
-            <View className="mt-6 flex-row gap-3">
-              <Button
-                label="Cancelar"
-                variant="ghost"
-                size="md"
-                className="flex-1"
-                onPress={() => setChangePasswordVisible(false)}
-              />
-              <Button
-                label="Alterar"
-                variant="primary"
-                size="md"
-                className="flex-1"
-                onPress={handleChangePassword}
               />
             </View>
           </View>

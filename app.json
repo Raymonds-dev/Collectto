@@ -10,7 +10,17 @@
     "experiments": {
       "tsconfigPaths": true
     },
-    "plugins": ["expo-router", "expo-secure-store"],
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Collectto to access your photos.",
+          "cameraPermission": "Allow Collectto to use your camera."
+        }
+      ]
+    ],
     "orientation": "portrait",
     "icon": "./src/assets/icon.svg",
     "userInterfaceStyle": "light",
@@ -19,15 +29,35 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "Allow Collectto to access your photos.",
+        "NSCameraUsageDescription": "Allow Collectto to use your camera.",
+        "NSPhotoLibraryAddOnlyUsageDescription": "Allow Collectto to save photos to your library."
+      }
     },
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
         "foregroundImage": "./src/assets/logo.png",
         "backgroundColor": "#ffffff"
+      },
+      "permissions": [
+        "android.permission.CAMERA",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.raymondsdev.Collectto"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "07dad355-d614-4daa-8b0e-71668120d1a4"
       }
     }
   }

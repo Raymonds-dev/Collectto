@@ -1,10 +1,10 @@
-import { v4 as uuidv4 } from 'uuid';
 import type {
   Collection,
   CollectionService,
   CreateCollectionInput,
   UpdateCollectionInput,
 } from '@/types/collections';
+import { generateRandomId } from '@/utils/generateRandomId';
 
 /**
  * Pre-populated mock collections for testing
@@ -81,7 +81,7 @@ export const createMockCollectionService = (userId = 'mock-user-id'): Collection
   return {
     async create(input: CreateCollectionInput): Promise<Collection> {
       const collection: Collection = {
-        collection_id: uuidv4(),
+        collection_id: generateRandomId(),
         user_id: userId,
         name: input.name,
         description: input.description ?? null,
@@ -103,7 +103,9 @@ export const createMockCollectionService = (userId = 'mock-user-id'): Collection
     },
 
     async getMe(): Promise<Collection[]> {
-      return Array.from(collections.values()).filter((col) => col.user_id === userId && col.is_active);
+      return Array.from(collections.values()).filter(
+        (col) => col.user_id === userId && col.is_active
+      );
     },
 
     async update(collectionId: string, input: UpdateCollectionInput): Promise<Collection> {

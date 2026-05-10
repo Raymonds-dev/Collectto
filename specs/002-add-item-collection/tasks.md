@@ -235,47 +235,47 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T029 [US2] Create `src/components/create-item/ItemForm.tsx` component:
+- [x] T029 [US2] Create `src/components/create-item/ItemForm.tsx` component:
   - Text input for item name (mandatory, max 255 chars)
   - Text input for item description (optional)
   - Display validation errors inline
   - Focus management between fields
   - Uses Tailwind + existing UI components
 
-- [ ] T030 [US2] Create `src/components/create-item/CollectionSelector.tsx` component:
+- [x] T030 [US2] Create `src/components/create-item/CollectionSelector.tsx` component:
   - Fetches user collections via `useCollectionService()`
   - Displays collection list (name + cover image if available)
   - "Create new collection" option at bottom
   - Selection state management
   - Loading skeleton while fetching
 
-- [ ] T031 [US2] Create `src/components/create-item/CollectionListItem.tsx` component:
+- [x] T031 [US2] Create `src/components/create-item/CollectionListItem.tsx` component:
   - Shows collection cover image (or placeholder)
   - Shows collection name
   - Selection indicator
   - Touch target size ≥44pt (iOS) / ≥48dp (Android)
 
-- [ ] T032 [US2] Create `src/components/create-item/ItemMetadataForm.tsx` component:
+- [x] T032 [US2] Create `src/components/create-item/ItemMetadataForm.tsx` component:
   - Combines PhotoGallery + ItemForm + CollectionSelector
   - Step-by-step layout (or all on one screen)
   - Validates: ≥1 photo, name provided, collection selected
   - "Save" button enabled only when valid
 
-- [ ] T033 [US2] Create `src/hooks/useItemSave.ts` hook:
+- [x] T033 [US2] Create `src/hooks/useItemSave.ts` hook:
   - `saveItem()` async function
   - Migrates photos from local to permanent storage
   - Creates item via `useItemService()`
   - Handles errors and retries
   - Returns saved item or error
 
-- [ ] T034 [US2] [P] Create `src/components/create-item/SaveButton.tsx` component:
+- [x] T034 [US2] [P] Create `src/components/create-item/SaveButton.tsx` component:
   - Shows "Save" text
   - Disabled during save
   - Shows loading state (spinner or text)
   - Accessibility role and label
   - Uses existing Button component from `src/components/ui/`
 
-- [ ] T035 [US2] [P] Create `src/components/create-item/ItemSaveFlow.tsx` component:
+- [x] T035 [US2] [P] Create `src/components/create-item/ItemSaveFlow.tsx` component:
   - Orchestrates save flow:
     - Validate form data
     - Show loading state
@@ -285,19 +285,19 @@ Build foundational infrastructure: photo storage abstraction, permission system,
     - Navigate back on success
   - Error handling with retry option
 
-- [ ] T036 [US2] Create `src/components/create-item/SuccessConfirmation.tsx` component:
+- [x] T036 [US2] Create `src/components/create-item/SuccessConfirmation.tsx` component:
   - Shows success message
   - Displays created item thumbnail
   - "Done" button to navigate back
   - Uses motion preset (FadeIn per constitution)
 
-- [ ] T037 [US2] Update `src/components/create-item/CreateItemFlow.tsx` main component:
+- [x] T037 [US2] Update `src/components/create-item/CreateItemFlow.tsx` main component:
   - Combines PermissionGate + PhotoPicker + ItemMetadataForm + ItemSaveFlow
   - State management via `useItemCreation` hook
   - Error boundaries for graceful failure
   - Cleanup on unmount (cancel in-progress saves)
 
-- [ ] T038 [US2] [P] Create `src/mocks/items/fixtures.ts` with sample items and collections for testing
+- [x] T038 [US2] [P] Create `src/mocks/items/fixtures.ts` with sample items and collections for testing
 
 ---
 
@@ -324,43 +324,43 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T039 [US3] Create `src/components/create-item/CollectionCreator.tsx` component:
+- [x] T039 [US3] Create `src/components/create-item/CollectionCreator.tsx` component:
   - Text input for collection name (mandatory)
   - Text input for description (optional)
   - Photo picker for cover image (optional)
   - Validation: name required, max lengths enforced
   - "Create" and "Cancel" buttons
 
-- [ ] T040 [US3] Create `src/components/create-item/CollectionCreationForm.tsx` wrapper:
+- [x] T040 [US3] Create `src/components/create-item/CollectionCreationForm.tsx` wrapper:
   - Expands CollectionSelector to show inline creation form
   - SlideUp animation for smooth UX (per motion presets)
   - State management for form visibility toggle
   - Delegates to CollectionCreator component
 
-- [ ] T041 [US3] Create `src/hooks/useCollectionCreation.ts` hook:
+- [x] T041 [US3] Create `src/hooks/useCollectionCreation.ts` hook:
   - `createCollection()` async function
   - Migrates cover image from local to permanent storage (if provided)
   - Creates collection via `useCollectionService()`
   - Returns created collection or error
   - Handles errors with retry option
 
-- [ ] T042 [US3] Update `src/components/create-item/ItemSaveFlow.tsx`:
+- [x] T042 [US3] Update `src/components/create-item/ItemSaveFlow.tsx`:
   - Check if new collection was created during flow
   - If new collection: save collection first, then item
   - Ensure both collection_id is set on item before save
   - Transaction-like behavior (both succeed or both fail)
 
-- [ ] T043 [US3] Create `src/components/create-item/CollectionCreationSuccess.tsx` component:
+- [x] T043 [US3] Create `src/components/create-item/CollectionCreationSuccess.tsx` component:
   - Shows "Collection created" confirmation
   - Displays collection name and cover
   - Auto-closes or shows "Continue" button
   - Uses FadeIn motion preset
 
-- [ ] T044 [US3] [P] Update `src/mocks/collections/index.ts`:
+- [x] T044 [US3] [P] Update `src/mocks/collections/index.ts`:
   - Enhance to support creating collections during item flow
   - Track user_id for filtering collections
 
-- [ ] T045 [US3] [P] Create `src/components/create-item/CollectionCoverPreview.tsx` component:
+- [x] T045 [US3] [P] Create `src/components/create-item/CollectionCoverPreview.tsx` component:
   - Shows selected cover image preview
   - Remove button to clear selection
   - Placeholder for no cover selected
@@ -387,17 +387,17 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T046 [US4] Update `src/components/create-item/CollectionSelector.tsx`:
+- [x] T046 [US4] Update `src/components/create-item/CollectionSelector.tsx`:
   - Add "Create without collection" or "Skip" button
   - Option to proceed with null collection_id
   - Clear messaging about uncategorized items
 
-- [ ] T047 [US4] Update `src/components/create-item/ItemMetadataForm.tsx`:
+- [x] T047 [US4] Update `src/components/create-item/ItemMetadataForm.tsx`:
   - Make collection selection optional
   - Adjust validation to allow null collection_id
   - Show "Optional" label next to collection step
 
-- [ ] T048 [US4] Create `src/components/create-item/UncategorizedIndicator.tsx` component:
+- [x] T048 [US4] Create `src/components/create-item/UncategorizedIndicator.tsx` component:
   - Shows "Uncategorized" badge for items without collection
   - Visual indicator (color, icon, or text)
   - Used in item display/list views

@@ -10,7 +10,7 @@ export interface ItemCreationFormData {
 
 /**
  * Hook to manage item creation form state
- * Handles photos, metadata, and collection selection
+ * Handles photos (as LocalPhotoReference), metadata, and collection selection
  */
 export const useItemCreation = () => {
   const [formData, setFormData] = useState<ItemCreationFormData>({

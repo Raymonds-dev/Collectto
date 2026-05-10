@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import ImagePicker, { type Image } from 'react-native-image-crop-picker';
+import * as ImagePickerLib from 'expo-image-picker';
 import type { PhotoData } from '@/types/photo-storage';
 
 export interface PhotoPickerResult {
@@ -9,19 +9,19 @@ export interface PhotoPickerResult {
 
 /**
  * Hook to manage camera and gallery photo selection
- * Uses react-native-image-crop-picker for native photo capture and selection
+ * Uses expo-image-picker for native photo capture and selection
  */
 export const usePhotoSource = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const convertImageToPhotoData = (image: Image): PhotoData => {
+  const convertAssetToPhotoData = (asset: ImagePickerLib.ImagePickerAsset): PhotoData => {
     return {
-      uri: image.path,
-      mimeType: image.mime,
-      size: image.size,
-      width: image.width,
-      height: image.height,
+      uri: asset.uri,
+      mimeType: asset.type || 'image/jpeg',
+      size: asset.fileSize || 0,
+      width: asset.width || 0,
+      height: asset.height || 0,
     };
   };
 
@@ -30,20 +30,20 @@ export const usePhotoSource = () => {
       setLoading(true);
       setError(null);
 
-      const image = await ImagePicker.openCamera({
-        width: 300,
-        height: 400,
-        cropping: false,
-        compressImageQuality: 0.8,
-        mediaType: 'photo',
+      const result = await ImagePickerLib.launchCameraAsync({
+        mediaTypes: ImagePickerLib.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
       });
 
-      return convertImageToPhotoData(image);
-    } catch (err) {
-      if (err instanceof Error && err.message !== 'User cancelled image selection') {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to capture photo';
-        setError(errorMsg);
+      if (result.canceled || !result.assets || result.assets.length === 0) {
+        return null;
       }
+
+      return convertAssetToPhotoData(result.assets[0]);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao capturar foto';
+      setError(errorMsg);
       return null;
     } finally {
       setLoading(false);
@@ -55,22 +55,20 @@ export const usePhotoSource = () => {
       setLoading(true);
       setError(null);
 
-      const result = await ImagePicker.openPicker({
-        width: 300,
-        height: 400,
-        cropping: false,
-        compressImageQuality: 0.8,
-        mediaType: 'photo',
-        multiple,
+      const result = await ImagePickerLib.launchImageLibraryAsync({
+        mediaTypes: ImagePickerLib.MediaTypeOptions.Images,
+        allowsEditing: false,
+        quality: 0.8,
       });
 
-      const images = Array.isArray(result) ? result : [result];
-      return images.map(convertImageToPhotoData);
-    } catch (err) {
-      if (err instanceof Error && err.message !== 'User cancelled image selection') {
-        const errorMsg = err instanceof Error ? err.message : 'Failed to select photos';
-        setError(errorMsg);
+      if (result.canceled || !result.assets) {
+        return [];
       }
+
+      return result.assets.map(convertAssetToPhotoData);
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : 'Falha ao selecionar fotos';
+      setError(errorMsg);
       return [];
     } finally {
       setLoading(false);

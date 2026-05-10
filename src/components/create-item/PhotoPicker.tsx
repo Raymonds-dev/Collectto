@@ -3,16 +3,18 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePhotoSource } from '@/hooks/usePhotoSource';
 import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
-import type { PhotoData } from '@/types/photo-storage';
+import { createPhotoStorageProvider } from '@/services/photo-storage';
+import type { LocalPhotoReference } from '@/types/photo-storage';
 
 interface PhotoPickerProps {
-  onPhotoSelected: (photo: PhotoData) => void;
+  onPhotoSelected: (photo: LocalPhotoReference) => void;
   disabled?: boolean;
 }
 
 /**
  * PhotoPicker - UI for selecting photos from camera or gallery
- * Handles permission requests and delegates to usePhotoSource hook
+ * Handles permission requests, delegates to usePhotoSource hook,
+ * and saves photos to local storage before passing to parent
  */
 export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerProps) => {
   const { launchCamera, launchGallery } = usePhotoSource();
@@ -32,9 +34,12 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
         return;
       }
 
-      const photo = await launchCamera();
-      if (photo) {
-        onPhotoSelected(photo);
+      const photoData = await launchCamera();
+      if (photoData) {
+        // Save photo to local storage
+        const storageProvider = createPhotoStorageProvider();
+        const localRef = await storageProvider.saveToLocal(photoData);
+        onPhotoSelected(localRef);
       }
     } catch (error) {
       console.error('Camera error:', error);
@@ -59,7 +64,10 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
 
       const photos = await launchGallery(false);
       if (photos && photos.length > 0) {
-        onPhotoSelected(photos[0]);
+        // Save photo to local storage
+        const storageProvider = createPhotoStorageProvider();
+        const localRef = await storageProvider.saveToLocal(photos[0]);
+        onPhotoSelected(localRef);
       }
     } catch (error) {
       console.error('Gallery error:', error);

@@ -1,5 +1,5 @@
-import { v4 as uuidv4 } from 'uuid';
 import type { CreateItemInput, Item, ItemService, UpdateItemInput } from '@/types/items';
+import { generateRandomId } from '@/utils/generateRandomId';
 
 /**
  * MockItemService - In-memory item storage for development
@@ -11,7 +11,7 @@ export const createMockItemService = (): ItemService => {
   return {
     async create(input: CreateItemInput): Promise<Item> {
       const item: Item = {
-        item_id: uuidv4(),
+        item_id: generateRandomId(),
         collection_id: input.collection_id ?? null,
         name: input.name,
         description: input.description ?? '',

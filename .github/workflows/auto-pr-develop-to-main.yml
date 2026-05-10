@@ -31,13 +31,7 @@ jobs:
             const body = [
               '## PR de release criada automaticamente',
               '',
-              'Branch de origem: `develop`',
-              'Branch de destino: `main`',
-              '',
-              '### Revisao obrigatoria',
-              '- [ ] Revisar impacto geral da release',
-              '- [ ] Validar alteracoes criticas de navegacao/autenticacao',
-              '- [ ] Aprovar PR antes do merge',
+              'Este PR de release foi criado automaticamente para promover as alterações da branch `develop` para `main`.',
               '',
               '_Este PR foi aberto automaticamente pelo workflow._'
             ].join('\n');

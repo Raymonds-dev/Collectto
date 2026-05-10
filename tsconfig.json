@@ -12,5 +12,12 @@
       "@/types/*": ["./src/types/*"],
       "@/utils/*": ["./src/utils/*"]
     }
-  }
+  },
+  "include": [
+    "src",
+    "nativewind-env.d.ts",
+    "react-native-svg-module.d.ts",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ]
 }

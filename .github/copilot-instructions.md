@@ -100,14 +100,6 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 - Project rules: AGENTS.md
 
 <!-- SPECKIT START -->
-
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan:
-
-**Current Feature Plan**: [specs/002-add-item-collection/plan.md](../specs/002-add-item-collection/plan.md)  
-**Specification**: [specs/002-add-item-collection/spec.md](../specs/002-add-item-collection/spec.md)  
-**Architecture Details**: [specs/002-add-item-collection/data-model.md](../specs/002-add-item-collection/data-model.md)  
-**Contract & APIs**: [specs/002-add-item-collection/contracts/](../specs/002-add-item-collection/contracts/)  
-**Quickstart Guide**: [specs/002-add-item-collection/quickstart.md](../specs/002-add-item-collection/quickstart.md)
-
+shell commands, and other important information, read the current plan
 <!-- SPECKIT END -->

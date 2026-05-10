@@ -1,10 +1,12 @@
 {
   "version": "0.8.5.dev0",
   "integration_state_schema": 1,
-  "installed_integrations": ["copilot"],
+  "installed_integrations": [
+    "copilot"
+  ],
   "integration_settings": {
     "copilot": {
-      "script": "sh",
+      "script": "ps",
       "invoke_separator": "."
     }
   },

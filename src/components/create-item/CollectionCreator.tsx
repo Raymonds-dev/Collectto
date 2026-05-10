@@ -6,18 +6,38 @@ import { CollectionCoverPreview } from './CollectionCoverPreview';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 import type { CollectionCreationInput } from '@/hooks/useCollectionCreation';
 
+/**
+ * Props for the CollectionCreator component.
+ */
 interface CollectionCreatorProps {
+  /** Whether a creation request is currently in progress. */
   isLoading?: boolean;
+  /** Optional error message from the creation process. */
   error?: string | null;
+  /** Callback function to trigger the collection creation. */
   onCreate: (input: CollectionCreationInput) => void | Promise<void>;
+  /** Callback function to cancel the creation process. */
   onCancel: () => void;
 }
 
+/**
+ * Internal interface for tracking form validation errors.
+ */
 interface FormErrors {
+  /** Error message for the name field. */
   name?: string;
+  /** Error message for the description field. */
   description?: string;
 }
 
+/**
+ * A form component for creating a new collection.
+ * Includes fields for name, description, and a cover image picker.
+ * Performs basic client-side validation before calling the onCreate callback.
+ *
+ * @param props - The component props.
+ * @returns A React component for the collection creation form.
+ */
 export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
   isLoading = false,
   error = null,

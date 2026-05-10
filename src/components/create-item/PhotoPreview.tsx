@@ -3,14 +3,27 @@ import { Image, Pressable, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the PhotoPreview component.
+ */
 interface PhotoPreviewProps {
+  /** The local photo reference to display. */
   photo: LocalPhotoReference;
+  /** Callback function to remove the photo. Receives the photo's temporary ID. */
   onRemove: (tempId: string) => void;
 }
 
 /**
- * PhotoPreview - Displays a single photo with remove button
- * Responsive sizing with accessibility support
+ * Displays a single photo thumbnail with an overlayed removal button.
+ *
+ * Features:
+ * - Renders the image from a local URI.
+ * - Provides a "close" button in the corner to trigger removal.
+ * - Accessible image and removal button with appropriate labels and hints.
+ * - Optimized hit slop for the removal button.
+ *
+ * @param props - The component props.
+ * @returns A React component for a single photo preview.
  */
 export const PhotoPreview = ({ photo, onRemove }: PhotoPreviewProps) => {
   return (

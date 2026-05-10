@@ -4,12 +4,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
 import { MotionView } from '@/components/ui/animated';
 
+/**
+ * Props for the CollectionCreationSuccess component.
+ */
 interface CollectionCreationSuccessProps {
+  /** The name of the successfully created collection. */
   collectionName: string;
+  /** Optional URL for the collection's cover image. */
   coverUrl?: string | null;
+  /** Callback function to proceed after viewing the success message. */
   onContinue: () => void;
 }
 
+/**
+ * Displays a success message after a collection has been created.
+ * Shows the collection name, cover image preview, and a confirmation button.
+ *
+ * @param props - The component props.
+ * @returns A React component showing the collection creation success state.
+ */
 export const CollectionCreationSuccess: React.FC<CollectionCreationSuccessProps> = ({
   collectionName,
   coverUrl,

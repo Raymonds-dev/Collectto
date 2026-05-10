@@ -5,19 +5,29 @@ import { Button } from '@/components/ui/Button';
 import { MotionView } from '@/components/ui/animated';
 import { UncategorizedIndicator } from './UncategorizedIndicator';
 
+/**
+ * Props for the SuccessConfirmation component.
+ */
 interface SuccessConfirmationProps {
+  /** The name of the item that was just created. */
   itemName: string;
+  /** Optional local URI for the item's thumbnail image. */
   itemThumbnail?: string;
+  /** Whether the item was saved without a collection. */
   isUncategorized?: boolean;
+  /** Callback function triggered when the user finishes viewing the success screen. */
   onDone: () => void;
 }
 
 /**
  * SuccessConfirmation component for item creation completion.
- * - Shows success message
- * - Displays created item thumbnail
- * - "Done" button to navigate back
- * - Uses FadeIn motion preset per constitution
+ * Displays a final success screen to the user after an item has been persisted.
+ *
+ * - Shows a success checkmark and message.
+ * - Displays the created item's thumbnail if provided.
+ * - Shows an 'Uncategorized' badge if applicable.
+ * - Provides a 'Concluir' button to exit the flow.
+ * - Uses the FadeIn motion preset for its entrance.
  */
 export const SuccessConfirmation: React.FC<SuccessConfirmationProps> = ({
   itemName,

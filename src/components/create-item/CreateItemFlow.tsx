@@ -8,21 +8,43 @@ import { PermissionGate } from './PermissionGate';
 import { ItemMetadataForm } from './ItemMetadataForm';
 import { ItemSaveFlow } from './ItemSaveFlow';
 
+/**
+ * Props for the CreateItemFlow component.
+ */
 interface CreateItemFlowProps {
+  /** Callback function when the flow is closed. */
   onClose?: () => void;
+  /** Callback function when an item is successfully created. */
   onSuccess?: () => void;
 }
 
+/**
+ * Steps in the item creation flow.
+ * - 'form': User fills in item metadata and selects a collection.
+ * - 'saving': The item and its photos are being uploaded and saved.
+ */
 type FlowStep = 'form' | 'saving';
 
+/**
+ * Props for the ErrorBoundary component.
+ */
 interface ErrorBoundaryProps {
+  /** The children to be rendered and protected. */
   children: React.ReactNode;
 }
 
+/**
+ * State for the ErrorBoundary component.
+ */
 interface ErrorBoundaryState {
+  /** Whether an error has been caught by the boundary. */
   hasError: boolean;
 }
 
+/**
+ * Error boundary component for the CreateItemFlow.
+ * Catches rendering errors and displays a fallback UI with a retry option.
+ */
 class CreateItemFlowErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   state: ErrorBoundaryState = { hasError: false };
 
@@ -50,6 +72,13 @@ class CreateItemFlowErrorBoundary extends React.Component<ErrorBoundaryProps, Er
   }
 }
 
+/**
+ * Internal content component for the item creation flow.
+ * Manages the state and transitions between form entry and saving.
+ *
+ * @param props - The component props.
+ * @returns A React component for the flow's content.
+ */
 const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSuccess }) => {
   const { formData, localPhotos, addPhotos, removePhoto, setFormField, selectCollection, reset } =
     useItemCreation();
@@ -165,6 +194,15 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
   );
 };
 
+/**
+ * The main component for the item creation flow.
+ * Orchestrates the entire process of picking photos, adding metadata,
+ * selecting a collection, and saving the item.
+ * Includes an error boundary for robustness.
+ *
+ * @param props - The component props.
+ * @returns A React component wrapping the item creation flow.
+ */
 export const CreateItemFlow: React.FC<CreateItemFlowProps> = (props) => {
   return (
     <CreateItemFlowErrorBoundary>

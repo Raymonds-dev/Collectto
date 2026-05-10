@@ -8,38 +8,70 @@ import { SaveButton } from './SaveButton';
 import type { Collection } from '@/types/collections';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the ItemMetadataForm component.
+ */
 interface ItemMetadataFormProps {
+  /** List of selected photos for the item. */
   photos: LocalPhotoReference[];
+  /** Callback function to add more photos to the item. */
   onAddPhotos: (photos: LocalPhotoReference[]) => void;
+  /** Callback function to remove a photo by its temporary ID. */
   onRemovePhoto: (tempId: string) => void;
+  /** The current name of the item. */
   itemName: string;
+  /** Callback function when the item name changes. */
   onItemNameChange: (name: string) => void;
+  /** The current description of the item. */
   itemDescription: string;
+  /** Callback function when the item description changes. */
   onItemDescriptionChange: (description: string) => void;
+  /** The ID of the currently selected collection. */
   selectedCollectionId: string | null;
+  /** Callback function when a collection is selected. */
   onSelectCollection: (collectionId: string | null) => void;
+  /** Callback function when a new collection is successfully created. */
   onCollectionCreated: (collection: Collection) => void;
+  /** List of available collections. */
   collections: Collection[];
+  /** Whether the collections are currently loading. */
   collectionsLoading?: boolean;
+  /** Optional error message from loading collections. */
   collectionsError?: string;
+  /** Whether selecting a collection is optional. */
   collectionOptional?: boolean;
+  /** Callback function to trigger saving the item. */
   onSave: () => void;
+  /** Whether the item is currently being saved. */
   isSaving?: boolean;
+  /** Optional error message from the saving process. */
   saveError?: string;
 }
 
+/**
+ * Internal interface for tracking form validation errors.
+ */
 interface ValidationErrors {
+  /** Error message related to photos. */
   photos?: string;
+  /** Error message related to the item name. */
   name?: string;
+  /** Error message related to collection selection. */
   collection?: string;
 }
 
 /**
- * ItemMetadataForm component combining photo gallery, item form, and collection selector.
- * - Combines PhotoGallery + ItemForm + CollectionSelector
- * - Step-by-step layout
- * - Validates: ≥1 photo, name provided, collection selected
- * - "Save" button enabled only when valid
+ * A composite form component for entering all item metadata.
+ *
+ * Features:
+ * - Integrates PhotoPicker and PhotoGallery for image management.
+ * - Includes ItemForm for name and description.
+ * - Incorporates CollectionCreationForm for collection selection/creation.
+ * - Handles comprehensive form validation.
+ * - Provides a "Save" button with loading and error states.
+ *
+ * @param props - The component props.
+ * @returns A React component for the complete item metadata form.
  */
 export const ItemMetadataForm: React.FC<ItemMetadataFormProps> = ({
   photos,

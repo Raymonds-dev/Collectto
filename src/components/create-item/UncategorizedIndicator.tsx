@@ -2,6 +2,11 @@ import React from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
+/**
+ * UncategorizedIndicator component.
+ * Displays a small visual badge indicating that an item is not associated
+ * with any specific collection. Uses a warning-soft background and a pricetag icon.
+ */
 export const UncategorizedIndicator: React.FC = () => {
   return (
     <View className="bg-feedback-warning-soft flex-row items-center gap-2 self-center rounded-full px-3 py-1">

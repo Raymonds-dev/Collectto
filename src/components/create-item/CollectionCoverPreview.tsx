@@ -3,11 +3,26 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the CollectionCoverPreview component.
+ */
 interface CollectionCoverPreviewProps {
+  /**
+   * The local reference to the selected cover photo.
+   * If null, a placeholder will be displayed.
+   */
   coverPhoto: LocalPhotoReference | null;
+  /** Callback function to remove the selected cover photo. */
   onRemove: () => void;
 }
 
+/**
+ * Displays a preview of the selected collection cover image.
+ * Provides a button to remove the selection and shows a placeholder if no image is selected.
+ *
+ * @param props - The component props.
+ * @returns A React component for previewing or selecting a collection cover.
+ */
 export const CollectionCoverPreview: React.FC<CollectionCoverPreviewProps> = ({
   coverPhoto,
   onRemove,

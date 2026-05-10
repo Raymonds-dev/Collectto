@@ -5,23 +5,41 @@ import { CollectionListItem } from './CollectionListItem';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 
+/**
+ * Props for the CollectionSelector component.
+ */
 interface CollectionSelectorProps {
+  /** The ID of the currently selected collection. */
   selectedCollectionId: string | null;
+  /** Callback function when a collection is selected. */
   onSelectCollection: (collectionId: string | null) => void;
+  /** Callback function to trigger the creation of a new collection. */
   onCreateNew: () => void;
+  /**
+   * Optional list of collections.
+   * If not provided, the component will fetch collections using the collection service.
+   */
   collections?: Collection[];
+  /** Whether the collections are currently being loaded. */
   isLoading?: boolean;
+  /** Optional error message to display. */
   error?: string;
+  /** Whether to allow the user to skip collection selection. */
   allowSkip?: boolean;
 }
 
 /**
- * CollectionSelector component for selecting or creating a collection.
- * - Fetches user collections via context/service
- * - Displays collection list (name + cover image if available)
- * - "Create new collection" option at bottom
- * - Selection state management
- * - Loading skeleton while fetching
+ * A component for selecting from existing collections or initiating new collection creation.
+ *
+ * Features:
+ * - Fetches user collections automatically if not provided as props.
+ * - Displays a scrollable list of collections with names and covers.
+ * - Provides a "Create New" action.
+ * - Supports an optional "Skip" state for uncategorized items.
+ * - Includes loading skeletons and error handling.
+ *
+ * @param props - The component props.
+ * @returns A React component for collection selection.
  */
 export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   selectedCollectionId,

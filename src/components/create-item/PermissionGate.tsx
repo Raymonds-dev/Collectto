@@ -3,15 +3,27 @@ import { Linking, Pressable, Text, View } from 'react-native';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { PermissionRequest } from './PermissionRequest';
 
+/**
+ * Props for the PermissionGate component.
+ */
 interface PermissionGateProps {
+  /** The content to display once all permissions are granted. */
   children: React.ReactNode;
 }
 
 /**
- * PermissionGate - Guards content behind camera and gallery permissions
- * Checks permissions on mount, shows PermissionRequest UI if needed,
- * and passes through to children only when both permissions are granted.
- * Uses expo-image-picker which is better supported by Expo Go.
+ * A wrapper component that ensures necessary permissions are granted before rendering its children.
+ * Specifically checks for camera and photo gallery permissions.
+ *
+ * Features:
+ * - Checks permission status on mount.
+ * - Displays a specialized UI (PermissionRequest) to ask for missing permissions.
+ * - Provides a fallback with an option to open device settings if permissions are denied.
+ * - Pass-through behavior: renders children directly when all permissions are available.
+ * - Uses `expo-image-picker` for broad compatibility.
+ *
+ * @param props - The component props.
+ * @returns The children if permitted, otherwise a permission request UI.
  */
 export const PermissionGate = ({ children }: PermissionGateProps) => {
   const { getCameraPermission, getGalleryPermission, checkPermissions } = useImagePicker();

@@ -7,26 +7,42 @@ import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { SaveButton } from './SaveButton';
 import { SuccessConfirmation } from './SuccessConfirmation';
 
+/**
+ * Props for the ItemSaveFlow component.
+ */
 interface ItemSaveFlowProps {
+  /** List of local photo references to be uploaded. */
   photos: LocalPhotoReference[];
+  /** The name of the item to save. */
   itemName: string;
+  /** Optional description of the item. */
   itemDescription?: string;
+  /** The ID of the collection to add the item to. Can be null for uncategorized. */
   collectionId: string | null;
+  /** Optional draft for creating a new collection before saving the item. */
   newCollectionDraft?: CollectionCreationInput | null;
+  /** Optional local URI for the item's thumbnail preview. */
   itemThumbnail?: string;
+  /** Callback function when the item is successfully saved. Receives the new item ID. */
   onSuccess: (itemId: string) => void;
+  /** Optional callback function when an error occurs during saving. */
   onError?: (error: string) => void;
 }
 
 /**
- * ItemSaveFlow component for orchestrating the item save process.
- * - Validates form data
- * - Shows loading state
- * - Migrates photos via PhotoStorageProvider
- * - Creates item via ItemService
- * - Shows success confirmation
- * - Handles errors with retry option
- * - Prevents multiple saves with useRef
+ * Orchestrates the multi-step process of saving a new item.
+ *
+ * Features:
+ * - Handles optional collection creation if a draft is provided.
+ * - Manages photo migration/uploading via the storage provider.
+ * - Creates the item record via the API service.
+ * - Displays a loading state during the entire process.
+ * - Shows a success confirmation once completed.
+ * - Provides error handling and retry logic.
+ * - Uses refs to prevent duplicate save attempts.
+ *
+ * @param props - The component props.
+ * @returns A React component for the item saving orchestration.
  */
 export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
   photos,

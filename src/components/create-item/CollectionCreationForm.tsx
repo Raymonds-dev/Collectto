@@ -7,16 +7,33 @@ import { CollectionCreator } from './CollectionCreator';
 import { CollectionCreationSuccess } from './CollectionCreationSuccess';
 import { type CollectionCreationInput, useCollectionCreation } from '@/hooks/useCollectionCreation';
 
+/**
+ * Props for the CollectionCreationForm component.
+ */
 interface CollectionCreationFormProps {
+  /** The ID of the currently selected collection. */
   selectedCollectionId: string | null;
+  /** Callback function when a collection is selected. */
   onSelectCollection: (collectionId: string | null) => void;
+  /** Callback function when a new collection is successfully created. */
   onCollectionCreated: (collection: Collection) => void;
+  /** List of available collections to choose from. */
   collections: Collection[];
+  /** Whether the collections are currently loading. */
   isLoading?: boolean;
+  /** Optional error message to display in the selector. */
   error?: string;
+  /** Whether to allow skipping collection selection (saving as uncategorized). */
   allowSkip?: boolean;
 }
 
+/**
+ * A composite component that manages the collection selection and creation flow.
+ * It allows users to pick an existing collection or create a new one inline.
+ *
+ * @param props - The component props.
+ * @returns A React component managing the collection selection/creation UI.
+ */
 export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
   selectedCollectionId,
   onSelectCollection,

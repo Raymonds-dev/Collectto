@@ -6,15 +6,28 @@ import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
 import { createPhotoStorageProvider } from '@/services/photo-storage';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the PhotoPicker component.
+ */
 interface PhotoPickerProps {
+  /** Callback function when photos are successfully selected and saved to local storage. */
   onPhotosSelected: (photos: LocalPhotoReference[]) => void;
+  /** Whether the picker buttons should be disabled. */
   disabled?: boolean;
 }
 
 /**
- * PhotoPicker - UI for selecting photos from camera or gallery
- * Handles permission requests, delegates to usePhotoSource hook,
- * and saves photos to local storage before passing to parent
+ * A component providing options to select photos from the camera or the device gallery.
+ *
+ * Features:
+ * - Handles camera and gallery permission requests.
+ * - Integrates with `usePhotoSource` to launch the device's image picking UI.
+ * - Automatically saves selected images to local app storage using `PhotoStorageProvider`.
+ * - Provides visual feedback and loading states during the selection process.
+ * - Accessible buttons with appropriate roles and hints.
+ *
+ * @param props - The component props.
+ * @returns A React component with camera and gallery selection buttons.
  */
 export const PhotoPicker = ({ onPhotosSelected, disabled = false }: PhotoPickerProps) => {
   const { launchCamera, launchGallery } = usePhotoSource();

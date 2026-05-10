@@ -1,24 +1,39 @@
 import React, { useRef, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
 
+/**
+ * Props for the ItemForm component.
+ */
 interface ItemFormProps {
+  /** The current name of the item. */
   name: string;
+  /** The current description of the item. */
   description: string;
+  /** Callback function when the item name changes. */
   onNameChange: (name: string) => void;
+  /** Callback function when the item description changes. */
   onDescriptionChange: (description: string) => void;
+  /** Optional validation errors for the form fields. */
   errors?: {
+    /** Error message for the name field. */
     name?: string;
+    /** Error message for the description field. */
     description?: string;
   };
 }
 
 /**
- * ItemForm component for capturing item metadata.
- * - Text input for item name (mandatory, max 255 chars)
- * - Text input for item description (optional)
- * - Inline validation error display
- * - Focus management between fields
- * - Uses Tailwind + existing UI components
+ * A form component for capturing basic item metadata.
+ *
+ * Features:
+ * - Text input for item name (mandatory, max 255 chars).
+ * - Text input for item description (optional, multiline).
+ * - Inline validation error display.
+ * - Character count for the name field.
+ * - Focus management (advances to description on name submit).
+ *
+ * @param props - The component props.
+ * @returns A React component for the item metadata form.
  */
 export const ItemForm: React.FC<ItemFormProps> = ({
   name,

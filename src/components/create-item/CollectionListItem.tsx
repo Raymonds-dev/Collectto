@@ -2,19 +2,32 @@ import React from 'react';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * Props for the CollectionListItem component.
+ */
 interface CollectionListItemProps {
+  /** The name of the collection. */
   name: string;
+  /** Optional URL for the collection's cover image. */
   coverUrl?: string | null;
+  /** Whether this collection is currently selected. */
   isSelected: boolean;
+  /** Callback function when the item is pressed. */
   onPress: () => void;
 }
 
 /**
- * CollectionListItem component for displaying a selectable collection.
- * - Shows collection cover image (or placeholder)
- * - Shows collection name
- * - Selection indicator (checkmark)
- * - Touch target size ≥48dp (Android) / ≥44pt (iOS)
+ * A selectable list item representing a collection.
+ *
+ * Features:
+ * - Displays collection cover image (or a placeholder if unavailable).
+ * - Displays the collection name.
+ * - Shows a visual selection indicator (checkmark).
+ * - Optimized touch target size (minimum 44-48 units).
+ * - Accessible as a radio button in a list.
+ *
+ * @param props - The component props.
+ * @returns A React component for a collection list entry.
  */
 export const CollectionListItem: React.FC<CollectionListItemProps> = ({
   name,

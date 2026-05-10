@@ -2,18 +2,31 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+/**
+ * Supported permission types for the request UI.
+ */
 export type PermissionType = 'camera' | 'gallery';
 
+/**
+ * Props for the PermissionRequest component.
+ */
 interface PermissionRequestProps {
+  /** The type of permission being requested. */
   type: PermissionType;
+  /** Callback function when the user selects "Allow". */
   onAllow: () => void;
+  /** Callback function when the user selects "Deny". */
   onDeny: () => void;
+  /** Whether a permission request is currently processing. */
   isLoading?: boolean;
 }
 
 /**
- * PermissionRequest - UI component for requesting camera or gallery permission
- * Shows explanation and Allow/Deny buttons with accessibility labels
+ * A UI component that provides context and actions for requesting specific device permissions.
+ * Displays a descriptive title, icon, and explanatory text based on the permission type.
+ *
+ * @param props - The component props.
+ * @returns A React component for the permission request screen.
  */
 export const PermissionRequest = ({
   type,

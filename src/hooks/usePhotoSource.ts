@@ -31,7 +31,7 @@ export const usePhotoSource = () => {
       setError(null);
 
       const result = await ImagePickerLib.launchCameraAsync({
-        mediaTypes: ImagePickerLib.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: false,
         quality: 0.8,
       });
@@ -56,9 +56,10 @@ export const usePhotoSource = () => {
       setError(null);
 
       const result = await ImagePickerLib.launchImageLibraryAsync({
-        mediaTypes: ImagePickerLib.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: false,
         quality: 0.8,
+        allowsMultipleSelection: multiple,
       });
 
       if (result.canceled || !result.assets) {

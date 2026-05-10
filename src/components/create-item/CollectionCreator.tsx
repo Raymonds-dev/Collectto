@@ -102,7 +102,10 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
 
       <View className="gap-2">
         <Text className="text-text-primary text-sm font-medium">Capa (opcional)</Text>
-        <PhotoPicker onPhotoSelected={setCoverPhoto} disabled={isLoading} />
+        <PhotoPicker
+          onPhotosSelected={(photos) => setCoverPhoto(photos[0] || null)}
+          disabled={isLoading}
+        />
         <CollectionCoverPreview coverPhoto={coverPhoto} onRemove={() => setCoverPhoto(null)} />
       </View>
 

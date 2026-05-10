@@ -7,7 +7,7 @@ import { createPhotoStorageProvider } from '@/services/photo-storage';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
 interface PhotoPickerProps {
-  onPhotoSelected: (photo: LocalPhotoReference) => void;
+  onPhotosSelected: (photos: LocalPhotoReference[]) => void;
   disabled?: boolean;
 }
 
@@ -16,7 +16,7 @@ interface PhotoPickerProps {
  * Handles permission requests, delegates to usePhotoSource hook,
  * and saves photos to local storage before passing to parent
  */
-export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerProps) => {
+export const PhotoPicker = ({ onPhotosSelected, disabled = false }: PhotoPickerProps) => {
   const { launchCamera, launchGallery } = usePhotoSource();
   const { requestCameraPermission, requestGalleryPermission } = usePhotoPermissions();
   const [isLoading, setIsLoading] = useState(false);
@@ -39,7 +39,7 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
         // Save photo to local storage
         const storageProvider = createPhotoStorageProvider();
         const localRef = await storageProvider.saveToLocal(photoData);
-        onPhotoSelected(localRef);
+        onPhotosSelected([localRef]);
       }
     } catch (error) {
       console.error('Camera error:', error);
@@ -62,12 +62,18 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
         return;
       }
 
-      const photos = await launchGallery(false);
+      const photos = await launchGallery(true);
       if (photos && photos.length > 0) {
-        // Save photo to local storage
+        // Save photos to local storage
         const storageProvider = createPhotoStorageProvider();
-        const localRef = await storageProvider.saveToLocal(photos[0]);
-        onPhotoSelected(localRef);
+        const localRefs: LocalPhotoReference[] = [];
+
+        for (const photo of photos) {
+          const localRef = await storageProvider.saveToLocal(photo);
+          localRefs.push(localRef);
+        }
+
+        onPhotosSelected(localRefs);
       }
     } catch (error) {
       console.error('Gallery error:', error);

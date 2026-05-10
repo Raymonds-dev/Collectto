@@ -10,7 +10,7 @@ import type { LocalPhotoReference } from '@/types/photo-storage';
 
 interface ItemMetadataFormProps {
   photos: LocalPhotoReference[];
-  onAddPhoto: (photo: LocalPhotoReference) => void;
+  onAddPhotos: (photos: LocalPhotoReference[]) => void;
   onRemovePhoto: (tempId: string) => void;
   itemName: string;
   onItemNameChange: (name: string) => void;
@@ -43,7 +43,7 @@ interface ValidationErrors {
  */
 export const ItemMetadataForm: React.FC<ItemMetadataFormProps> = ({
   photos,
-  onAddPhoto,
+  onAddPhotos,
   onRemovePhoto,
   itemName,
   onItemNameChange,
@@ -99,7 +99,7 @@ export const ItemMetadataForm: React.FC<ItemMetadataFormProps> = ({
         <View className="mb-2 px-4">
           <Text className="text-text-primary text-base font-semibold">Fotos do Item *</Text>
         </View>
-        <PhotoPicker onPhotoSelected={onAddPhoto} />
+        <PhotoPicker onPhotosSelected={onAddPhotos} />
         <PhotoGallery photos={photos} onRemovePhoto={onRemovePhoto} />
         {validationErrors.photos && (
           <Text className="mt-2 px-4 text-sm text-feedback-error">

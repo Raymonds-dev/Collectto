@@ -26,6 +26,10 @@ export const useItemCreation = () => {
     setLocalPhotos((prev) => [...prev, photoReference]);
   }, []);
 
+  const addPhotos = useCallback((photoReferences: LocalPhotoReference[]) => {
+    setLocalPhotos((prev) => [...prev, ...photoReferences]);
+  }, []);
+
   const removePhoto = useCallback((tempId: string) => {
     setLocalPhotos((prev) => prev.filter((photo) => photo.tempId !== tempId));
   }, []);
@@ -62,6 +66,7 @@ export const useItemCreation = () => {
     formData,
     localPhotos,
     addPhoto,
+    addPhotos,
     removePhoto,
     setFormField,
     selectCollection,

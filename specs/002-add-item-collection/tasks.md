@@ -3,8 +3,8 @@
 **Feature Branch**: `002-add-item-collection`  
 **Specification**: `specs/002-add-item-collection/spec.md`  
 **Implementation Plan**: `specs/002-add-item-collection/plan.md`  
-**Status**: Ready for Implementation  
-**Total Tasks**: 48
+**Status**: Finished  
+**Total Tasks**: 64
 
 ---
 
@@ -421,83 +421,83 @@ Validate all user stories work correctly, handle edge cases, optimize performanc
 
 ---
 
-- [ ] T049 Create unit tests for `src/services/photo-storage/local-provider.ts`:
+- [x] T049 Create unit tests for `src/services/photo-storage/local-provider.ts`:
   - Test saveToLocal creates files correctly
   - Test moveToPermament copies files to permanent location
   - Test delete removes files
   - Test cleanupLocal removes old files
 
-- [ ] T050 Create unit tests for `src/mocks/items/index.ts`:
+- [x] T050 Create unit tests for `src/mocks/items/index.ts`:
   - Test create returns item with generated ID
   - Test getById retrieves item
   - Test getByCollection filters correctly
   - Test update modifies fields
   - Test delete soft-deletes
 
-- [ ] T051 Create unit tests for `src/mocks/collections/index.ts`:
+- [x] T051 Create unit tests for `src/mocks/collections/index.ts`:
   - Test create returns collection with generated ID
   - Test getById retrieves collection
   - Test getMe returns user's collections
   - Test update modifies fields
   - Test getItemCount returns correct count
 
-- [ ] T052 Create integration test for US1 (Photo Permissions):
+- [x] T052 Create integration test for US1 (Photo Permissions):
   - Test permission request flow
   - Test camera capture after permission grant
   - Test gallery selection after permission grant
   - Test graceful handling of permission denial
 
-- [ ] T053 Create integration test for US2 (Create Item):
+- [x] T053 Create integration test for US2 (Create Item):
   - Test full item creation flow
   - Test item saved with correct collection_id
   - Test photos migrated to permanent storage
   - Test success confirmation shown
 
-- [ ] T054 Create integration test for US3 (Create Collection):
+- [x] T054 Create integration test for US3 (Create Collection):
   - Test collection creation during item flow
   - Test new collection selected for item
   - Test both item and collection persisted
 
-- [ ] T055 Create integration test for US4 (Uncategorized):
+- [x] T055 Create integration test for US4 (Uncategorized):
   - Test item created with null collection_id
   - Test item marked as uncategorized
   - Test no errors without collection
 
-- [ ] T056 Validate accessibility:
+- [x] T056 Validate accessibility:
   - Add accessibilityLabel to all buttons
   - Add accessibilityRole to form inputs
   - Ensure touch targets ≥44pt (iOS) / ≥48dp (Android)
   - Test with screen readers (VoiceOver/TalkBack)
 
-- [ ] T057 Validate constitution compliance:
+- [x] T057 Validate constitution compliance:
   - Verify photos are visual focus (not text-first)
   - Verify motion uses only official presets (SlideUp, FadeIn, etc.)
   - Verify component reuse (no duplicates)
   - Verify collection cover emphasized
   - Verify no dense text blocks
 
-- [ ] T058 Performance optimization:
+- [x] T058 Performance optimization:
   - Profile photo loading and rendering
   - Optimize image sizes (scale appropriately)
   - Add React.memo to photo gallery items
   - Ensure collection list loads in <1s
 
-- [ ] T059 Error handling & edge cases:
+- [x] T059 Error handling & edge cases:
   - Test permission denial retry flow
   - Test storage limit warning (500 MB)
   - Test network errors (mock service errors)
   - Test form validation (empty name, no photos)
   - Test cancellation at each step
 
-- [ ] T060 Run `npm run lint` and fix any issues
+- [x] T060 Run `npm run lint` and fix any issues
 
-- [ ] T061 Run `npm run type-check` and fix any type errors
+- [x] T061 Run `npm run type-check` and fix any type errors
 
-- [ ] T062 Run `npm run format` and ensure formatting is clean
+- [x] T062 Run `npm run format` and ensure formatting is clean
 
-- [ ] T063 Run `npm run validate` (full test suite) and verify all tests pass
+- [x] T063 Run `npm run validate` (full test suite) and verify all tests pass
 
-- [ ] T064 Documentation:
+- [x] T064 Documentation:
   - Add JSDoc comments to all public functions
   - Document service interfaces with examples
   - Add README.md in `src/components/create-item/` explaining component hierarchy

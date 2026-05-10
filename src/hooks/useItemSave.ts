@@ -67,7 +67,7 @@ export const useItemSave = () => {
           itemId: item.item_id,
         };
       } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : 'Failed to save item';
+        const errorMessage = err instanceof Error ? err.message : 'Falha ao salvar item';
         setError(errorMessage);
         return {
           success: false,

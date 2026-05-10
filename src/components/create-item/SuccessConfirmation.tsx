@@ -32,7 +32,7 @@ export const SuccessConfirmation: React.FC<SuccessConfirmationProps> = ({
           <Ionicons name="checkmark" size={32} color="white" />
         </View>
 
-        <Text className="text-text-primary text-center text-2xl font-bold">Item Created!</Text>
+        <Text className="text-text-primary text-center text-2xl font-bold">Item Criado!</Text>
 
         {itemThumbnail && (
           <View className="border-surface-tertiary h-24 w-24 overflow-hidden rounded-lg border-2">
@@ -48,11 +48,11 @@ export const SuccessConfirmation: React.FC<SuccessConfirmationProps> = ({
         {isUncategorized ? <UncategorizedIndicator /> : null}
 
         <Text className="text-text-secondary max-w-xs text-center text-sm">
-          Your item has been successfully added.
+          Seu item foi adicionado com sucesso.
         </Text>
 
         <View className="mt-4 w-full max-w-xs">
-          <Button onPress={onDone} label="Done" accessibilityLabel="Done" />
+          <Button onPress={onDone} label="Concluir" accessibilityLabel="Concluir" />
         </View>
       </View>
     </MotionView>

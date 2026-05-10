@@ -153,7 +153,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
 
       {allowSkip && selectedCollectionId === null && (
         <Text className="text-text-secondary text-xs">
-          O item será salvo como <Text className="font-semibold">Uncategorized</Text>.
+          O item será salvo como <Text className="font-semibold">Sem categoria</Text>.
         </Text>
       )}
     </View>

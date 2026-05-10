@@ -76,7 +76,7 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           accessibilityRole="text"
           accessibilityLabel="Nome da coleção"
         />
-        {formErrors.name && <Text className="text-feedback-error text-xs">{formErrors.name}</Text>}
+        {formErrors.name && <Text className="text-xs text-feedback-error">{formErrors.name}</Text>}
       </View>
 
       <View className="gap-2">
@@ -96,7 +96,7 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           accessibilityLabel="Descrição da coleção"
         />
         {formErrors.description && (
-          <Text className="text-feedback-error text-xs">{formErrors.description}</Text>
+          <Text className="text-xs text-feedback-error">{formErrors.description}</Text>
         )}
       </View>
 
@@ -106,7 +106,7 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
         <CollectionCoverPreview coverPhoto={coverPhoto} onRemove={() => setCoverPhoto(null)} />
       </View>
 
-      {error && <Text className="text-feedback-error text-sm">{error}</Text>}
+      {error && <Text className="text-sm text-feedback-error">{error}</Text>}
 
       <View className="flex-row gap-2">
         <Button

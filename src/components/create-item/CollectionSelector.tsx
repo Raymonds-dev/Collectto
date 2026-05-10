@@ -92,7 +92,9 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
       {resolvedLoading && (
         <View className="gap-2">
           {skeletonRows.map((_, index) => (
-            <View key={`collection-skeleton-${index}`} className="bg-surface-secondary rounded-lg p-4">
+            <View
+              key={`collection-skeleton-${index}`}
+              className="bg-surface-secondary rounded-lg p-4">
               <View className="bg-surface-tertiary h-4 w-1/2 rounded-full" />
             </View>
           ))}

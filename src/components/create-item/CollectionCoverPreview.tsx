@@ -32,7 +32,7 @@ export const CollectionCoverPreview: React.FC<CollectionCoverPreviewProps> = ({
         onPress={onRemove}
         accessibilityRole="button"
         accessibilityLabel="Remover capa da coleção"
-        className="bg-feedback-error absolute right-2 top-2 rounded-full p-2"
+        className="absolute right-2 top-2 rounded-full bg-feedback-error p-2"
         hitSlop={8}>
         <Ionicons name="close" size={14} color="#FFFFFF" />
       </Pressable>

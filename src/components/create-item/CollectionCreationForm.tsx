@@ -26,8 +26,12 @@ export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
   error,
   allowSkip = false,
 }) => {
-  const { createCollection, isLoading: isCreating, error: creationError, resetError } =
-    useCollectionCreation();
+  const {
+    createCollection,
+    isLoading: isCreating,
+    error: creationError,
+    resetError,
+  } = useCollectionCreation();
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<Collection | null>(null);
 

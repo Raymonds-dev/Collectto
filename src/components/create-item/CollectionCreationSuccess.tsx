@@ -17,10 +17,12 @@ export const CollectionCreationSuccess: React.FC<CollectionCreationSuccessProps>
 }) => {
   return (
     <MotionView visible presets={['fade']} className="mt-4">
-      <View className="bg-feedback-success-soft border-feedback-success gap-3 rounded-xl border p-4">
+      <View className="bg-feedback-success-soft gap-3 rounded-xl border border-feedback-success p-4">
         <View className="flex-row items-center gap-2">
           <Ionicons name="checkmark-circle" size={18} color="#0D8A57" />
-          <Text className="text-feedback-success text-sm font-semibold">Coleção criada com sucesso</Text>
+          <Text className="text-sm font-semibold text-feedback-success">
+            Coleção criada com sucesso
+          </Text>
         </View>
         <View className="flex-row items-center gap-3">
           {coverUrl ? (

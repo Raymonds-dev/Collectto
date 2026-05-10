@@ -51,7 +51,7 @@ class CreateItemFlowErrorBoundary extends React.Component<ErrorBoundaryProps, Er
 }
 
 const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSuccess }) => {
-  const { formData, localPhotos, addPhoto, removePhoto, setFormField, selectCollection, reset } =
+  const { formData, localPhotos, addPhotos, removePhoto, setFormField, selectCollection, reset } =
     useItemCreation();
   const collectionService = useCollectionService();
 
@@ -111,6 +111,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
       return;
     }
 
+    setCurrentStep('form');
     reset();
     onSuccess?.();
     onClose?.();
@@ -143,7 +144,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
     <PermissionGate>
       <ItemMetadataForm
         photos={localPhotos}
-        onAddPhoto={addPhoto}
+        onAddPhotos={addPhotos}
         onRemovePhoto={removePhoto}
         itemName={formData.name}
         onItemNameChange={(name) => setFormField('name', name)}

@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
+import { updateProfile, uploadPhoto } from '@/services/api/api';
 
 interface ProfileFormData {
   name: string;
@@ -31,14 +32,20 @@ export default function AccountScreen() {
     });
   }, [user]);
 
-  const handleEditProfile = (): void => {
-    // TODO: API call to update profile
-    updateUserProfile({
-      name: profileData.name,
-      birthdayDate: profileData.birthdayDate,
-    });
-    console.log('Profile updated:', profileData);
-    setEditProfileVisible(false);
+  const handleEditProfile = async (): Promise<void> => {
+    try {
+      const updated = await updateProfile({
+        name: profileData.name,
+        birthdayDate: profileData.birthdayDate,
+      });
+      updateUserProfile({
+        name: updated.name,
+        birthdayDate: updated.birthdayDate,
+      });
+      setEditProfileVisible(false);
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+    }
   };
 
   const handleChoosePhoto = async () => {
@@ -58,9 +65,12 @@ export default function AccountScreen() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const selectedImage = result.assets[0];
-      // Here you would typically upload the image to a server and get a URL
-      // For this example, we'll just use the local URI
-      updateUserPhoto(selectedImage.uri);
+      try {
+        const { photoUrl } = await uploadPhoto(selectedImage.uri);
+        updateUserPhoto(photoUrl);
+      } catch (error) {
+        console.error('Erro ao fazer upload de foto:', error);
+      }
     }
   };
 
@@ -108,7 +118,11 @@ export default function AccountScreen() {
               <Text className="text-xl font-medium text-text-base">Data de Nascimento</Text>
               <Text className="mt-1 text-lg text-text-base">
                 {user?.birthdayDate
-                  ? new Date(user.birthdayDate).toLocaleDateString('pt-BR', { timeZone: 'UTC' })
+                  ? (() => {
+                      // Backend retorna YYYY-MM-DD, converter para DD/MM/YYYY
+                      const [year, month, day] = user.birthdayDate.split('-');
+                      return day && month && year ? `${day}/${month}/${year}` : 'Não informada';
+                    })()
                   : 'Não informada'}
               </Text>
             </View>

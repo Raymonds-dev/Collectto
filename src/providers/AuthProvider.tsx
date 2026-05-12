@@ -1,4 +1,4 @@
-import api from '@/services/api/api';
+import api, { getMe, getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
@@ -43,6 +43,33 @@ const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): Auth
       ? source.name
       : email.split('@')[0] || 'User';
   const photoUrl = typeof source.photoUrl === 'string' ? source.photoUrl : undefined;
+  const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
+
+  return {
+    id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
+    email,
+    name,
+    photoUrl,
+    birthdayDate,
+  };
+};
+
+const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): AuthUser => {
+  if (!payload || typeof payload !== 'object') {
+    return buildMockAuthUser(fallbackEmail);
+  }
+
+  const source = payload as Record<string, unknown>;
+
+  const email =
+    typeof source.email === 'string' && source.email.length > 0 ? source.email : fallbackEmail;
+  const name =
+    typeof source.name === 'string' && source.name.length > 0
+      ? source.name
+      : email.split('@')[0] || 'User';
+  // Backend retorna profilePictureUrl, não photoUrl
+  const photoUrl =
+    typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
   const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
 
   return {
@@ -119,9 +146,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           await setSessionToken(accessToken);
           api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          setUser(resolveAuthUserFromLogin(data, credentials.email));
+
+          const maybeUser = resolveAuthUserFromLogin(data, credentials.email);
+
+          if (maybeUser && maybeUser.birthdayDate) {
+            setUser(maybeUser);
+          } else {
+            try {
+              const profile = await getMe();
+              setUser(resolveAuthUserFromProfile(profile, credentials.email));
+            } catch (meError) {
+              if (maybeUser && maybeUser.id && maybeUser.id !== 'local-user') {
+                try {
+                  const profile = await getUserById(maybeUser.id);
+                  setUser(resolveAuthUserFromProfile(profile, credentials.email));
+                } catch (byIdError) {
+                  setUser(maybeUser);
+                }
+              } else {
+                setUser(maybeUser);
+              }
+            }
+          }
         } catch (error: unknown) {
-          throw new Error(resolveErrorMessage(error, 'Falha no login'));
+          throw new Error(resolveErrorMessage(error, '*Falha no login'));
         }
       },
 

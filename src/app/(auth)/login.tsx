@@ -25,7 +25,7 @@ export default function LoginScreen() {
 
   const handleLogin = async (): Promise<void> => {
     if (!email.trim() || !password.trim()) {
-      setError('Preencha email e senha.');
+      setError('*Preencha e-mail e senha.');
       return;
     }
 
@@ -80,12 +80,7 @@ export default function LoginScreen() {
 
           {error ? (
             <View className="mt-3 w-full items-center">
-              <Text className="text-center text-sm text-red-600">{error}</Text>
-            </View>
-          ) : null}
-          {error ? (
-            <View className="mt-3 w-full items-center">
-              <Text className="text-center text-sm text-red-600">{error}</Text>
+              <Text className="text-center text-lg text-red-600">{error}</Text>
             </View>
           ) : null}
 

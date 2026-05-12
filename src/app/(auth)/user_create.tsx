@@ -153,11 +153,11 @@ export default function UserCreateScreen() {
 
     if (step === 1) {
       if (!name || !email) {
-        setError('Por favor, preencha seu nome e email.');
+        setError('*Preencha seu nome e e-mail');
         return;
       }
       if (!day || !month || !year) {
-        setError('Selecione sua data de nascimento completa.');
+        setError('*Selecione sua data de nascimento completa');
         return;
       }
 
@@ -167,11 +167,11 @@ export default function UserCreateScreen() {
 
     if (step === 2) {
       if (!username || !password) {
-        setError('Por favor, preencha seu nome de usuário e senha.');
+        setError('*Preencha seu nome de usuário e senha');
         return;
       }
       if (!termsAccepted) {
-        setError('Você precisa aceitar os termos para continuar.');
+        setError('*Aceite os termos para continuar');
         return;
       }
 
@@ -184,7 +184,7 @@ export default function UserCreateScreen() {
         router.replace('/(auth)/login');
       } catch (registerError) {
         const message =
-          registerError instanceof Error ? registerError.message : 'Falha ao cadastrar.';
+          registerError instanceof Error ? registerError.message : '*Falha ao cadastrar usuário';
         setError(message);
       } finally {
         setIsSubmitting(false);

@@ -1,11 +1,11 @@
 import axios from 'axios';
+import { AuthUser } from '@/types/auth';
 
 const api = axios.create({
   baseURL: 'http://89.167.89.185:8080',
 });
-export default api;
 
-import { AuthUser } from '@/types/auth';
+export default api;
 
 export const getMe = async (): Promise<AuthUser> => {
   const { data } = await api.get('users/me');
@@ -17,9 +17,7 @@ export const getUserById = async (userId: string): Promise<AuthUser> => {
   return data as AuthUser;
 };
 
-export const updateProfile = async (
-  profileData: Partial<AuthUser>
-): Promise<AuthUser> => {
+export const updateProfile = async (profileData: Partial<AuthUser>): Promise<AuthUser> => {
   const { data } = await api.patch('users/profile', profileData);
   return data as AuthUser;
 };

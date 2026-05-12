@@ -155,12 +155,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               const profile = await getMe();
               setUser(resolveAuthUserFromProfile(profile, credentials.email));
-            } catch (meError) {
+            } catch {
               if (maybeUser && maybeUser.id && maybeUser.id !== 'local-user') {
                 try {
                   const profile = await getUserById(maybeUser.id);
                   setUser(resolveAuthUserFromProfile(profile, credentials.email));
-                } catch (byIdError) {
+                } catch {
                   setUser(maybeUser);
                 }
               } else {

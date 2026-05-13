@@ -1,51 +1,64 @@
-export interface Item {
-  item_id: string;
-  collection_id: string | null;
-  name: string;
-  description: string;
-  acquisition_date: string | null;
-  last_used_date: string | null;
-  media_urls: string[];
-  attributes: Record<string, unknown>;
-  likes_count: number;
-  comments_count: number;
-  is_active: boolean;
-  created_at: string;
-}
-
-export interface CreateItemInput {
-  collection_id?: string | null;
+export interface CreateItemRequest {
+  collectionId: string;
   name: string;
   description?: string;
-  acquisition_date?: string | null;
-  media_urls: string[];
+  acquisitionDate?: string;
+  lastUsedDate?: string;
+  imageFilesUrls?: string[];
   attributes?: Record<string, unknown>;
+  tags?: string[];
 }
 
-export interface UpdateItemInput {
+export interface UpdateItemRequest {
+  id: string;
   name?: string;
   description?: string;
-  collection_id?: string | null;
-  acquisition_date?: string | null;
+  acquisitionDate?: string;
+  imageFilesUrls?: string[] | null;
   attributes?: Record<string, unknown>;
+  tags?: string[];
+}
+
+export interface ItemResponse {
+  id: string;
+  collectionId: string;
+  userId: string;
+  name: string;
+  description: string;
+  acquisitionDate?: string;
+  lastUsedDate?: string;
+  imageFilesUrls: string[];
+  attributes?: Record<string, unknown>;
+  likesCount: number;
+  commentsCount: number;
+  tags?: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ItemSummaryResponse {
+  id: string;
+  name: string;
+  imagesURL: string[];
+}
+
+export interface ItemPageResponse {
+  items: ItemSummaryResponse[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
 }
 
 export interface ItemService {
-  /** Create a new item with photos and metadata */
-  create(input: CreateItemInput): Promise<Item>;
-
-  /** Get item by ID */
-  getById(itemId: string): Promise<Item | null>;
-
-  /** Get items by collection */
-  getByCollection(collectionId: string): Promise<Item[]>;
-
-  /** Update item metadata */
-  update(itemId: string, input: UpdateItemInput): Promise<Item>;
-
-  /** Delete item (soft delete via is_active flag) */
+  create(input: CreateItemRequest): Promise<ItemResponse>;
+  getById(itemId: string): Promise<ItemResponse | null>;
+  getByCollection(collectionId: string): Promise<ItemResponse[]>;
+  update(itemId: string, input: UpdateItemRequest): Promise<ItemResponse>;
   delete(itemId: string): Promise<void>;
-
-  /** Get items for authenticated user */
-  getUserItems(userId: string): Promise<Item[]>;
+  getUserItems(userId: string): Promise<ItemResponse[]>;
 }
+
+export type Item = ItemResponse;
+export type CreateItemInput = CreateItemRequest;
+export type UpdateItemInput = UpdateItemRequest;

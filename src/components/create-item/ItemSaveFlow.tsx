@@ -101,7 +101,7 @@ export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
         onError?.(message);
         return;
       }
-      targetCollectionId = collectionResult.collection.collection_id;
+      targetCollectionId = collectionResult.collection.id;
       createdCollectionId = targetCollectionId;
     }
 

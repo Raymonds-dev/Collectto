@@ -134,11 +134,11 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
           accessibilityLabel="Collections list">
           {resolvedCollections.map((collection) => (
             <CollectionListItem
-              key={collection.collection_id}
+              key={collection.id}
               name={collection.name}
-              coverUrl={collection.cover_img_url}
-              isSelected={selectedCollectionId === collection.collection_id}
-              onPress={() => onSelectCollection(collection.collection_id)}
+              coverUrl={collection.coverImageURL}
+              isSelected={selectedCollectionId === collection.id}
+              onPress={() => onSelectCollection(collection.id)}
             />
           ))}
         </ScrollView>

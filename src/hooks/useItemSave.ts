@@ -58,13 +58,13 @@ export const useItemSave = () => {
         const item = await itemService.create({
           name: input.name,
           description: input.description || '',
-          collection_id: input.collectionId,
-          media_urls: permanentPhotoUris,
+          collectionId: input.collectionId || '',
+          imageFilesUrls: permanentPhotoUris,
         });
 
         return {
           success: true,
-          itemId: item.item_id,
+          itemId: item.id,
         };
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Falha ao salvar item';

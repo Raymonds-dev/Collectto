@@ -45,8 +45,8 @@ export const useCollectionCreation = () => {
 
         const collection = await collectionService.create({
           name,
-          description: input.description?.trim() || undefined,
-          cover_img_url: coverImageUrl,
+          description: input.description?.trim() || '',
+          coverImageUrl: coverImageUrl || undefined,
         });
 
         return {

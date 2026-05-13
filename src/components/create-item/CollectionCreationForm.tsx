@@ -70,7 +70,7 @@ export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
     }
 
     onCollectionCreated(result.collection);
-    onSelectCollection(result.collection.collection_id);
+    onSelectCollection(result.collection.id);
     setCreatedCollection(result.collection);
     setIsCreatingInline(false);
   };
@@ -102,7 +102,7 @@ export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
         <View className="px-4">
           <CollectionCreationSuccess
             collectionName={createdCollection.name}
-            coverUrl={createdCollection.cover_img_url}
+            coverUrl={createdCollection.coverImageURL}
             onContinue={() => setCreatedCollection(null)}
           />
         </View>

@@ -1,3 +1,9 @@
+/**
+ * ItemService Contract aligned with the Swagger API.
+ *
+ * @file specs/003-debug-mode/contracts/items.contract.ts
+ */
+
 export interface CreateItemRequest {
   collectionId: string;
   name: string;
@@ -52,13 +58,13 @@ export interface ItemPageResponse {
 
 export interface ItemService {
   create(input: CreateItemRequest): Promise<ItemResponse>;
-  getById(itemId: string): Promise<ItemResponse | null>;
-  getByCollection(collectionId: string): Promise<ItemResponse[]>;
-  update(itemId: string, input: UpdateItemRequest): Promise<ItemResponse>;
+  getById(collectionId: string, itemId: string): Promise<ItemResponse>;
+  getByCollection(
+    collectionId: string,
+    page?: number,
+    size?: number,
+    sortBy?: string
+  ): Promise<ItemPageResponse>;
+  update(input: UpdateItemRequest): Promise<ItemResponse>;
   delete(itemId: string): Promise<void>;
-  getUserItems(userId: string): Promise<ItemResponse[]>;
 }
-
-export type Item = ItemResponse;
-export type CreateItemInput = CreateItemRequest;
-export type UpdateItemInput = UpdateItemRequest;

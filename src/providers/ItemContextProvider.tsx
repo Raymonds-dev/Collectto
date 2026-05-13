@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { ItemService } from '@/types/items';
-import { createMockItemService as createService } from '@/mocks/items/index';
+import { mockItemService } from '@/services/debug';
 
 interface ItemContextValue {
   itemService: ItemService;
@@ -15,7 +15,7 @@ interface ItemContextProviderProps {
 export const ItemContextProvider = ({ children }: ItemContextProviderProps) => {
   const value = useMemo<ItemContextValue>(
     () => ({
-      itemService: createService(),
+      itemService: mockItemService,
     }),
     []
   );

@@ -1,3 +1,9 @@
+/**
+ * AuthService Contract aligned with the Swagger API.
+ *
+ * @file specs/003-debug-mode/contracts/auth.contract.ts
+ */
+
 export interface LoginRequest {
   email: string;
   password: string;
@@ -24,15 +30,6 @@ export interface CreateUserResponse {
   createdAt: string;
 }
 
-export interface UpdateUserRequest {
-  name?: string;
-  username?: string;
-  bio?: string;
-  profilePictureUrl?: string | null;
-  profileBackgroundUrl?: string | null;
-  birthdayDate?: string;
-}
-
 export interface UserResponse {
   id: string;
   name: string;
@@ -48,6 +45,19 @@ export interface UserResponse {
   createdAt: string;
 }
 
-export type AuthUser = UserResponse;
-export type Credentials = LoginRequest;
-export type RegisterData = CreateUserRequest;
+export interface UpdateUserRequest {
+  name?: string;
+  username?: string;
+  bio?: string;
+  profilePictureUrl?: string | null;
+  profileBackgroundUrl?: string | null;
+  birthdayDate?: string;
+}
+
+export interface AuthService {
+  login(credentials: LoginRequest): Promise<LoginResponse>;
+  createUser(payload: CreateUserRequest): Promise<CreateUserResponse>;
+  updateUser(payload: UpdateUserRequest): Promise<UserResponse>;
+  getUserById(userId: string): Promise<UserResponse>;
+  getCurrentUser(): Promise<UserResponse | null>;
+}

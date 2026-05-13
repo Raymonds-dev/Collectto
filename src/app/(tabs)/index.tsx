@@ -4,16 +4,13 @@ import { CollectionItemDetailView } from '@/components/item-collection/Collectio
 import { AnimatedPressable } from '@/components/ui/animated';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
-import {
-  getMockCollectionItemById,
-  MOCK_FEED_POSTS,
-  MOCK_PROFILE_IMAGE_URI,
-  type MockFeedPost,
-} from '@/mocks';
+import { MOCK_PROFILE_IMAGE_URI } from '@/mocks';
+import { type MockFeedPost } from '@/types/debug';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePostService } from '@/providers/PostContextProvider';
 import {
   ActivityIndicator,
   FlatList,
@@ -31,17 +28,6 @@ const PAGE_SIZE = 4;
 const MAX_FEED_PAGES = 3;
 const INITIAL_SKELETON_COUNT = 3;
 const LOAD_MORE_DELAY_MS = 100;
-
-const createFeedPage = (page: number, pageSize: number): MockFeedPost[] => {
-  return Array.from({ length: pageSize }, (_, index) => {
-    const source = MOCK_FEED_POSTS[index % MOCK_FEED_POSTS.length];
-    return {
-      ...source,
-      id: `${source.id}-page-${page}-item-${index}`,
-      publishedLabel: page === 1 ? source.publishedLabel : `${page + index}h`,
-    };
-  });
-};
 
 const Header = ({
   topInset,
@@ -128,9 +114,38 @@ export default function FeedScreen() {
   const [isDetailNotificationsEnabled, setIsDetailNotificationsEnabled] = useState(false);
   const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
 
-  const loadPage = useCallback((page: number): MockFeedPost[] => {
-    return createFeedPage(page, PAGE_SIZE);
-  }, []);
+  const postService = usePostService();
+
+  const loadPage = useCallback(
+    async (page: number): Promise<MockFeedPost[]> => {
+      const rawFeed = await postService.getFeed();
+      const startIndex = (page - 1) * PAGE_SIZE;
+      const pageFeed = rawFeed.slice(startIndex, startIndex + PAGE_SIZE);
+
+      return pageFeed.map((post) => ({
+        id: post.id,
+        author: {
+          name: post.author.name,
+          username: post.author.username,
+          avatarUri: post.author.profilePictureUrl || MOCK_PROFILE_IMAGE_URI,
+        },
+        content: post.item.description || 'Novo item na coleção!',
+        publishedLabel: 'Agora',
+        item: {
+          id: post.item.id,
+          collectionId: post.item.collectionId,
+          title: post.item.name,
+          imageUri: post.item.imageFilesUrls?.[0] || '',
+        },
+        isLiked: post.isLiked || false,
+        likesCount: post.likesCount || 0,
+        commentsCount: post.commentsCount || 0,
+        savesCount: 0,
+        sharesCount: 0,
+      }));
+    },
+    [postService]
+  );
 
   const applyFeedSnapshot = useCallback((snapshot: MockFeedPost[]): void => {
     setPosts(snapshot);
@@ -143,8 +158,15 @@ export default function FeedScreen() {
   }, []);
 
   useEffect(() => {
-    const firstPage = loadPage(1);
-    applyFeedSnapshot(firstPage);
+    let isMounted = true;
+    loadPage(1).then((firstPage) => {
+      if (isMounted) {
+        applyFeedSnapshot(firstPage);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [applyFeedSnapshot, loadPage]);
 
   const handleOpenItemCollection = (_item: PostItemPreview, postId: string): void => {
@@ -159,25 +181,37 @@ export default function FeedScreen() {
     setIsDetailNotificationsEnabled(false);
   };
 
-  const handleTogglePostLike = useCallback((postId: string): void => {
-    setPosts((current) => {
-      return current.map((post) => {
-        if (post.id !== postId) {
-          return post;
-        }
+  const handleTogglePostLike = useCallback(
+    (postId: string): void => {
+      const post = posts.find((p) => p.id === postId);
+      if (!post) return;
 
-        const nextIsLiked = !post.isLiked;
-        const currentLikes = typeof post.likesCount === 'number' ? post.likesCount : 0;
-        const nextLikes = nextIsLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+      if (post.isLiked) {
+        void postService.unlikePost(postId);
+      } else {
+        void postService.likePost(postId);
+      }
 
-        return {
-          ...post,
-          isLiked: nextIsLiked,
-          likesCount: nextLikes,
-        };
+      setPosts((current) => {
+        return current.map((p) => {
+          if (p.id !== postId) {
+            return p;
+          }
+
+          const nextIsLiked = !p.isLiked;
+          const currentLikes = typeof p.likesCount === 'number' ? p.likesCount : 0;
+          const nextLikes = nextIsLiked ? currentLikes + 1 : Math.max(0, currentLikes - 1);
+
+          return {
+            ...p,
+            isLiked: nextIsLiked,
+            likesCount: nextLikes,
+          };
+        });
       });
-    });
-  }, []);
+    },
+    [posts, postService]
+  );
 
   const handleSharePost = useCallback(
     async (postId: string): Promise<void> => {
@@ -223,19 +257,19 @@ export default function FeedScreen() {
       return null;
     }
 
-    const collectionItem = getMockCollectionItemById(selectedPost.item.id);
+    const postItem = (postService.getFeedSync?.() || []).find(
+      (p) => p.id === selectedPost.id
+    )?.item;
 
     return {
       title: selectedPost.item.title,
-      images: collectionItem?.images ?? [selectedPost.item.imageUri],
-      acquiredDate: collectionItem?.acquiredDate ?? '--/--/----',
-      lastUsedDate: collectionItem?.lastUsedDate ?? '--/--/----',
-      description: collectionItem?.description ?? selectedPost.content,
-      characteristics: collectionItem?.characteristics ?? [
-        { label: 'Status', value: 'Sem informacoes' },
-      ],
+      images: postItem?.imageFilesUrls ?? [selectedPost.item.imageUri],
+      acquiredDate: postItem?.acquisitionDate ?? '--/--/----',
+      lastUsedDate: postItem?.lastUsedDate ?? '--/--/----',
+      description: postItem?.description ?? selectedPost.content,
+      characteristics: [{ label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' }],
     };
-  }, [selectedPost]);
+  }, [postService, selectedPost]);
 
   const detailProfile = useMemo(() => {
     if (!selectedPost) {
@@ -307,36 +341,37 @@ export default function FeedScreen() {
 
     setIsRefreshingLatest(true);
 
-    const latestSnapshot = loadPage(1);
-    const currentTopPostId = posts[0]?.id;
-    const latestTopPostId = latestSnapshot[0]?.id;
-    const hasNewPosts =
-      posts.length === 0
-        ? latestSnapshot.length > 0
-        : typeof currentTopPostId === 'string' &&
-          typeof latestTopPostId === 'string' &&
-          currentTopPostId !== latestTopPostId;
+    loadPage(1).then((latestSnapshot) => {
+      const currentTopPostId = posts[0]?.id;
+      const latestTopPostId = latestSnapshot[0]?.id;
+      const hasNewPosts =
+        posts.length === 0
+          ? latestSnapshot.length > 0
+          : typeof currentTopPostId === 'string' &&
+            typeof latestTopPostId === 'string' &&
+            currentTopPostId !== latestTopPostId;
 
-    if (!hasNewPosts) {
-      setIsRefreshingLatest(false);
-      return;
-    }
+      if (!hasNewPosts) {
+        setIsRefreshingLatest(false);
+        return;
+      }
 
-    setSelectedPost(null);
-    setIsDetailFollowing(false);
-    setIsDetailNotificationsEnabled(false);
-    setIsInitialLoading(true);
+      setSelectedPost(null);
+      setIsDetailFollowing(false);
+      setIsDetailNotificationsEnabled(false);
+      setIsInitialLoading(true);
 
-    if (refreshLatestTimeoutRef.current) {
-      clearTimeout(refreshLatestTimeoutRef.current);
-    }
+      if (refreshLatestTimeoutRef.current) {
+        clearTimeout(refreshLatestTimeoutRef.current);
+      }
 
-    refreshLatestTimeoutRef.current = setTimeout(() => {
-      applyFeedSnapshot(latestSnapshot);
-      listRef.current?.scrollToOffset({ offset: 0, animated: false });
-      setIsInitialLoading(false);
-      setIsRefreshingLatest(false);
-    }, LOAD_MORE_DELAY_MS);
+      refreshLatestTimeoutRef.current = setTimeout(() => {
+        applyFeedSnapshot(latestSnapshot);
+        listRef.current?.scrollToOffset({ offset: 0, animated: false });
+        setIsInitialLoading(false);
+        setIsRefreshingLatest(false);
+      }, LOAD_MORE_DELAY_MS);
+    });
   }, [applyFeedSnapshot, isInitialLoading, isLoadingMore, isRefreshingLatest, loadPage, posts]);
 
   const handleLoadMore = (): void => {
@@ -364,11 +399,12 @@ export default function FeedScreen() {
         return;
       }
 
-      const newPagePosts = loadPage(nextPage);
-      setPosts((current) => [...current, ...newPagePosts]);
-      setLoadedPage(nextPage);
-      setIsLoadingMore(false);
-      isLoadMoreInFlightRef.current = false;
+      loadPage(nextPage).then((newPagePosts) => {
+        setPosts((current) => [...current, ...newPagePosts]);
+        setLoadedPage(nextPage);
+        setIsLoadingMore(false);
+        isLoadMoreInFlightRef.current = false;
+      });
     }, LOAD_MORE_DELAY_MS);
   };
 

@@ -4,12 +4,15 @@ import {
   getSessionToken,
   setSessionToken,
 } from '@/services/storage/authSession';
-import { buildMockAuthUser, MOCK_AUTH_BOOTSTRAP_EMAIL, MOCK_AUTH_SESSION_TOKEN } from '@/mocks';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AxiosError } from 'axios';
-
-const USEMOCK = true;
+import {
+  clearDebugSession,
+  isDebugModeEnabled,
+  mockAuthService,
+  startDebugSession,
+} from '@/services/debug';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof AxiosError && error.response) {
@@ -22,7 +25,13 @@ const resolveErrorMessage = (error: unknown, fallbackMessage: string): string =>
 
 const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): AuthUser => {
   if (!payload || typeof payload !== 'object') {
-    return buildMockAuthUser(fallbackEmail);
+    return {
+      id: 'local-user',
+      email: fallbackEmail,
+      name: fallbackEmail.split('@')[0] || 'User',
+      username: fallbackEmail.split('@')[0] || 'user',
+      createdAt: new Date().toISOString(),
+    } as AuthUser;
   }
 
   const rawPayload = payload as Record<string, unknown>;
@@ -42,6 +51,8 @@ const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): Auth
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
+    username: name.toLowerCase(),
+    createdAt: new Date().toISOString(),
   };
 };
 
@@ -62,14 +73,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     async function bootstrapSession() {
       try {
+        if (isDebugModeEnabled()) {
+          startDebugSession();
+          const debugUser = await mockAuthService.getCurrentUser();
+          setUser(debugUser);
+          return;
+        }
+
         const token = await getSessionToken();
 
         if (token) {
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-
-          if (USEMOCK) {
-            setUser(buildMockAuthUser(MOCK_AUTH_BOOTSTRAP_EMAIL));
-          }
+          // NOTE: the original code had USEMOCK fallback here, now removed. We would ideally fetch user from API here.
+          // Since the original code used MOCK_AUTH_BOOTSTRAP_EMAIL if USEMOCK was true, we will just leave it empty for real API unless we have a real /me endpoint.
         }
       } finally {
         setIsLoading(false);
@@ -88,10 +104,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           throw new Error('Preencha email e senha.');
         }
 
-        if (USEMOCK) {
-          await setSessionToken(MOCK_AUTH_SESSION_TOKEN);
-          api.defaults.headers.common['Authorization'] = `Bearer ${MOCK_AUTH_SESSION_TOKEN}`;
-          setUser(buildMockAuthUser(credentials.email));
+        if (isDebugModeEnabled()) {
+          await mockAuthService.login(credentials);
+          const debugUser = await mockAuthService.getCurrentUser();
+          setUser(debugUser);
           return;
         }
 
@@ -125,7 +141,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error('Preencha todos os campos');
           }
 
-          if (USEMOCK) {
+          if (isDebugModeEnabled()) {
+            await mockAuthService.register(registerData);
             return;
           }
 
@@ -136,6 +153,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
 
       signOut: async () => {
+        if (isDebugModeEnabled()) {
+          await mockAuthService.logout();
+          clearDebugSession();
+          setUser(null);
+          return;
+        }
         await clearSessionToken();
         delete api.defaults.headers.common['Authorization'];
         setUser(null);

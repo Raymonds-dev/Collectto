@@ -1,3 +1,9 @@
+/**
+ * CollectionService Contract aligned with the Swagger API.
+ *
+ * @file specs/003-debug-mode/contracts/collections.contract.ts
+ */
+
 export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
 
 export interface CreateCollectionRequest {
@@ -45,13 +51,15 @@ export interface CollectionPageResponse {
 
 export interface CollectionService {
   create(input: CreateCollectionRequest): Promise<CollectionResponse>;
-  getById(collectionId: string): Promise<CollectionResponse | null>;
-  getMe(): Promise<CollectionResponse[]>;
-  update(collectionId: string, input: UpdateCollectionRequest): Promise<CollectionResponse>;
+  getById(collectionId: string): Promise<CollectionResponse>;
+  getByUser(
+    userId: string,
+    page?: number,
+    size?: number,
+    sortBy?: string
+  ): Promise<CollectionPageResponse>;
+  update(input: UpdateCollectionRequest): Promise<CollectionResponse>;
   delete(collectionId: string): Promise<void>;
-  getItemCount(collectionId: string): Promise<number>;
+  follow(collectionId: string): Promise<void>;
+  unfollow(collectionId: string): Promise<void>;
 }
-
-export type Collection = CollectionResponse;
-export type CreateCollectionInput = CreateCollectionRequest;
-export type UpdateCollectionInput = UpdateCollectionRequest;

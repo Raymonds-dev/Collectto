@@ -12,12 +12,11 @@ import { CollectionItemDetailView } from '@/components/item-collection/Collectio
 import { ProfileActionsBar } from '@/components/profile-actions-bar/ProfileActionsBar';
 import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
-import {
-  MOCK_COLLECTION_IS_FOLLOWING,
-  MOCK_COLLECTION_ITEMS,
-  MOCK_COLLECTION_PROFILE,
-} from '@/mocks';
+import { MOCK_COLLECTION_PROFILE } from '@/mocks';
 import { tokens } from '@/styles/tailwind/tokens.native';
+
+import { useCollectionService } from '@/providers/CollectionContextProvider';
+import { useItemService } from '@/providers/ItemContextProvider';
 
 type CollectionViewProfile = {
   name: string;
@@ -33,17 +32,6 @@ type CollectionViewScreenProps = {
   profile: CollectionViewProfile;
   isFollowing: boolean;
 };
-
-// TODO(api): remover fallback local e buscar dados reais da colecao e do perfil no backend.
-function getDefaultCollectionData(collectionId: string): CollectionViewScreenProps {
-  return {
-    isOwner: false,
-    collectionTitle: `${collectionId}`,
-    items: MOCK_COLLECTION_ITEMS,
-    profile: MOCK_COLLECTION_PROFILE,
-    isFollowing: MOCK_COLLECTION_IS_FOLLOWING,
-  };
-}
 
 export function CollectionViewScreen({
   isOwner,
@@ -194,11 +182,45 @@ export function CollectionViewScreen({
 
 export default function CollectionViewScreenRoute() {
   const params = useLocalSearchParams<{ collectionId?: string }>();
-  // TODO(api): quando houver fluxo completo, tratar collectionId obrigatorio e erro 404 da API.
   const collectionId = Array.isArray(params.collectionId)
     ? (params.collectionId[0] ?? 'default')
     : (params.collectionId ?? 'default');
-  const data = getDefaultCollectionData(collectionId);
+
+  const collectionService = useCollectionService();
+  const itemService = useItemService();
+  const [data, setData] = useState<CollectionViewScreenProps | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isMounted = true;
+      Promise.all([
+        collectionService.getById(collectionId),
+        itemService.getByCollection(collectionId),
+      ]).then(([collection, items]) => {
+        if (isMounted && collection) {
+          setData({
+            isOwner: true,
+            collectionTitle: collection.name,
+            items: items.map((item) => ({
+              id: item.id,
+              title: item.name,
+              images: item.imageFilesUrls,
+              description: item.description,
+              acquiredDate: item.acquisitionDate,
+              lastUsedDate: item.lastUsedDate,
+            })),
+            profile: MOCK_COLLECTION_PROFILE,
+            isFollowing: false,
+          });
+        }
+      });
+      return () => {
+        isMounted = false;
+      };
+    }, [collectionId, collectionService, itemService])
+  );
+
+  if (!data) return null;
 
   return <CollectionViewScreen {...data} />;
 }

@@ -125,7 +125,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
   const handleCollectionCreated = useCallback(
     (collection: Collection): void => {
       setCollections((prevCollections) => [collection, ...prevCollections]);
-      selectCollection(collection.collection_id);
+      selectCollection(collection.id);
     },
     [selectCollection]
   );

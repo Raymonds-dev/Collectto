@@ -10,7 +10,7 @@ export interface ItemCreationFormData {
 
 /**
  * Hook to manage item creation form state
- * Handles photos, metadata, and collection selection
+ * Handles photos (as LocalPhotoReference), metadata, and collection selection
  */
 export const useItemCreation = () => {
   const [formData, setFormData] = useState<ItemCreationFormData>({
@@ -24,6 +24,10 @@ export const useItemCreation = () => {
 
   const addPhoto = useCallback((photoReference: LocalPhotoReference) => {
     setLocalPhotos((prev) => [...prev, photoReference]);
+  }, []);
+
+  const addPhotos = useCallback((photoReferences: LocalPhotoReference[]) => {
+    setLocalPhotos((prev) => [...prev, ...photoReferences]);
   }, []);
 
   const removePhoto = useCallback((tempId: string) => {
@@ -62,6 +66,7 @@ export const useItemCreation = () => {
     formData,
     localPhotos,
     addPhoto,
+    addPhotos,
     removePhoto,
     setFormField,
     selectCollection,

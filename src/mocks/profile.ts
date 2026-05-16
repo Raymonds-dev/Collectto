@@ -55,3 +55,15 @@ export const MOCK_PROFILE_BIO =
   'Organizando minhas ideias, projetos e conexoes em um so lugar no Collectto.';
 export const MOCK_PROFILE_FOLLOWERS_COUNT = 1287;
 export const MOCK_PROFILE_FOLLOWING_COUNT = 342;
+
+// Placeholders para grids e detalhes
+export const MOCK_ITEMS_PLACEHOLDER_IMAGE = MOCK_PROFILE_BANNER_URI;
+export const MOCK_ITEM_DETAIL_PLACEHOLDER_IMAGE = MOCK_PROFILE_BANNER_URI;
+
+// Mock profile para visualizacao de colecoes (fallback)
+export const MOCK_COLLECTION_PROFILE = {
+  name: 'Debug User',
+  username: 'debugtester',
+  bio: 'Testing ephemeral debug mode',
+  profileImage: MOCK_PROFILE_IMAGE_URI,
+};

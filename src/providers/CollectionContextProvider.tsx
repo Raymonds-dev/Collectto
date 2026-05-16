@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { CollectionService } from '@/types/collections';
-import { createMockCollectionService as createService } from '@/mocks/collections/index';
+import { mockCollectionService } from '@/services/debug';
 
 interface CollectionContextValue {
   collectionService: CollectionService;
@@ -15,7 +15,7 @@ interface CollectionContextProviderProps {
 export const CollectionContextProvider = ({ children }: CollectionContextProviderProps) => {
   const value = useMemo<CollectionContextValue>(
     () => ({
-      collectionService: createService(),
+      collectionService: mockCollectionService,
     }),
     []
   );

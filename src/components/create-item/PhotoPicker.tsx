@@ -3,18 +3,33 @@ import { Alert, Pressable, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { usePhotoSource } from '@/hooks/usePhotoSource';
 import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
-import type { PhotoData } from '@/types/photo-storage';
+import { createPhotoStorageProvider } from '@/services/photo-storage';
+import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the PhotoPicker component.
+ */
 interface PhotoPickerProps {
-  onPhotoSelected: (photo: PhotoData) => void;
+  /** Callback function when photos are successfully selected and saved to local storage. */
+  onPhotosSelected: (photos: LocalPhotoReference[]) => void;
+  /** Whether the picker buttons should be disabled. */
   disabled?: boolean;
 }
 
 /**
- * PhotoPicker - UI for selecting photos from camera or gallery
- * Handles permission requests and delegates to usePhotoSource hook
+ * A component providing options to select photos from the camera or the device gallery.
+ *
+ * Features:
+ * - Handles camera and gallery permission requests.
+ * - Integrates with `usePhotoSource` to launch the device's image picking UI.
+ * - Automatically saves selected images to local app storage using `PhotoStorageProvider`.
+ * - Provides visual feedback and loading states during the selection process.
+ * - Accessible buttons with appropriate roles and hints.
+ *
+ * @param props - The component props.
+ * @returns A React component with camera and gallery selection buttons.
  */
-export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerProps) => {
+export const PhotoPicker = ({ onPhotosSelected, disabled = false }: PhotoPickerProps) => {
   const { launchCamera, launchGallery } = usePhotoSource();
   const { requestCameraPermission, requestGalleryPermission } = usePhotoPermissions();
   const [isLoading, setIsLoading] = useState(false);
@@ -32,9 +47,12 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
         return;
       }
 
-      const photo = await launchCamera();
-      if (photo) {
-        onPhotoSelected(photo);
+      const photoData = await launchCamera();
+      if (photoData) {
+        // Save photo to local storage
+        const storageProvider = createPhotoStorageProvider();
+        const localRef = await storageProvider.saveToLocal(photoData);
+        onPhotosSelected([localRef]);
       }
     } catch (error) {
       console.error('Camera error:', error);
@@ -57,9 +75,18 @@ export const PhotoPicker = ({ onPhotoSelected, disabled = false }: PhotoPickerPr
         return;
       }
 
-      const photos = await launchGallery(false);
+      const photos = await launchGallery(true);
       if (photos && photos.length > 0) {
-        onPhotoSelected(photos[0]);
+        // Save photos to local storage
+        const storageProvider = createPhotoStorageProvider();
+        const localRefs: LocalPhotoReference[] = [];
+
+        for (const photo of photos) {
+          const localRef = await storageProvider.saveToLocal(photo);
+          localRefs.push(localRef);
+        }
+
+        onPhotosSelected(localRefs);
       }
     } catch (error) {
       console.error('Gallery error:', error);

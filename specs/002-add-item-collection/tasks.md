@@ -3,8 +3,8 @@
 **Feature Branch**: `002-add-item-collection`  
 **Specification**: `specs/002-add-item-collection/spec.md`  
 **Implementation Plan**: `specs/002-add-item-collection/plan.md`  
-**Status**: Ready for Implementation  
-**Total Tasks**: 48
+**Status**: Finished  
+**Total Tasks**: 64
 
 ---
 
@@ -235,47 +235,47 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T029 [US2] Create `src/components/create-item/ItemForm.tsx` component:
+- [x] T029 [US2] Create `src/components/create-item/ItemForm.tsx` component:
   - Text input for item name (mandatory, max 255 chars)
   - Text input for item description (optional)
   - Display validation errors inline
   - Focus management between fields
   - Uses Tailwind + existing UI components
 
-- [ ] T030 [US2] Create `src/components/create-item/CollectionSelector.tsx` component:
+- [x] T030 [US2] Create `src/components/create-item/CollectionSelector.tsx` component:
   - Fetches user collections via `useCollectionService()`
   - Displays collection list (name + cover image if available)
   - "Create new collection" option at bottom
   - Selection state management
   - Loading skeleton while fetching
 
-- [ ] T031 [US2] Create `src/components/create-item/CollectionListItem.tsx` component:
+- [x] T031 [US2] Create `src/components/create-item/CollectionListItem.tsx` component:
   - Shows collection cover image (or placeholder)
   - Shows collection name
   - Selection indicator
   - Touch target size ≥44pt (iOS) / ≥48dp (Android)
 
-- [ ] T032 [US2] Create `src/components/create-item/ItemMetadataForm.tsx` component:
+- [x] T032 [US2] Create `src/components/create-item/ItemMetadataForm.tsx` component:
   - Combines PhotoGallery + ItemForm + CollectionSelector
   - Step-by-step layout (or all on one screen)
   - Validates: ≥1 photo, name provided, collection selected
   - "Save" button enabled only when valid
 
-- [ ] T033 [US2] Create `src/hooks/useItemSave.ts` hook:
+- [x] T033 [US2] Create `src/hooks/useItemSave.ts` hook:
   - `saveItem()` async function
   - Migrates photos from local to permanent storage
   - Creates item via `useItemService()`
   - Handles errors and retries
   - Returns saved item or error
 
-- [ ] T034 [US2] [P] Create `src/components/create-item/SaveButton.tsx` component:
+- [x] T034 [US2] [P] Create `src/components/create-item/SaveButton.tsx` component:
   - Shows "Save" text
   - Disabled during save
   - Shows loading state (spinner or text)
   - Accessibility role and label
   - Uses existing Button component from `src/components/ui/`
 
-- [ ] T035 [US2] [P] Create `src/components/create-item/ItemSaveFlow.tsx` component:
+- [x] T035 [US2] [P] Create `src/components/create-item/ItemSaveFlow.tsx` component:
   - Orchestrates save flow:
     - Validate form data
     - Show loading state
@@ -285,19 +285,19 @@ Build foundational infrastructure: photo storage abstraction, permission system,
     - Navigate back on success
   - Error handling with retry option
 
-- [ ] T036 [US2] Create `src/components/create-item/SuccessConfirmation.tsx` component:
+- [x] T036 [US2] Create `src/components/create-item/SuccessConfirmation.tsx` component:
   - Shows success message
   - Displays created item thumbnail
   - "Done" button to navigate back
   - Uses motion preset (FadeIn per constitution)
 
-- [ ] T037 [US2] Update `src/components/create-item/CreateItemFlow.tsx` main component:
+- [x] T037 [US2] Update `src/components/create-item/CreateItemFlow.tsx` main component:
   - Combines PermissionGate + PhotoPicker + ItemMetadataForm + ItemSaveFlow
   - State management via `useItemCreation` hook
   - Error boundaries for graceful failure
   - Cleanup on unmount (cancel in-progress saves)
 
-- [ ] T038 [US2] [P] Create `src/mocks/items/fixtures.ts` with sample items and collections for testing
+- [x] T038 [US2] [P] Create `src/mocks/items/fixtures.ts` with sample items and collections for testing
 
 ---
 
@@ -324,43 +324,43 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T039 [US3] Create `src/components/create-item/CollectionCreator.tsx` component:
+- [x] T039 [US3] Create `src/components/create-item/CollectionCreator.tsx` component:
   - Text input for collection name (mandatory)
   - Text input for description (optional)
   - Photo picker for cover image (optional)
   - Validation: name required, max lengths enforced
   - "Create" and "Cancel" buttons
 
-- [ ] T040 [US3] Create `src/components/create-item/CollectionCreationForm.tsx` wrapper:
+- [x] T040 [US3] Create `src/components/create-item/CollectionCreationForm.tsx` wrapper:
   - Expands CollectionSelector to show inline creation form
   - SlideUp animation for smooth UX (per motion presets)
   - State management for form visibility toggle
   - Delegates to CollectionCreator component
 
-- [ ] T041 [US3] Create `src/hooks/useCollectionCreation.ts` hook:
+- [x] T041 [US3] Create `src/hooks/useCollectionCreation.ts` hook:
   - `createCollection()` async function
   - Migrates cover image from local to permanent storage (if provided)
   - Creates collection via `useCollectionService()`
   - Returns created collection or error
   - Handles errors with retry option
 
-- [ ] T042 [US3] Update `src/components/create-item/ItemSaveFlow.tsx`:
+- [x] T042 [US3] Update `src/components/create-item/ItemSaveFlow.tsx`:
   - Check if new collection was created during flow
   - If new collection: save collection first, then item
   - Ensure both collection_id is set on item before save
   - Transaction-like behavior (both succeed or both fail)
 
-- [ ] T043 [US3] Create `src/components/create-item/CollectionCreationSuccess.tsx` component:
+- [x] T043 [US3] Create `src/components/create-item/CollectionCreationSuccess.tsx` component:
   - Shows "Collection created" confirmation
   - Displays collection name and cover
   - Auto-closes or shows "Continue" button
   - Uses FadeIn motion preset
 
-- [ ] T044 [US3] [P] Update `src/mocks/collections/index.ts`:
+- [x] T044 [US3] [P] Update `src/mocks/collections/index.ts`:
   - Enhance to support creating collections during item flow
   - Track user_id for filtering collections
 
-- [ ] T045 [US3] [P] Create `src/components/create-item/CollectionCoverPreview.tsx` component:
+- [x] T045 [US3] [P] Create `src/components/create-item/CollectionCoverPreview.tsx` component:
   - Shows selected cover image preview
   - Remove button to clear selection
   - Placeholder for no cover selected
@@ -387,17 +387,17 @@ Build foundational infrastructure: photo storage abstraction, permission system,
 
 ---
 
-- [ ] T046 [US4] Update `src/components/create-item/CollectionSelector.tsx`:
+- [x] T046 [US4] Update `src/components/create-item/CollectionSelector.tsx`:
   - Add "Create without collection" or "Skip" button
   - Option to proceed with null collection_id
   - Clear messaging about uncategorized items
 
-- [ ] T047 [US4] Update `src/components/create-item/ItemMetadataForm.tsx`:
+- [x] T047 [US4] Update `src/components/create-item/ItemMetadataForm.tsx`:
   - Make collection selection optional
   - Adjust validation to allow null collection_id
   - Show "Optional" label next to collection step
 
-- [ ] T048 [US4] Create `src/components/create-item/UncategorizedIndicator.tsx` component:
+- [x] T048 [US4] Create `src/components/create-item/UncategorizedIndicator.tsx` component:
   - Shows "Uncategorized" badge for items without collection
   - Visual indicator (color, icon, or text)
   - Used in item display/list views
@@ -421,83 +421,83 @@ Validate all user stories work correctly, handle edge cases, optimize performanc
 
 ---
 
-- [ ] T049 Create unit tests for `src/services/photo-storage/local-provider.ts`:
+- [x] T049 Create unit tests for `src/services/photo-storage/local-provider.ts`:
   - Test saveToLocal creates files correctly
   - Test moveToPermament copies files to permanent location
   - Test delete removes files
   - Test cleanupLocal removes old files
 
-- [ ] T050 Create unit tests for `src/mocks/items/index.ts`:
+- [x] T050 Create unit tests for `src/mocks/items/index.ts`:
   - Test create returns item with generated ID
   - Test getById retrieves item
   - Test getByCollection filters correctly
   - Test update modifies fields
   - Test delete soft-deletes
 
-- [ ] T051 Create unit tests for `src/mocks/collections/index.ts`:
+- [x] T051 Create unit tests for `src/mocks/collections/index.ts`:
   - Test create returns collection with generated ID
   - Test getById retrieves collection
   - Test getMe returns user's collections
   - Test update modifies fields
   - Test getItemCount returns correct count
 
-- [ ] T052 Create integration test for US1 (Photo Permissions):
+- [x] T052 Create integration test for US1 (Photo Permissions):
   - Test permission request flow
   - Test camera capture after permission grant
   - Test gallery selection after permission grant
   - Test graceful handling of permission denial
 
-- [ ] T053 Create integration test for US2 (Create Item):
+- [x] T053 Create integration test for US2 (Create Item):
   - Test full item creation flow
   - Test item saved with correct collection_id
   - Test photos migrated to permanent storage
   - Test success confirmation shown
 
-- [ ] T054 Create integration test for US3 (Create Collection):
+- [x] T054 Create integration test for US3 (Create Collection):
   - Test collection creation during item flow
   - Test new collection selected for item
   - Test both item and collection persisted
 
-- [ ] T055 Create integration test for US4 (Uncategorized):
+- [x] T055 Create integration test for US4 (Uncategorized):
   - Test item created with null collection_id
   - Test item marked as uncategorized
   - Test no errors without collection
 
-- [ ] T056 Validate accessibility:
+- [x] T056 Validate accessibility:
   - Add accessibilityLabel to all buttons
   - Add accessibilityRole to form inputs
   - Ensure touch targets ≥44pt (iOS) / ≥48dp (Android)
   - Test with screen readers (VoiceOver/TalkBack)
 
-- [ ] T057 Validate constitution compliance:
+- [x] T057 Validate constitution compliance:
   - Verify photos are visual focus (not text-first)
   - Verify motion uses only official presets (SlideUp, FadeIn, etc.)
   - Verify component reuse (no duplicates)
   - Verify collection cover emphasized
   - Verify no dense text blocks
 
-- [ ] T058 Performance optimization:
+- [x] T058 Performance optimization:
   - Profile photo loading and rendering
   - Optimize image sizes (scale appropriately)
   - Add React.memo to photo gallery items
   - Ensure collection list loads in <1s
 
-- [ ] T059 Error handling & edge cases:
+- [x] T059 Error handling & edge cases:
   - Test permission denial retry flow
   - Test storage limit warning (500 MB)
   - Test network errors (mock service errors)
   - Test form validation (empty name, no photos)
   - Test cancellation at each step
 
-- [ ] T060 Run `npm run lint` and fix any issues
+- [x] T060 Run `npm run lint` and fix any issues
 
-- [ ] T061 Run `npm run type-check` and fix any type errors
+- [x] T061 Run `npm run type-check` and fix any type errors
 
-- [ ] T062 Run `npm run format` and ensure formatting is clean
+- [x] T062 Run `npm run format` and ensure formatting is clean
 
-- [ ] T063 Run `npm run validate` (full test suite) and verify all tests pass
+- [x] T063 Run `npm run validate` (full test suite) and verify all tests pass
 
-- [ ] T064 Documentation:
+- [x] T064 Documentation:
   - Add JSDoc comments to all public functions
   - Document service interfaces with examples
   - Add README.md in `src/components/create-item/` explaining component hierarchy

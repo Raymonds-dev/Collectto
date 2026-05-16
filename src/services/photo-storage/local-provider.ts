@@ -1,5 +1,4 @@
-import * as FileSystemModule from 'expo-file-system';
-import { v4 as uuidv4 } from 'uuid';
+import * as FileSystemLegacy from 'expo-file-system/legacy';
 import type {
   LocalPhotoReference,
   PermanentPhotoReference,
@@ -7,8 +6,16 @@ import type {
   PhotoStorageProvider,
 } from '@/types/photo-storage';
 
-// Type-safe access to FileSystem with fallback
-const FileSystem = FileSystemModule as any;
+// Use legacy API for backwards compatibility
+const FileSystem = FileSystemLegacy;
+
+/**
+ * Generate a simple unique ID without crypto dependency
+ * Uses timestamp + random numbers (safe for React Native)
+ */
+const generateTempId = (): string => {
+  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+};
 
 /**
  * LocalStorageProvider - Stores photos locally on device
@@ -21,7 +28,7 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
     async saveToLocal(photoData: PhotoData): Promise<LocalPhotoReference> {
       try {
         // Use the app's document directory for storing temporary photos
-        const tempId = uuidv4();
+        const tempId = generateTempId();
         const fileName = `${tempId}.jpg`;
 
         // Store in app's temporary location
@@ -57,7 +64,7 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
         // Ensure permanent directory exists
         await FileSystem.makeDirectoryAsync(permanentDir, { intermediates: true });
 
-        const fileName = localUri.split('/').pop() || `${uuidv4()}.jpg`;
+        const fileName = localUri.split('/').pop() || `${generateTempId()}.jpg`;
         const permanentUri = `${permanentDir}${fileName}`;
 
         // Move from temporary to permanent location

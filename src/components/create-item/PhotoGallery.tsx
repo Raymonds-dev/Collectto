@@ -3,15 +3,29 @@ import { ScrollView, Text, View } from 'react-native';
 import { PhotoPreview } from './PhotoPreview';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
+/**
+ * Props for the PhotoGallery component.
+ */
 interface PhotoGalleryProps {
+  /** Array of local photo references to display. */
   photos: LocalPhotoReference[];
+  /** Callback function to remove a photo by its temporary ID. */
   onRemovePhoto: (tempId: string) => void;
+  /** Maximum number of photos allowed in the gallery. Defaults to 10. */
   maxPhotos?: number;
 }
 
 /**
- * PhotoGallery - Displays horizontal scrollable gallery of selected photos
- * Shows preview thumbnails with remove buttons and enforces max photo limit
+ * A horizontal scrollable gallery for displaying selected photo previews.
+ *
+ * Features:
+ * - Displays thumbnails of all selected photos.
+ * - Shows a counter of current vs maximum allowed photos.
+ * - Provides a "Limit reached" indicator when the count equals maxPhotos.
+ * - Integrates PhotoPreview for individual image rendering and removal.
+ *
+ * @param props - The component props.
+ * @returns A React component for the horizontal photo gallery.
  */
 export const PhotoGallery = ({ photos, onRemovePhoto, maxPhotos = 10 }: PhotoGalleryProps) => {
   if (photos.length === 0) {

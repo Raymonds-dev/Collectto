@@ -1,46 +1,57 @@
-export interface Collection {
-  collection_id: string;
-  user_id: string;
+export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
+
+export interface CreateCollectionRequest {
   name: string;
-  description: string | null;
-  cover_img_url: string | null;
-  visibility: 'private' | 'shared' | 'public';
-  followers_count: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
+  description: string;
+  coverImageUrl?: string | null;
+  tags?: string[];
 }
 
-export interface CreateCollectionInput {
-  name: string;
-  description?: string;
-  cover_img_url?: string | null;
-  visibility?: 'private' | 'shared' | 'public';
-}
-
-export interface UpdateCollectionInput {
+export interface UpdateCollectionRequest {
+  id: string;
   name?: string;
   description?: string;
-  cover_img_url?: string;
-  visibility?: 'private' | 'shared' | 'public';
+  coverImageUrl?: string | null;
+  visibility?: CollectionVisibility;
+  tags?: string[];
+}
+
+export interface CollectionResponse {
+  id: string;
+  userId: string;
+  name: string;
+  description: string;
+  coverImageURL?: string;
+  visibility: CollectionVisibility;
+  followersCount: number;
+  tags?: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CollectionSummaryResponse {
+  id: string;
+  name: string;
+  imagesURL: string[];
+}
+
+export interface CollectionPageResponse {
+  collections: CollectionSummaryResponse[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
 }
 
 export interface CollectionService {
-  /** Create a new collection */
-  create(input: CreateCollectionInput): Promise<Collection>;
-
-  /** Get collection by ID */
-  getById(collectionId: string): Promise<Collection | null>;
-
-  /** Get authenticated user's collections */
-  getMe(): Promise<Collection[]>;
-
-  /** Update collection metadata */
-  update(collectionId: string, input: UpdateCollectionInput): Promise<Collection>;
-
-  /** Delete collection (soft delete via is_active flag) */
+  create(input: CreateCollectionRequest): Promise<CollectionResponse>;
+  getById(collectionId: string): Promise<CollectionResponse | null>;
+  getMe(): Promise<CollectionResponse[]>;
+  update(collectionId: string, input: UpdateCollectionRequest): Promise<CollectionResponse>;
   delete(collectionId: string): Promise<void>;
-
-  /** Get item count in collection */
   getItemCount(collectionId: string): Promise<number>;
 }
+
+export type Collection = CollectionResponse;
+export type CreateCollectionInput = CreateCollectionRequest;
+export type UpdateCollectionInput = UpdateCollectionRequest;

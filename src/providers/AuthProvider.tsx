@@ -71,8 +71,8 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
     typeof source.name === 'string' && source.name.length > 0
       ? source.name
       : email.split('@')[0] || 'User';
-  // Backend retorna profilePictureUrl, não photoUrl
-  const photoUrl =
+
+      const photoUrl =
     typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
   const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
 
@@ -247,7 +247,16 @@ export function useAuth(): AuthContextType {
 
   return context;
 }
-function buildMockAuthUser(fallbackEmail: string): import("@/types/auth").UserResponse {
-  throw new Error('Function not implemented.');
+function buildMockAuthUser(fallbackEmail: string): AuthUser {
+  const email = fallbackEmail || 'user@example.com';
+  const name = email.split('@')[0] || 'User';
+
+  return {
+    id: 'local-user',
+    email,
+    name,
+    username: name.toLowerCase(),
+    createdAt: new Date().toISOString(),
+  } as AuthUser;
 }
 

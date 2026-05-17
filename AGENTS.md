@@ -16,13 +16,13 @@ npm install
 
 ```bash
 npm run start
-```
-
-Opcoes uteis:
-
-```bash
 npm run android
 npm run ios
+```
+
+Outras opcoes uteis:
+
+```bash
 npm run web
 npm run cache:clear
 ```

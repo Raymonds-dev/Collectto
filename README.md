@@ -40,7 +40,7 @@ npm install
 npm run start
 ```
 
-Comandos uteis:
+Comandos úteis:
 
 ```bash
 npm run android
@@ -51,9 +51,9 @@ npm run cache:clear
 
 ## Scripts disponiveis
 
-- `npm run start`: inicia o bundler Expo
-- `npm run android`: abre no Android
-- `npm run ios`: abre no iOS
+- `npm run start`: inicia o bundler Expo (Expo Go)
+- `npm run android`: abre no Android (Expo Go)
+- `npm run ios`: abre no iOS (Expo Go)
 - `npm run web`: abre no Web
 - `npm run prebuild`: gera projetos nativos
 - `npm run lint`: executa ESLint

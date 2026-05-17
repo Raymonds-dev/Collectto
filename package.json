@@ -23,7 +23,6 @@
     "expo-blur": "~15.0.8",
     "expo-checkbox": "~5.0.8",
     "expo-constants": "~18.0.13",
-    "expo-dev-client": "~6.0.21",
     "expo-file-system": "^19.0.22",
     "expo-image-picker": "^55.0.20",
     "expo-linear-gradient": "~15.0.8",

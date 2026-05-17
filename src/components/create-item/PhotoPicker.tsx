@@ -144,9 +144,12 @@ export const PhotoPicker = ({
 
   return (
     <View
-      className="absolute bottom-0 right-0 z-30 items-end"
+      pointerEvents="box-none"
+      className="absolute bottom-0 right-0 z-10 items-end"
       style={{ paddingBottom: insets.bottom + 70, paddingRight: 10 }}>
-      <View className="flex-row gap-3 rounded-2xl border border-surface-border bg-surface-card/95 p-2 shadow-lg">
+      <View
+        pointerEvents="auto"
+        className="flex-row gap-3 rounded-2xl border border-surface-border bg-surface-card/95 p-2 shadow-lg">
         <Button
           onPress={handleCameraPress}
           disabled={disabled || isLoading}

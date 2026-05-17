@@ -80,18 +80,23 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
   };
 
   return (
-    <View className="bg-surface-secondary border-surface-tertiary gap-4 rounded-xl border p-4">
-      <Text className="text-text-primary text-base font-semibold">Nova coleção</Text>
+    <View className="gap-4 rounded-2xl border border-surface-border bg-surface-base p-4">
+      <Text className={'text-base font-semibold text-text-base'}>Nova coleção</Text>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Nome da coleção *</Text>
+        <Text
+          className={`text-sm font-medium ${formErrors.name ? 'text-feedback-error' : 'text-text-base'}`}>
+          Nome da coleção *
+        </Text>
         <TextInput
           value={name}
           onChangeText={setName}
           maxLength={255}
           placeholder="Ex.: Relógios Vintage"
-          className={`border-surface-tertiary bg-surface-primary text-text-primary rounded-lg border px-3 py-2 ${
-            formErrors.name ? 'border-feedback-error' : ''
+          className={`rounded-xl border px-3 py-3 text-text-base ${
+            formErrors.name
+              ? 'border-feedback-error bg-feedback-errorSoft'
+              : 'border-surface-border bg-surface-card'
           }`}
           accessibilityRole="text"
           accessibilityLabel="Nome da coleção"
@@ -100,7 +105,10 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       </View>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Descrição (opcional)</Text>
+        <Text
+          className={`text-sm font-medium ${formErrors.description ? 'text-feedback-error' : 'text-text-base'}`}>
+          Descrição (opcional)
+        </Text>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -109,7 +117,7 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           numberOfLines={3}
           textAlignVertical="top"
           placeholder="Conte um pouco sobre essa coleção"
-          className={`border-surface-tertiary bg-surface-primary text-text-primary rounded-lg border px-3 py-2 ${
+          className={`rounded-xl border border-surface-border bg-surface-card px-3 py-3 text-text-base ${
             formErrors.description ? 'border-feedback-error' : ''
           }`}
           accessibilityRole="text"
@@ -121,10 +129,11 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       </View>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Capa (opcional)</Text>
+        <Text className="text-sm font-medium text-text-base">Capa (opcional)</Text>
         <PhotoPicker
           onPhotosSelected={(photos) => setCoverPhoto(photos[0] || null)}
           disabled={isLoading}
+          mode="inline"
         />
         <CollectionCoverPreview coverPhoto={coverPhoto} onRemove={() => setCoverPhoto(null)} />
       </View>

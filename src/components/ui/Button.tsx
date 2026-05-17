@@ -52,12 +52,16 @@ const containerByVariant: Record<
   'primary' | 'secondary' | 'success' | 'cancel' | 'ghost' | 'icon',
   string
 > = {
-  primary: 'bg-brand-primary border border-brand-600',
-  secondary: 'bg-surface-card border border-surface-borderStrong',
-  success: 'bg-feedback-success border border-feedback-success',
-  cancel: 'bg-feedback-error border border-feedback-error',
+  primary:
+    'bg-brand-primary border border-brand-600 disabled:bg-brand-primary/50 disabled:border-brand-600/50',
+  secondary:
+    'bg-surface-card border border-surface-borderStrong disabled:bg-brand-muted/50 disabled:border-surface-borderStrong/50',
+  success:
+    'bg-feedback-success border border-feedback-success disabled:bg-feedback-success/50 disabled:border-feedback-success/50',
+  cancel:
+    'bg-feedback-error border border-feedback-error disabled:bg-feedback-error/50 disabled:border-feedback-error/50',
   ghost: 'bg-transparent border border-transparent',
-  icon: 'bg-brand-100 border border-brand-200',
+  icon: 'bg-brand-100 border border-brand-200 disabled:bg-brand-200/50 disabled:border-brand-200/50',
 };
 
 const textByVariant: Record<
@@ -131,7 +135,8 @@ export function Button({
     'flex-row items-center justify-center rounded-2xl active:opacity-90 disabled:opacity-50';
 
   const sizeClass = isIconButton ? iconSizeClasses[size] : sizeClasses[size];
-  const textClass = `font-body text-base font-semibold ${textByVariant[normalizedVariant]}`;
+  const textClass = `font-body text-base font-semibold ${isDisabled ? 'text-text-muted' : textByVariant[normalizedVariant]}`;
+  const disabledContainerClass = isDisabled ? 'opacity-50' : '';
   const spinnerColor =
     normalizedVariant === 'secondary' ||
     normalizedVariant === 'ghost' ||
@@ -171,6 +176,7 @@ export function Button({
     <ReanimatedPressable
       accessibilityLabel={accessibilityLabel ?? label ?? 'Botao'}
       accessibilityRole="button"
+      accessibilityState={{ disabled: isDisabled, ...(props.accessibilityState ?? {}) }}
       disabled={isDisabled}
       hitSlop={8}
       onHoverIn={handleHoverIn}
@@ -178,7 +184,7 @@ export function Button({
       onPressIn={handlePressIn}
       onPressOut={handlePressOut}
       style={animatedStyle}
-      className={`${baseContainerClasses} ${sizeClass} ${containerByVariant[normalizedVariant]} ${hoverClass} ${className ?? ''}`}
+      className={`${baseContainerClasses} ${disabledContainerClass} ${sizeClass} ${containerByVariant[normalizedVariant]} ${hoverClass} ${className ?? ''}`}
       {...props}>
       {loading ? (
         <ActivityIndicator color={spinnerColor} />

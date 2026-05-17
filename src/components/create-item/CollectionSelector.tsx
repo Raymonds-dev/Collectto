@@ -1,9 +1,12 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
-import { CollectionListItem } from './CollectionListItem';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
+import {
+  type CollectionGridEntry,
+  CollectionsGrid,
+} from '@/components/collections-grid/CollectionsGrid';
 
 /**
  * Props for the CollectionSelector component.
@@ -93,17 +96,26 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   const resolvedLoading = collections ? isLoading : serviceLoading;
   const resolvedError = error ?? serviceError;
   const showList = !resolvedLoading && resolvedCollections.length > 0;
+  const collectionEntries = useMemo<CollectionGridEntry[]>(
+    () =>
+      resolvedCollections.map((collection) => ({
+        id: collection.id,
+        name: collection.name,
+        images: collection.coverImageURL ? [collection.coverImageURL] : [],
+      })),
+    [resolvedCollections]
+  );
 
   const skeletonRows = useMemo(() => Array.from({ length: 3 }), []);
 
   return (
     <View className="bg-surface-primary gap-4 px-4 py-6">
       <View>
-        <Text className="text-text-primary text-base font-semibold">
-          Selecione uma Coleção {allowSkip ? '(Opcional)' : '*'}
+        <Text className="text-base font-semibold text-text-base">
+          Escolha uma categoria {allowSkip ? '(opcional)' : ''}
         </Text>
-        <Text className="text-text-secondary mt-1 text-sm">
-          Escolha uma coleção existente, crie uma nova{allowSkip ? ' ou continue sem coleção' : ''}
+        <Text className="mt-1 text-sm text-text-muted">
+          Toque em uma coleção para usar no item ou crie uma nova sem sair desta etapa.
         </Text>
       </View>
 
@@ -126,22 +138,19 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
       )}
 
       {showList && (
-        <ScrollView
-          scrollEnabled={resolvedCollections.length > 5}
-          nestedScrollEnabled
-          className="border-surface-tertiary bg-surface-secondary max-h-80 overflow-hidden rounded-lg border"
-          accessibilityRole="menu"
-          accessibilityLabel="Collections list">
-          {resolvedCollections.map((collection) => (
-            <CollectionListItem
-              key={collection.id}
-              name={collection.name}
-              coverUrl={collection.coverImageURL}
-              isSelected={selectedCollectionId === collection.id}
-              onPress={() => onSelectCollection(collection.id)}
-            />
-          ))}
-        </ScrollView>
+        <CollectionsGrid
+          collections={collectionEntries}
+          isOwner={true}
+          selectionMode
+          selectedCollectionId={selectedCollectionId}
+          navigateOnPress={false}
+          onPressCollection={onSelectCollection}
+          onPressCreateFirstCollection={onCreateNew}
+          numColumns={3}
+          gap={8}
+          className="px-0"
+          emptyStateText="Você ainda não tem coleções. Crie a primeira para organizar melhor seus itens."
+        />
       )}
 
       {!resolvedLoading && resolvedCollections.length === 0 && !resolvedError && (
@@ -156,7 +165,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         <Button
           onPress={onCreateNew}
           variant="secondary"
-          label="+ Criar Nova Coleção"
+          label="Criar nova coleção"
           accessibilityLabel="Criar nova coleção"
         />
         {allowSkip && (

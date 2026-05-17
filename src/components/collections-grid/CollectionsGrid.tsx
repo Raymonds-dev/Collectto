@@ -25,6 +25,10 @@ type CollectionsGridProps = {
   isOwner: boolean;
   onPressCollection: (collectionId: string) => void;
   onPressCreateFirstCollection?: () => void;
+  selectedCollectionId?: string | null;
+  selectionMode?: boolean;
+  navigateOnPress?: boolean;
+  emptyStateText?: string;
 };
 
 const GRID_HORIZONTAL_PADDING = 16;
@@ -41,6 +45,10 @@ export function CollectionsGrid({
   isOwner,
   onPressCollection,
   onPressCreateFirstCollection,
+  selectedCollectionId = null,
+  selectionMode = false,
+  navigateOnPress = true,
+  emptyStateText,
 }: CollectionsGridProps) {
   const { width } = useWindowDimensions();
   const router = useRouter();
@@ -49,10 +57,13 @@ export function CollectionsGrid({
 
   function handleOpenCollection(collectionId: string) {
     onPressCollection(collectionId);
-    router.push({
-      pathname: '/(tabs)/collections/[collectionId]',
-      params: { collectionId },
-    });
+
+    if (navigateOnPress) {
+      router.push({
+        pathname: '/(tabs)/collections/[collectionId]',
+        params: { collectionId },
+      });
+    }
   }
 
   if (!collections.length) {
@@ -60,9 +71,11 @@ export function CollectionsGrid({
       <View className="px-4 pt-5">
         <View className="items-center gap-4 rounded-2xl border border-dashed border-surface-border bg-surface-card px-5 py-8">
           <Text className="text-center font-body text-sm text-text-muted">
-            {isOwner
-              ? 'Você ainda não tem coleções. Que tal criar uma?'
-              : 'Não há coleções para esse usuário ainda'}
+            {emptyStateText
+              ? emptyStateText
+              : isOwner
+                ? 'Você ainda não tem coleções. Que tal criar uma?'
+                : 'Não há coleções para esse usuário ainda'}
           </Text>
 
           {isOwner ? (
@@ -86,17 +99,19 @@ export function CollectionsGrid({
         numColumns={3}
         scrollEnabled={false}
         renderItem={({ item, index }) => {
+          const isSelected = selectionMode && selectedCollectionId === item.id;
           const image1 = item.images[0];
           const image2 = item.images[1];
           const image3 = item.images[2];
 
           return (
-            <View style={{ width: cardSize }} className="pb-1 ">
+            <View style={{ width: cardSize }} className="pb-2">
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel={`Abrir colecao ${index + 1}`}
+                accessibilityLabel={`${selectionMode ? 'Selecionar' : 'Abrir'} coleção ${item.name}`}
+                accessibilityState={{ selected: isSelected }}
                 onPress={() => handleOpenCollection(item.id)}
-                className="relative aspect-square items-center justify-center">
+                className={`relative aspect-square items-center justify-center rounded-3xl border ${isSelected ? 'border-brand-primary bg-brand-50/40' : 'border-transparent bg-transparent'}`}>
                 <CollectionStackLayer
                   imageUri={image3}
                   fallbackColor={FALLBACK_STACK_COLORS[2]}
@@ -112,9 +127,16 @@ export function CollectionsGrid({
                   fallbackColor={FALLBACK_STACK_COLORS[0]}
                   style={styles.layer1}
                 />
+                {isSelected ? (
+                  <View className="absolute right-2 top-2 z-20 h-7 w-7 items-center justify-center rounded-full bg-brand-primary">
+                    <Text className="text-xs font-semibold text-text-inverse">✓</Text>
+                  </View>
+                ) : null}
               </Pressable>
 
-              <Text numberOfLines={1} className="text-center font-body text-xs text-text-muted">
+              <Text
+                numberOfLines={1}
+                className={`text-center font-body text-xs ${isSelected ? 'font-semibold text-brand-primary' : 'text-text-muted'}`}>
                 {item.name}
               </Text>
             </View>

@@ -64,6 +64,7 @@ export default function TabsLayout() {
           name="create-item"
           options={{
             href: null,
+            tabBarStyle: { display: 'none' },
           }}
         />
       </Tabs>

@@ -30,20 +30,18 @@ const INITIAL_SKELETON_COUNT = 3;
 const LOAD_MORE_DELAY_MS = 100;
 
 const Header = ({
-  topInset,
   onPressProfile,
   onPressLogo,
   onPressSettings,
   onPressCreate,
 }: {
-  topInset: number;
   onPressProfile: () => void;
   onPressLogo: () => void;
   onPressSettings: () => void;
   onPressCreate: () => void;
 }) => {
   return (
-    <View style={{ paddingTop: topInset }} className="bg-surface-base">
+    <View className="bg-surface-base">
       <View className="h-14 w-full flex-row items-center justify-between border-b border-feedback-error px-5">
         <AnimatedPressable
           accessibilityRole="button"
@@ -94,7 +92,6 @@ const Header = ({
 export default function FeedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const headerHeight = insets.top + 56;
   const listRef = useRef<FlatListRef<MockFeedPost>>(null);
   const loadMoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollToTopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -456,7 +453,6 @@ export default function FeedScreen() {
     <View className="flex-1 bg-surface-base">
       <View className="absolute left-0 right-0 top-0 z-20">
         <Header
-          topInset={insets.top}
           onPressProfile={handleOpenProfile}
           onPressLogo={handleScrollToTop}
           onPressSettings={handleOpenSettings}
@@ -477,7 +473,6 @@ export default function FeedScreen() {
         alwaysBounceVertical
         onRefresh={handleRefreshLatestPosts}
         refreshing={isRefreshingLatest}
-        progressViewOffset={headerHeight}
         onScrollBeginDrag={handleScrollActivation}
         onMomentumScrollBegin={handleScrollActivation}
         onEndReachedThreshold={0.2}
@@ -492,7 +487,7 @@ export default function FeedScreen() {
           ) : null
         }
         contentContainerStyle={{
-          paddingTop: headerHeight,
+          paddingTop: insets.top,
           paddingBottom: 40,
         }}
         ItemSeparatorComponent={() => <View className="h-4" />}
@@ -506,7 +501,7 @@ export default function FeedScreen() {
         presentationStyle="fullScreen"
         onRequestClose={handleCloseItemDetail}>
         <View className="flex-1 bg-surface-base">
-          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+          <View className="px-4 pb-2">
             <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Fechar detalhes do item"
@@ -546,7 +541,7 @@ export default function FeedScreen() {
         presentationStyle="formSheet"
         onRequestClose={() => setCommentThreadPostId(null)}>
         <View className="flex-1 bg-surface-base">
-          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+          <View className="px-4 pb-2">
             <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Fechar comentários"

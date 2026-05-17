@@ -1,13 +1,10 @@
 import { Button } from '@/components/ui/Button';
-import { tokens } from '@/styles/tailwind/tokens.native';
+import { CollectionCover } from '@/components/ui/CollectionCover';
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import {
-  FlatList,
-  Image,
   Pressable,
   type StyleProp,
-  StyleSheet,
   Text,
   useWindowDimensions,
   View,
@@ -19,12 +16,6 @@ export type CollectionGridEntry = {
   name: string;
   images: string[];
 };
-
-const FALLBACK_STACK_COLORS = [
-  tokens.colors.neutral.gray1,
-  tokens.colors.neutral.gray2,
-  tokens.colors.neutral.gray3,
-] as const;
 
 type CollectionsGridProps = {
   collections: CollectionGridEntry[];
@@ -102,44 +93,19 @@ export function CollectionsGrid({
   }
 
   return (
-    <View className={`items-center justify-center ${className}`}>
-      <FlatList
-        data={collections}
-        keyExtractor={(item) => item.id}
-        numColumns={numColumns}
-        key={`grid-${numColumns}`}
-        scrollEnabled={false}
-        contentContainerStyle={contentContainerStyle}
-        columnWrapperStyle={numColumns > 1 ? { gap } : undefined}
-        renderItem={({ item }) => {
+    <View style={contentContainerStyle as ViewStyle} className={`${className}`}>
+      <View className="flex-row flex-wrap" style={{ gap, justifyContent: 'center' }}>
+        {collections.map((item) => {
           const isSelected = selectionMode && selectedCollectionId === item.id;
-          const image1 = item.images[0];
-          const image2 = item.images[1];
-          const image3 = item.images[2];
-
           return (
-            <View style={{ width: cardSize }} className="mb-4">
+            <View key={item.id} style={{ width: cardSize }} className="mb-4">
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${selectionMode ? 'Selecionar' : 'Abrir'} coleção ${item.name}`}
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => handleOpenCollection(item.id)}
                 className={`relative aspect-square items-center justify-center rounded-3xl border ${isSelected ? 'border-brand-primary bg-brand-50/40' : 'border-transparent bg-transparent'}`}>
-                <CollectionStackLayer
-                  imageUri={image3}
-                  fallbackColor={FALLBACK_STACK_COLORS[2]}
-                  style={styles.layer3}
-                />
-                <CollectionStackLayer
-                  imageUri={image2}
-                  fallbackColor={FALLBACK_STACK_COLORS[1]}
-                  style={styles.layer2}
-                />
-                <CollectionStackLayer
-                  imageUri={image1}
-                  fallbackColor={FALLBACK_STACK_COLORS[0]}
-                  style={styles.layer1}
-                />
+                <CollectionCover images={item.images} />
                 {isSelected ? (
                   <View className="absolute right-2 top-2 z-20 h-7 w-7 items-center justify-center rounded-full bg-brand-primary">
                     <Text className="text-xs font-semibold text-text-inverse">✓</Text>
@@ -154,54 +120,8 @@ export function CollectionsGrid({
               </Text>
             </View>
           );
-        }}
-      />
+        })}
+      </View>
     </View>
   );
 }
-
-type CollectionStackLayerProps = {
-  imageUri?: string;
-  fallbackColor: string;
-  style?: StyleProp<ViewStyle>;
-};
-
-function CollectionStackLayer({ imageUri, fallbackColor, style }: CollectionStackLayerProps) {
-  return (
-    <View style={[styles.baseLayer, style, { backgroundColor: fallbackColor }]}>
-      {imageUri ? (
-        <Image source={{ uri: imageUri }} style={styles.layerImage} resizeMode="cover" />
-      ) : null}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  baseLayer: {
-    position: 'absolute',
-    width: '78%',
-    height: '78%',
-    left: '0%',
-    top: '12%',
-    borderRadius: 20,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: tokens.colors.surface.border,
-  },
-  layer1: {
-    zIndex: 3,
-    transform: [{ rotate: '-3deg' }],
-  },
-  layer2: {
-    zIndex: 2,
-    transform: [{ translateX: 7 }, { rotate: '-6deg' }],
-  },
-  layer3: {
-    zIndex: 1,
-    transform: [{ translateX: 12 }, { rotate: '-9deg' }],
-  },
-  layerImage: {
-    width: '100%',
-    height: '100%',
-  },
-});

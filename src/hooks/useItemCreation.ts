@@ -6,6 +6,9 @@ export interface ItemCreationFormData {
   description: string;
   collectionId: string | null;
   acquisitionDate: string | null;
+  lastUsedDate: string | null;
+  tags: string[];
+  attributes: Record<string, unknown>;
 }
 
 /**
@@ -18,6 +21,9 @@ export const useItemCreation = () => {
     description: '',
     collectionId: null,
     acquisitionDate: null,
+    lastUsedDate: null,
+    tags: [],
+    attributes: {},
   });
 
   const [localPhotos, setLocalPhotos] = useState<LocalPhotoReference[]>([]);
@@ -34,12 +40,18 @@ export const useItemCreation = () => {
     setLocalPhotos((prev) => prev.filter((photo) => photo.tempId !== tempId));
   }, []);
 
-  const setFormField = useCallback((field: keyof ItemCreationFormData, value: string | null) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  }, []);
+  const setFormField = useCallback(
+    (
+      field: keyof ItemCreationFormData,
+      value: string | string[] | Record<string, unknown> | null
+    ) => {
+      setFormData((prev) => ({
+        ...prev,
+        [field]: value,
+      }));
+    },
+    []
+  );
 
   const selectCollection = useCallback((collectionId: string | null) => {
     setFormData((prev) => ({
@@ -54,6 +66,9 @@ export const useItemCreation = () => {
       description: '',
       collectionId: null,
       acquisitionDate: null,
+      lastUsedDate: null,
+      tags: [],
+      attributes: {},
     });
     setLocalPhotos([]);
   }, []);

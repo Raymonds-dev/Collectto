@@ -23,6 +23,14 @@ interface ItemSaveFlowProps {
   newCollectionDraft?: CollectionCreationInput | null;
   /** Optional local URI for the item's thumbnail preview. */
   itemThumbnail?: string;
+  /** Optional acquisition date in ISO format. */
+  acquisitionDate?: string | null;
+  /** Optional last used date in ISO format. */
+  lastUsedDate?: string | null;
+  /** Optional array of tags. */
+  tags?: string[];
+  /** Optional key-value attributes. */
+  attributes?: Record<string, unknown>;
   /** Callback function when the item is successfully saved. Receives the new item ID. */
   onSuccess: (itemId: string) => void;
   /** Optional callback function when an error occurs during saving. */
@@ -51,6 +59,10 @@ export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
   collectionId,
   newCollectionDraft = null,
   itemThumbnail,
+  acquisitionDate,
+  lastUsedDate,
+  tags,
+  attributes,
   onSuccess,
   onError,
 }) => {
@@ -110,6 +122,10 @@ export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
       description: itemDescription,
       collectionId: targetCollectionId,
       photoUris: photos.map((photo) => photo.localUri),
+      acquisitionDate,
+      lastUsedDate,
+      tags,
+      attributes,
     });
 
     if (result.success && result.itemId) {
@@ -144,6 +160,10 @@ export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
     onError,
     photos,
     saveItem,
+    acquisitionDate,
+    lastUsedDate,
+    tags,
+    attributes,
   ]);
 
   useEffect(() => {

@@ -11,6 +11,7 @@ import { ItemSaveFlow } from './ItemSaveFlow';
 import { CollectionCreationForm } from '@/components/create-item/CollectionCreationForm';
 import { CreateItemPreviewStep } from './CreateItemPreviewStep';
 import { type CreateItemStepConfig, CreateItemStepper } from './CreateItemStepper';
+import { Modal } from '@/components/ui/Modal';
 
 /**
  * Props for the CreateItemFlow component.
@@ -110,6 +111,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
   const [collectionsLoading, setCollectionsLoading] = useState(false);
   const [collectionsError, setCollectionsError] = useState<string>();
   const [saveError, setSaveError] = useState<string>();
+  const [isCloseModalVisible, setIsCloseModalVisible] = useState(false);
 
   const isMountedRef = useRef(true);
   const insets = useSafeAreaInsets();
@@ -173,6 +175,25 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
     setCurrentStep('saving');
   };
 
+  const handleCloseAction = (): void => {
+    const hasUnsavedChanges =
+      formData.name.trim().length > 0 ||
+      formData.description.trim().length > 0 ||
+      localPhotos.length > 0 ||
+      formData.collectionId !== null ||
+      formData.acquisitionDate !== null ||
+      formData.lastUsedDate !== null ||
+      formData.tags.length > 0 ||
+      Object.keys(formData.attributes).length > 0;
+
+    if (hasUnsavedChanges) {
+      setIsCloseModalVisible(true);
+    } else {
+      reset();
+      onClose?.();
+    }
+  };
+
   const handleSaveSuccess = (): void => {
     if (!isMountedRef.current) {
       return;
@@ -230,6 +251,10 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
         itemDescription={formData.description}
         collectionId={formData.collectionId}
         itemThumbnail={localPhotos[0]?.localUri}
+        acquisitionDate={formData.acquisitionDate}
+        lastUsedDate={formData.lastUsedDate}
+        tags={formData.tags}
+        attributes={formData.attributes}
         onSuccess={handleSaveSuccess}
         onError={handleSaveError}
       />
@@ -264,6 +289,14 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
               onItemNameChange={(name) => setFormField('name', name)}
               itemDescription={formData.description}
               onItemDescriptionChange={(description) => setFormField('description', description)}
+              acquisitionDate={formData.acquisitionDate}
+              onAcquisitionDateChange={(date) => setFormField('acquisitionDate', date)}
+              lastUsedDate={formData.lastUsedDate}
+              onLastUsedDateChange={(date) => setFormField('lastUsedDate', date)}
+              tags={formData.tags}
+              onTagsChange={(tags) => setFormField('tags', tags)}
+              attributes={formData.attributes}
+              onAttributesChange={(attributes) => setFormField('attributes', attributes)}
               selectedCollectionId={formData.collectionId}
               onSelectCollection={selectCollection}
               onCollectionCreated={handleCollectionCreated}
@@ -283,10 +316,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
         ) : null}
 
         {currentStep === 'collection' ? (
-          <ScrollView
-            className="flex-1"
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
+          <View className="flex-1" style={{ paddingBottom: insets.bottom + 100 }}>
             <CollectionCreationForm
               selectedCollectionId={formData.collectionId}
               onSelectCollection={selectCollection}
@@ -296,7 +326,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
               error={collectionsError}
               allowSkip
             />
-          </ScrollView>
+          </View>
         ) : null}
 
         {currentStep === 'preview' ? (
@@ -327,7 +357,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
           <Button
             variant="secondary"
             label={currentStep === 'details' ? 'Fechar' : 'Voltar'}
-            onPress={currentStep === 'details' ? onClose : handleBackStep}
+            onPress={currentStep === 'details' ? handleCloseAction : handleBackStep}
             accessibilityLabel={currentStep === 'details' ? 'Fechar fluxo' : 'Voltar etapa'}
             className="flex-1"
           />
@@ -352,6 +382,22 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
           )}
         </View>
       </View>
+
+      <Modal
+        visible={isCloseModalVisible}
+        onClose={() => setIsCloseModalVisible(false)}
+        title="Descartar rascunho?"
+        description="Você tem alterações não salvas. Deseja fechar e perder as informações preenchidas?"
+        confirmText="Descartar"
+        cancelText="Cancelar"
+        type="danger"
+        iconName="trash-outline"
+        onConfirm={() => {
+          setIsCloseModalVisible(false);
+          reset();
+          onClose?.();
+        }}
+      />
     </View>
   );
 };

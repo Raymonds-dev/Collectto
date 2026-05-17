@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
+import { SearchInput } from '@/components/ui/SearchInput';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import {
@@ -57,6 +58,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   const [serviceCollections, setServiceCollections] = useState<Collection[]>([]);
   const [serviceLoading, setServiceLoading] = useState(false);
   const [serviceError, setServiceError] = useState<string | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (collections) {
@@ -96,14 +98,26 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   const resolvedLoading = collections ? isLoading : serviceLoading;
   const resolvedError = error ?? serviceError;
   const showList = !resolvedLoading && resolvedCollections.length > 0;
+
+  const filteredCollections = useMemo(() => {
+    if (!searchQuery.trim()) return resolvedCollections;
+
+    const query = searchQuery.toLowerCase();
+    return resolvedCollections.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.tags && c.tags.some((tag) => tag.toLowerCase().includes(query)))
+    );
+  }, [resolvedCollections, searchQuery]);
+
   const collectionEntries = useMemo<CollectionGridEntry[]>(
     () =>
-      resolvedCollections.map((collection) => ({
+      filteredCollections.map((collection) => ({
         id: collection.id,
         name: collection.name,
         images: collection.coverImageURL ? [collection.coverImageURL] : [],
       })),
-    [resolvedCollections]
+    [filteredCollections]
   );
 
   const skeletonRows = useMemo(() => Array.from({ length: 3 }), []);
@@ -111,9 +125,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   return (
     <View className="bg-surface-primary gap-4 px-4 py-6">
       <View>
-        <Text className="text-base font-semibold text-text-base">
-          Escolha uma categoria {allowSkip ? '(opcional)' : ''}
-        </Text>
+        <Text className="text-base font-semibold text-text-base">Escolha uma categoria</Text>
         <Text className="mt-1 text-sm text-text-muted">
           Toque em uma coleção para usar no item ou crie uma nova sem sair desta etapa.
         </Text>
@@ -138,19 +150,36 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
       )}
 
       {showList && (
-        <CollectionsGrid
-          collections={collectionEntries}
-          isOwner={true}
-          selectionMode
-          selectedCollectionId={selectedCollectionId}
-          navigateOnPress={false}
-          onPressCollection={onSelectCollection}
-          onPressCreateFirstCollection={onCreateNew}
-          numColumns={3}
-          gap={8}
-          className="px-0"
-          emptyStateText="Você ainda não tem coleções. Crie a primeira para organizar melhor seus itens."
-        />
+        <View className="gap-4">
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Pesquisar por nome ou tag..."
+          />
+          <ScrollView className="max-h-[360px]" showsVerticalScrollIndicator={false}>
+            {collectionEntries.length > 0 ? (
+              <CollectionsGrid
+                collections={collectionEntries}
+                isOwner={true}
+                selectionMode
+                selectedCollectionId={selectedCollectionId}
+                navigateOnPress={false}
+                onPressCollection={onSelectCollection}
+                onPressCreateFirstCollection={onCreateNew}
+                numColumns={3}
+                gap={8}
+                className="px-0 pb-4"
+                emptyStateText="Você ainda não tem coleções. Crie a primeira para organizar melhor seus itens."
+              />
+            ) : (
+              <View className="items-center py-6">
+                <Text className="text-center text-sm text-text-muted">
+                  Nenhuma coleção encontrada para a sua busca.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
       )}
 
       {!resolvedLoading && resolvedCollections.length === 0 && !resolvedError && (

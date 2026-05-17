@@ -2,8 +2,13 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image, StyleSheet, Text, View } from 'react-native';
 
+import { TeaserComment } from '@/components/comments/TeaserComment';
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
+import { ItemCover } from '@/components/ui/ItemCover';
+import { buildTeaser } from '@/mocks/comments';
+import { extractBasePostId } from '@/utils/extractBasePostId';
 import { tokens } from '@/styles/tailwind/tokens.native';
+import { useState } from 'react';
 
 export type PostItemPreview = {
   id: string;
@@ -93,17 +98,34 @@ export const Post = ({
   onPressOpenCollection,
   onPressShare,
 }: PostProps) => {
+  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [avatarError, setAvatarError] = useState(false);
+
   return (
     <MotionView visible presets={['slideUp', 'fade']} delay={entranceDelay} className="w-full">
-      <View className="w-full rounded-2xl bg-surface-base p-[10px]">
-        <View className="w-full flex-row items-start gap-[10px] p-[10px]">
-          <Image
-            source={{ uri: author.avatarUri }}
-            className="h-10 w-10 rounded-full border border-surface-border"
-            accessibilityIgnoresInvertColors
-          />
+      <View className="w-full rounded-2xl bg-surface-base p-1">
+        <View className="w-full flex-row items-start gap-2 p-1">
+          {avatarLoading ? (
+            <View className="h-10 w-10 rounded-full border border-surface-border bg-surface-muted" />
+          ) : null}
+          {!avatarError ? (
+            <Image
+              source={{ uri: author.avatarUri }}
+              className="h-10 w-10 rounded-full border border-surface-border"
+              accessibilityIgnoresInvertColors
+              onLoadEnd={() => setAvatarLoading(false)}
+              onError={() => {
+                setAvatarError(true);
+                setAvatarLoading(false);
+              }}
+            />
+          ) : (
+            <View className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-muted">
+              <Ionicons name="person-circle" size={24} color={tokens.colors.text.subtle} />
+            </View>
+          )}
 
-          <View className="min-w-0 flex-1">
+          <View className="flex-1">
             <View className="w-full flex-row items-center gap-1">
               <Text className="font-poetsenone text-[10px] text-text-base">{author.name}</Text>
               <Text className="font-body text-[8px] font-extralight text-text-subtle">
@@ -123,17 +145,20 @@ export const Post = ({
           accessibilityLabel={`Abrir item ${item.title}`}
           hitSlop={8}
           onPress={() => onPressItem(item, id)}
-          className="w-full px-[2px] pb-[4px] pt-[8px]">
-          <View className="relative h-[375px] w-full">
-            <View className="absolute left-0 right-0 top-0 h-[357px] rounded-[12px] bg-surface-border" />
-            <View className="absolute left-0 right-0 top-[8px] h-[357px] rounded-[12px] bg-surface-muted" />
-            <Image
-              source={{ uri: item.imageUri }}
-              className="absolute left-0 right-0 top-[16px] h-[357px] rounded-[12px] border border-surface-border bg-surface-muted"
-              resizeMode="cover"
-            />
+          className="w-full">
+          <View className="h-[357px] w-full">
+            <ItemCover images={[item.imageUri]} roundedClass="rounded-[12px]" stackOffset={8} />
           </View>
         </AnimatedPressable>
+
+        {/* Teaser comment section */}
+        {(() => {
+          const basePostId = extractBasePostId(id);
+          const teaserComment = buildTeaser(basePostId);
+          if (!teaserComment) return null;
+
+          return <TeaserComment comment={teaserComment} postId={id} onPress={onPressComment} />;
+        })()}
 
         <View className="w-full flex-row items-center justify-center gap-4 px-[10px] py-[6px]">
           <PostActionButton

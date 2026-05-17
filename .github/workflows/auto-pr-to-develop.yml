@@ -60,20 +60,8 @@ jobs:
             const body = [
               '## PR criada automaticamente',
               '',
-              `Branch de origem: \`${head}\``,
-              'Branch de destino: `develop`',
-              `Commit mais recente considerado: \`${context.sha.slice(0, 7)}\``,
+              `Este PR foi criado automaticamente a partir do commit \`${context.sha.slice(0, 7)}\` na branch \`${head}\`.`,
               latestCommitSubject ? `Mensagem do commit mais recente: \`${latestCommitSubject}\`` : null,
-              '',
-              '### Resumo',
-              '- Descreva o objetivo da mudança.',
-              '- Liste os principais arquivos/fluxos impactados.',
-              '',
-              '### Checklist',
-              '- [ ] Rodei `npm run validate` localmente.',
-              '- [ ] CI de validacao passou (lint, type-check e formatacao).',
-              '- [ ] Testei o fluxo principal e os cenarios de erro.',
-              '- [ ] Atualizei a documentacao quando necessario.',
               '',
               '_Este PR foi aberto automaticamente pelo workflow._'
             ].filter(Boolean).join('\n');

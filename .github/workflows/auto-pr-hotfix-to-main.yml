@@ -37,13 +37,7 @@ jobs:
             const body = [
               '## PR de hotfix criada automaticamente',
               '',
-              `Branch de origem: \`${head}\``,
-              'Branch de destino: `main`',
-              '',
-              '### Requisitos obrigatorios antes do merge',
-              '- [ ] CI de validacao passou (lint, type-check e formatacao).',
-              '- [ ] Owner revisou o hotfix.',
-              '- [ ] PR aprovada antes do merge.',
+              `Este PR de hotfix foi criado automaticamente a partir da branch \`${head}\`.`,
               '',
               '_Este PR foi aberto automaticamente pelo workflow._'
             ].join('\n');

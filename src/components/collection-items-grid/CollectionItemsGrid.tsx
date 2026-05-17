@@ -1,16 +1,8 @@
 import { useMemo } from 'react';
-import { MOCK_ITEMS_PLACEHOLDER_IMAGE } from '@/mocks';
-import {
-  FlatList,
-  Image,
-  type ImageStyle,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { FlatList, Text, useWindowDimensions, View } from 'react-native';
 
 import { AnimatedPressable } from '@/components/ui/animated';
+import { ItemCover } from '@/components/ui/ItemCover';
 
 export type CollectionGridItem = {
   id?: string;
@@ -47,7 +39,6 @@ export function CollectionItemsGrid({ items, onPressItem }: CollectionItemsGridP
         contentContainerStyle={{ gap: GRID_GAP }}
         renderItem={({ item, index }) => {
           const imageStack = item.images.slice(0, ITEM_STACK_LIMIT);
-          const mainImage = imageStack[0] ?? MOCK_ITEMS_PLACEHOLDER_IMAGE;
           const itemName = item.title ?? `Item ${index + 1}`;
 
           return (
@@ -57,26 +48,7 @@ export function CollectionItemsGrid({ items, onPressItem }: CollectionItemsGridP
                 accessibilityLabel={`Abrir item ${itemName}`}
                 onPress={() => onPressItem(item, index)}
                 className="mt-5 aspect-square">
-                {imageStack.length > 2 ? (
-                  <Image
-                    source={{ uri: imageStack[2] }}
-                    style={styles.stackDeep}
-                    className="absolute h-full w-full rounded-[18px] bg-surface-muted"
-                  />
-                ) : null}
-
-                {imageStack.length > 1 ? (
-                  <Image
-                    source={{ uri: imageStack[1] }}
-                    style={styles.stackMiddle}
-                    className="absolute h-full w-full rounded-[18px] bg-surface-muted"
-                  />
-                ) : null}
-
-                <Image
-                  source={{ uri: mainImage }}
-                  className="h-full w-full rounded-[18px] border border-surface-border bg-surface-muted"
-                />
+                <ItemCover images={imageStack} roundedClass="rounded-[18px]" stackOffset={8} />
               </AnimatedPressable>
 
               <Text numberOfLines={1} className="text-center font-body text-[11px] text-text-muted">
@@ -94,16 +66,3 @@ export function CollectionItemsGrid({ items, onPressItem }: CollectionItemsGridP
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  stackMiddle: {
-    top: -8,
-    transform: [{ scale: 0.98 }],
-    zIndex: -1,
-  } as ImageStyle,
-  stackDeep: {
-    top: -16,
-    transform: [{ scale: 0.96 }],
-    zIndex: -2,
-  } as ImageStyle,
-});

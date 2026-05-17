@@ -4,8 +4,10 @@
  * - Quando a API estiver pronta, substitua imports deste arquivo por chamadas em src/services/api.
  */
 
-export * from '@/mocks/auth';
+// Mocks dinamicos (Debug Session)
+export * from '@/mocks/debug-seed';
+
+// Mocks estaticos (Shared UI/Explore)
 export * from '@/mocks/profile';
-export * from '@/mocks/collections';
 export * from '@/mocks/explore';
-export * from '@/mocks/posts';
+export * from '@/mocks/comments';

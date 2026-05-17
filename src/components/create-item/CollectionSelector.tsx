@@ -146,6 +146,9 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
           navigateOnPress={false}
           onPressCollection={onSelectCollection}
           onPressCreateFirstCollection={onCreateNew}
+          numColumns={3}
+          gap={8}
+          className="px-0"
           emptyStateText="Você ainda não tem coleções. Crie a primeira para organizar melhor seus itens."
         />
       )}

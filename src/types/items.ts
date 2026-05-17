@@ -40,7 +40,7 @@ export interface ItemResponse {
 export interface ItemSummaryResponse {
   id: string;
   name: string;
-  imagesURL: string[];
+  imageFilesUrls: string[];
 }
 
 export interface ItemPageResponse {

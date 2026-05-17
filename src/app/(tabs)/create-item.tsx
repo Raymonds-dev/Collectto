@@ -4,7 +4,6 @@ import { useRouter } from 'expo-router';
 import { ItemContextProvider } from '@/providers/ItemContextProvider';
 import { CollectionContextProvider } from '@/providers/CollectionContextProvider';
 import { CreateItemFlow } from '@/components/create-item/CreateItemFlow';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * Create Item Screen
@@ -13,7 +12,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  */
 export default function CreateItemScreen() {
   const router = useRouter();
-  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     return () => {
@@ -27,7 +25,7 @@ export default function CreateItemScreen() {
   };
 
   return (
-    <View className="bg-surface-default flex-1" style={{ paddingTop: insets.top }}>
+    <View className="bg-surface-default flex-1">
       <ItemContextProvider>
         <CollectionContextProvider>
           <CreateItemFlow onClose={handleClose} />

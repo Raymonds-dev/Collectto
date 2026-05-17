@@ -37,6 +37,7 @@ type CollectionItemDetailViewProps = {
   isOwner: boolean;
   profile: CollectionItemDetailProfile;
   isFollowing: boolean;
+  isNotificationsEnabled: boolean;
   item: CollectionItemDetail;
   onFollowToggle: () => void;
   onShare: () => void;
@@ -48,6 +49,7 @@ export const CollectionItemDetailView = ({
   isOwner,
   profile,
   isFollowing,
+  isNotificationsEnabled,
   item,
   onFollowToggle,
   onShare,
@@ -131,6 +133,7 @@ export const CollectionItemDetailView = ({
         <ProfileActionsBar
           isOwner={isOwner}
           isFollowing={isFollowing}
+          isNotificationsEnabled={isNotificationsEnabled}
           onFollowToggle={onFollowToggle}
           onShare={onShare}
           onNotificationPress={onNotificationPress}

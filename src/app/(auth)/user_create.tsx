@@ -1,11 +1,10 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Calendar, DateData } from 'react-native-calendars';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Image, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Checkbox } from 'expo-checkbox';
-import { CustomPicker } from '@/components/ui/custom_picker/custom_picker';
+import { AuthDatePicker } from '@/components/ui/AuthDatePicker';
 
 const styles = StyleSheet.create({
   input: {
@@ -27,137 +26,23 @@ export default function UserCreateScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  const [day, setDay] = useState<string | undefined>();
-  const [month, setMonth] = useState<string | undefined>();
-  const [year, setYear] = useState<string | undefined>();
-  const [isCalendarVisible, setIsCalendarVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  const [calendarDraftYear, setCalendarDraftYear] = useState<string | null>(null);
-  const [calendarDraftMonth, setCalendarDraftMonth] = useState<string | null>(null);
-  const [calendarDraftDay, setCalendarDraftDay] = useState<string | null>(null);
-
-  const defaultDate = new Date();
-  const defaultMonth = String(defaultDate.getMonth() + 1).padStart(2, '0');
-  const defaultYear = String(defaultDate.getFullYear());
-
-  const [calendarMonthValue, setCalendarMonthValue] = useState<string>(defaultMonth);
-  const [calendarYearValue, setCalendarYearValue] = useState<string>(defaultYear);
-  const [calendarCurrent, setCalendarCurrent] = useState<string>(
-    `${defaultYear}-${defaultMonth}-01`
-  );
+  const [date, setDate] = useState<string | null>(null);
 
   const [error, setError] = useState<string | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [step, setStep] = useState(1);
 
-  const dayItems = Array.from({ length: 31 }, (_, i) => {
-    const dayValue = String(i + 1).padStart(2, '0');
-
-    return {
-      label: dayValue,
-      value: dayValue,
-    };
-  });
-  const monthItems = [
-    { label: 'Janeiro', value: '01' },
-    { label: 'Fevereiro', value: '02' },
-    { label: 'Março', value: '03' },
-    { label: 'Abril', value: '04' },
-    { label: 'Maio', value: '05' },
-    { label: 'Junho', value: '06' },
-    { label: 'Julho', value: '07' },
-    { label: 'Agosto', value: '08' },
-    { label: 'Setembro', value: '09' },
-    { label: 'Outubro', value: '10' },
-    { label: 'Novembro', value: '11' },
-    { label: 'Dezembro', value: '12' },
-  ];
-  const yearItems = Array.from({ length: 105 }, (_, i) => ({
-    label: `${new Date().getFullYear() - i}`,
-    value: `${new Date().getFullYear() - i}`,
-  }));
-
-  const parseDateParts = (dateString: string): { year: string; month: string; day: string } => {
-    const [selectedYear, selectedMonth, selectedDay] = dateString.split('-');
-
-    return {
-      year: selectedYear,
-      month: selectedMonth,
-      day: selectedDay,
-    };
-  };
-
-  const applyDateToFields = (dateString: string): void => {
-    const parts = parseDateParts(dateString);
-
-    setYear(parts.year);
-    setMonth(parts.month);
-    setDay(parts.day);
-    setSelectedDate(dateString);
-    setCalendarYearValue(parts.year);
-    setCalendarMonthValue(parts.month);
-    setCalendarCurrent(`${parts.year}-${parts.month}-01`);
-  };
-
-  const handleCalendarDayPress = (date: DateData): void => {
-    const parts = parseDateParts(date.dateString);
-
-    setCalendarDraftYear(parts.year);
-    setCalendarDraftMonth(parts.month);
-    setCalendarDraftDay(parts.day);
-    setCalendarYearValue(parts.year);
-    setCalendarMonthValue(parts.month);
-    setCalendarCurrent(`${parts.year}-${parts.month}-01`);
-  };
-
-  const openCalendar = (): void => {
-    const initialDate =
-      selectedDate ?? `${year ?? calendarYearValue}-${month ?? calendarMonthValue}-01`;
-    const parts = parseDateParts(initialDate);
-
-    setCalendarDraftYear(year ?? parts.year);
-    setCalendarDraftMonth(month ?? parts.month);
-    setCalendarDraftDay(day ?? parts.day);
-    setCalendarYearValue(parts.year);
-    setCalendarMonthValue(parts.month);
-    setCalendarCurrent(`${parts.year}-${parts.month}-01`);
-    setIsCalendarVisible(true);
-  };
-
-  const handleCalendarMonthChange = (selectedMonthValue: string): void => {
-    setCalendarDraftMonth(selectedMonthValue);
-    setCalendarMonthValue(selectedMonthValue);
-    setCalendarCurrent(`${calendarYearValue}-${selectedMonthValue}-01`);
-  };
-
-  const handleCalendarYearChange = (selectedYearValue: string): void => {
-    setCalendarDraftYear(selectedYearValue);
-    setCalendarYearValue(selectedYearValue);
-    setCalendarCurrent(`${selectedYearValue}-${calendarMonthValue}-01`);
-  };
-
-  const closeCalendar = (): void => {
-    if (calendarDraftYear && calendarDraftMonth && calendarDraftDay) {
-      const draftDate = `${calendarDraftYear}-${calendarDraftMonth}-${calendarDraftDay}`;
-      applyDateToFields(draftDate);
-    } else if (selectedDate) {
-      applyDateToFields(selectedDate);
-    }
-
-    setIsCalendarVisible(false);
-  };
-
   const handleUserCreate = async (): Promise<void> => {
     setError(null);
 
     if (step === 1) {
       if (!name || !email) {
-        setError('*Preencha seu nome e e-mail');
+        setError('Por favor, preencha seu nome e email.');
         return;
       }
-      if (!day || !month || !year) {
-        setError('*Selecione sua data de nascimento completa');
+      if (!date) {
+        setError('Selecione sua data de nascimento completa.');
         return;
       }
 
@@ -167,11 +52,11 @@ export default function UserCreateScreen() {
 
     if (step === 2) {
       if (!username || !password) {
-        setError('*Preencha seu nome de usuário e senha');
+        setError('Por favor, preencha seu nome de usuário e senha.');
         return;
       }
       if (!termsAccepted) {
-        setError('*Aceite os termos para continuar');
+        setError('Você precisa aceitar os termos para continuar.');
         return;
       }
 
@@ -179,12 +64,12 @@ export default function UserCreateScreen() {
         setIsSubmitting(true);
         setError(null);
 
-        await signUp({ name, username, email, password, birthdayDate: `${year}-${month}-${day}` });
+        await signUp({ name, username, email, password, birthdayDate: date! });
 
         router.replace('/(auth)/login');
       } catch (registerError) {
         const message =
-          registerError instanceof Error ? registerError.message : '*Falha ao cadastrar usuário';
+          registerError instanceof Error ? registerError.message : 'Falha ao cadastrar.';
         setError(message);
       } finally {
         setIsSubmitting(false);
@@ -238,42 +123,7 @@ export default function UserCreateScreen() {
               ) : null}
 
               <View className="mt-8 w-full">
-                <Text className="mb-4 font-poetsenone text-xl text-black">DATA DE NASCIMENTO</Text>
-                <View className="flex-row gap-5">
-                  <View className="">
-                    <CustomPicker
-                      placeholder="Dia"
-                      items={dayItems}
-                      selectedValue={day}
-                      onValueChange={setDay}
-                      onPressOverride={openCalendar}
-                      triggerClassName="w-18 rounded-xl border-2 border-black px-2 py-3"
-                      triggerTextClassName="text-xl text-black"
-                    />
-                  </View>
-                  <View className="">
-                    <CustomPicker
-                      placeholder="Mês"
-                      items={monthItems}
-                      selectedValue={month}
-                      onValueChange={setMonth}
-                      onPressOverride={openCalendar}
-                      triggerClassName="w-36 rounded-xl border-2 border-black px-2 py-3"
-                      triggerTextClassName="text-xl text-black"
-                    />
-                  </View>
-                  <View className="">
-                    <CustomPicker
-                      placeholder="Ano"
-                      items={yearItems}
-                      selectedValue={year}
-                      onValueChange={setYear}
-                      onPressOverride={openCalendar}
-                      triggerClassName="w-26 rounded-xl border-2 border-black px-2 py-3"
-                      triggerTextClassName="text-xl text-black"
-                    />
-                  </View>
-                </View>
+                <AuthDatePicker label="DATA DE NASCIMENTO" value={date} onDateChange={setDate} />
               </View>
             </View>
           </>
@@ -337,90 +187,6 @@ export default function UserCreateScreen() {
           </Pressable>
         </View>
       </View>
-
-      <Modal
-        transparent
-        animationType="fade"
-        visible={isCalendarVisible}
-        onRequestClose={closeCalendar}>
-        <View className="flex-1 items-center justify-center bg-black/40 px-6">
-          <View className="w-full max-w-md rounded-2xl bg-white p-4">
-            <View className="mb-3 flex-row">
-              <View className="mr-2 flex-1">
-                <CustomPicker
-                  placeholder="Mês"
-                  items={monthItems}
-                  selectedValue={calendarMonthValue}
-                  onValueChange={handleCalendarMonthChange}
-                />
-              </View>
-              <View className="ml-2 flex-1">
-                <CustomPicker
-                  placeholder="Ano"
-                  items={yearItems}
-                  selectedValue={calendarYearValue}
-                  onValueChange={handleCalendarYearChange}
-                />
-              </View>
-            </View>
-
-            <Calendar
-              key={`${calendarYearValue}-${calendarMonthValue}`}
-              current={calendarCurrent}
-              maxDate={new Date().toISOString().split('T')[0]}
-              onDayPress={handleCalendarDayPress}
-              onMonthChange={(date) => {
-                const nextMonth = String(date.month).padStart(2, '0');
-                const nextYear = String(date.year);
-
-                setCalendarMonthValue(nextMonth);
-                setCalendarYearValue(nextYear);
-                setCalendarCurrent(`${nextYear}-${nextMonth}-01`);
-              }}
-              markedDates={
-                calendarDraftYear && calendarDraftMonth && calendarDraftDay
-                  ? {
-                      [`${calendarDraftYear}-${calendarDraftMonth}-${calendarDraftDay}`]: {
-                        selected: true,
-                        selectedColor: '#FF9500',
-                      },
-                    }
-                  : selectedDate
-                    ? {
-                        [selectedDate]: {
-                          selected: true,
-                          selectedColor: '#FF9500',
-                        },
-                      }
-                    : undefined
-              }
-              theme={{
-                calendarBackground: '#FFFFFF',
-                textSectionTitleColor: '#6B7280',
-                selectedDayBackgroundColor: '#FF9500',
-                selectedDayTextColor: '#FFFFFF',
-                todayTextColor: '#111827',
-                dayTextColor: '#111827',
-                monthTextColor: '#111827',
-                arrowColor: '#111827',
-                textMonthFontSize: 16,
-                textMonthFontWeight: '700',
-                textDayHeaderFontSize: 12,
-              }}
-            />
-
-            <View className="mt-3 flex-row justify-end">
-              <Pressable
-                className="rounded-lg px-4 py-2"
-                onPress={closeCalendar}
-                accessibilityRole="button"
-                accessibilityLabel="Fechar calendário e aplicar data">
-                <Text className="font-poetsenone text-xl text-black">Fechar</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </KeyboardAwareScrollView>
   );
 }

@@ -1,9 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
-import { CollectionListItem } from './CollectionListItem';
+import { SearchInput } from '@/components/ui/SearchInput';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
+import {
+  type CollectionGridEntry,
+  CollectionsGrid,
+} from '@/components/collections-grid/CollectionsGrid';
 
 /**
  * Props for the CollectionSelector component.
@@ -54,6 +58,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   const [serviceCollections, setServiceCollections] = useState<Collection[]>([]);
   const [serviceLoading, setServiceLoading] = useState(false);
   const [serviceError, setServiceError] = useState<string | undefined>(undefined);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (collections) {
@@ -94,16 +99,35 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   const resolvedError = error ?? serviceError;
   const showList = !resolvedLoading && resolvedCollections.length > 0;
 
+  const filteredCollections = useMemo(() => {
+    if (!searchQuery.trim()) return resolvedCollections;
+
+    const query = searchQuery.toLowerCase();
+    return resolvedCollections.filter(
+      (c) =>
+        c.name.toLowerCase().includes(query) ||
+        (c.tags && c.tags.some((tag) => tag.toLowerCase().includes(query)))
+    );
+  }, [resolvedCollections, searchQuery]);
+
+  const collectionEntries = useMemo<CollectionGridEntry[]>(
+    () =>
+      filteredCollections.map((collection) => ({
+        id: collection.id,
+        name: collection.name,
+        images: collection.coverImageURL ? [collection.coverImageURL] : [],
+      })),
+    [filteredCollections]
+  );
+
   const skeletonRows = useMemo(() => Array.from({ length: 3 }), []);
 
   return (
     <View className="bg-surface-primary gap-4 px-4 py-6">
       <View>
-        <Text className="text-text-primary text-base font-semibold">
-          Selecione uma Coleção {allowSkip ? '(Opcional)' : '*'}
-        </Text>
-        <Text className="text-text-secondary mt-1 text-sm">
-          Escolha uma coleção existente, crie uma nova{allowSkip ? ' ou continue sem coleção' : ''}
+        <Text className="text-base font-semibold text-text-base">Escolha uma categoria</Text>
+        <Text className="mt-1 text-sm text-text-muted">
+          Toque em uma coleção para usar no item ou crie uma nova sem sair desta etapa.
         </Text>
       </View>
 
@@ -126,22 +150,36 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
       )}
 
       {showList && (
-        <ScrollView
-          scrollEnabled={resolvedCollections.length > 5}
-          nestedScrollEnabled
-          className="border-surface-tertiary bg-surface-secondary max-h-80 overflow-hidden rounded-lg border"
-          accessibilityRole="menu"
-          accessibilityLabel="Collections list">
-          {resolvedCollections.map((collection) => (
-            <CollectionListItem
-              key={collection.id}
-              name={collection.name}
-              coverUrl={collection.coverImageURL}
-              isSelected={selectedCollectionId === collection.id}
-              onPress={() => onSelectCollection(collection.id)}
-            />
-          ))}
-        </ScrollView>
+        <View className="gap-4">
+          <SearchInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Pesquisar por nome ou tag..."
+          />
+          <ScrollView className="max-h-[360px]" showsVerticalScrollIndicator={false}>
+            {collectionEntries.length > 0 ? (
+              <CollectionsGrid
+                collections={collectionEntries}
+                isOwner={true}
+                selectionMode
+                selectedCollectionId={selectedCollectionId}
+                navigateOnPress={false}
+                onPressCollection={onSelectCollection}
+                onPressCreateFirstCollection={onCreateNew}
+                numColumns={3}
+                gap={8}
+                className="px-0 pb-4"
+                emptyStateText="Você ainda não tem coleções. Crie a primeira para organizar melhor seus itens."
+              />
+            ) : (
+              <View className="items-center py-6">
+                <Text className="text-center text-sm text-text-muted">
+                  Nenhuma coleção encontrada para a sua busca.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
+        </View>
       )}
 
       {!resolvedLoading && resolvedCollections.length === 0 && !resolvedError && (
@@ -156,7 +194,7 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         <Button
           onPress={onCreateNew}
           variant="secondary"
-          label="+ Criar Nova Coleção"
+          label="Criar nova coleção"
           accessibilityLabel="Criar nova coleção"
         />
         {allowSkip && (

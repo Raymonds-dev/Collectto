@@ -5,6 +5,8 @@ export * from './CollectionCreator';
 export * from './CollectionListItem';
 export * from './CollectionSelector';
 export * from './CreateItemFlow';
+export * from './CreateItemPreviewStep';
+export * from './CreateItemStepper';
 export * from './ItemForm';
 export * from './ItemMetadataForm';
 export * from './ItemSaveFlow';

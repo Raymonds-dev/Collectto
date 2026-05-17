@@ -4,7 +4,6 @@ import { MOCK_ITEM_DETAIL_PLACEHOLDER_IMAGE } from '@/mocks';
 import {
   FlatList,
   Image,
-  type ImageStyle,
   Modal,
   StyleSheet,
   Text,
@@ -14,7 +13,9 @@ import {
 } from 'react-native';
 
 import { AnimatedPressable } from '@/components/ui/animated';
+import { ItemCover } from '@/components/ui/ItemCover';
 import { tokens } from '@/styles/tailwind/tokens.native';
+import { AttributeTable } from '@/components/ui/AttributeTable';
 
 type ItemCharacteristic = {
   label: string;
@@ -86,19 +87,7 @@ export function ItemCollection({
     }
   }
 
-  function renderStackLayer(uri: string, index: number) {
-    const layerStyle = getImageLayerStyle(index);
-
-    return (
-      <Image
-        key={`${uri}-${index}`}
-        source={{ uri }}
-        resizeMode="cover"
-        className="absolute h-full w-full rounded-[20px] bg-surface-muted"
-        style={layerStyle}
-      />
-    );
-  }
+  // using ItemCover for stacked item images
 
   return (
     <View className="w-full gap-5 px-5 py-6">
@@ -111,18 +100,15 @@ export function ItemCollection({
       <View className="items-center pt-7">
         <View className="w-full max-w-[420px]">
           <View className="relative aspect-square w-full">
-            {imageStack.length > 2 ? renderStackLayer(imageStack[2], 2) : null}
-            {imageStack.length > 1 ? renderStackLayer(imageStack[1], 1) : null}
-
             <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel={`Abrir galeria de ${title}`}
               onPress={() => handleOpenGallery(0)}
-              className="h-full w-full overflow-hidden rounded-[20px] border border-surface-border bg-surface-muted">
-              <Image
-                source={{ uri: imageStack[0] ?? safeImages[0] }}
-                resizeMode="cover"
-                className="h-full w-full"
+              className="h-full w-full overflow-hidden">
+              <ItemCover
+                images={imageStack.length ? imageStack : safeImages}
+                roundedClass="rounded-[20px]"
+                stackOffset={12}
               />
             </AnimatedPressable>
           </View>
@@ -167,12 +153,7 @@ export function ItemCollection({
       <Text className="font-poetsenone text-xl text-brand-primary">Caracteristicas</Text>
 
       <View className="gap-2 pb-1">
-        {characteristics.map((item) => (
-          <View key={`${item.label}-${item.value}`} className="flex-row items-center gap-1">
-            <Text className="font-poetsenone text-sm text-text-base">{item.label}:</Text>
-            <Text className="font-body text-sm font-extralight text-text-subtle">{item.value}</Text>
-          </View>
-        ))}
+        <AttributeTable attributes={characteristics} />
       </View>
 
       <Modal
@@ -231,13 +212,7 @@ export function ItemCollection({
   );
 }
 
-function getImageLayerStyle(index: number): ImageStyle {
-  if (index === 2) {
-    return styles.imageLayerDeep;
-  }
-
-  return styles.imageLayerMiddle;
-}
+// legacy image layer helper removed
 
 const styles = StyleSheet.create({
   gradientDivider: {
@@ -246,14 +221,5 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     width: 'auto',
   },
-  imageLayerMiddle: {
-    top: -12,
-    transform: [{ scale: 0.98 }],
-    zIndex: -1,
-  },
-  imageLayerDeep: {
-    top: -22,
-    transform: [{ scale: 0.96 }],
-    zIndex: -2,
-  },
+  // legacy image layer styles removed (now using ItemCover)
 });

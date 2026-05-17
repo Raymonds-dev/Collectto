@@ -7,6 +7,10 @@ interface ItemSaveInput {
   description?: string;
   collectionId: string | null;
   photoUris: string[];
+  acquisitionDate?: string | null;
+  lastUsedDate?: string | null;
+  tags?: string[];
+  attributes?: Record<string, unknown>;
 }
 
 interface SaveItemResult {
@@ -60,6 +64,10 @@ export const useItemSave = () => {
           description: input.description || '',
           collectionId: input.collectionId || '',
           imageFilesUrls: permanentPhotoUris,
+          acquisitionDate: input.acquisitionDate || undefined,
+          lastUsedDate: input.lastUsedDate || undefined,
+          tags: input.tags,
+          attributes: input.attributes,
         });
 
         return {

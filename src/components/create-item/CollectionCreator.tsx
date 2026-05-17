@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { PhotoPicker } from './PhotoPicker';
 import { CollectionCoverPreview } from './CollectionCoverPreview';
+import { TagInput } from '@/components/ui/TagInput';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 import type { CollectionCreationInput } from '@/hooks/useCollectionCreation';
+import type { CollectionVisibility } from '@/types/collections';
 
 /**
  * Props for the CollectionCreator component.
@@ -47,6 +49,8 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [coverPhoto, setCoverPhoto] = useState<LocalPhotoReference | null>(null);
+  const [visibility, setVisibility] = useState<CollectionVisibility>('PUBLIC');
+  const [tags, setTags] = useState<string[]>([]);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
@@ -76,22 +80,29 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       name: name.trim(),
       description: description.trim() || undefined,
       coverLocalUri: coverPhoto?.localUri ?? null,
+      visibility,
+      tags: tags.length > 0 ? tags : undefined,
     });
   };
 
   return (
-    <View className="bg-surface-secondary border-surface-tertiary gap-4 rounded-xl border p-4">
-      <Text className="text-text-primary text-base font-semibold">Nova coleção</Text>
+    <View className="gap-4 rounded-2xl border border-surface-border bg-surface-base p-4">
+      <Text className={'text-base font-semibold text-text-base'}>Nova coleção</Text>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Nome da coleção *</Text>
+        <Text
+          className={`text-sm font-medium ${formErrors.name ? 'text-feedback-error' : 'text-text-base'}`}>
+          Nome da coleção *
+        </Text>
         <TextInput
           value={name}
           onChangeText={setName}
           maxLength={255}
           placeholder="Ex.: Relógios Vintage"
-          className={`border-surface-tertiary bg-surface-primary text-text-primary rounded-lg border px-3 py-2 ${
-            formErrors.name ? 'border-feedback-error' : ''
+          className={`rounded-xl border px-3 py-3 text-text-base ${
+            formErrors.name
+              ? 'border-feedback-error bg-feedback-errorSoft'
+              : 'border-surface-border bg-surface-card'
           }`}
           accessibilityRole="text"
           accessibilityLabel="Nome da coleção"
@@ -100,7 +111,10 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       </View>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Descrição (opcional)</Text>
+        <Text
+          className={`text-sm font-medium ${formErrors.description ? 'text-feedback-error' : 'text-text-base'}`}>
+          Descrição (opcional)
+        </Text>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -109,7 +123,7 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           numberOfLines={3}
           textAlignVertical="top"
           placeholder="Conte um pouco sobre essa coleção"
-          className={`border-surface-tertiary bg-surface-primary text-text-primary rounded-lg border px-3 py-2 ${
+          className={`rounded-xl border border-surface-border bg-surface-card px-3 py-3 text-text-base ${
             formErrors.description ? 'border-feedback-error' : ''
           }`}
           accessibilityRole="text"
@@ -121,12 +135,49 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       </View>
 
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-medium">Capa (opcional)</Text>
+        <Text className="text-sm font-medium text-text-base">Capa (opcional)</Text>
         <PhotoPicker
           onPhotosSelected={(photos) => setCoverPhoto(photos[0] || null)}
           disabled={isLoading}
+          mode="inline"
         />
         <CollectionCoverPreview coverPhoto={coverPhoto} onRemove={() => setCoverPhoto(null)} />
+      </View>
+
+      {/* Visibility Picker */}
+      <View className="gap-2">
+        <Text className="text-sm font-medium text-text-base">Visibilidade</Text>
+        <View className="flex-row gap-2">
+          {(['PUBLIC', 'PRIVATE', 'FRIENDS'] as CollectionVisibility[]).map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => setVisibility(v)}
+              className={`flex-1 items-center rounded-xl border-2 py-2 ${
+                visibility === v
+                  ? 'border-brand-500 bg-brand-500'
+                  : 'border-surface-border bg-surface-card'
+              }`}
+              accessibilityRole="button"
+              accessibilityLabel={`Visibilidade ${v === 'PUBLIC' ? 'Público' : v === 'PRIVATE' ? 'Privado' : 'Amigos'}`}>
+              <Text
+                className={`text-sm font-semibold ${
+                  visibility === v ? 'text-white' : 'text-text-base'
+                }`}>
+                {v === 'PUBLIC' ? 'Público' : v === 'PRIVATE' ? 'Privado' : 'Amigos'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Tags */}
+      <View className="gap-2">
+        <TagInput
+          label="Tags (opcional)"
+          tags={tags}
+          onChange={setTags}
+          placeholder="Adicionar tag..."
+        />
       </View>
 
       {error && <Text className="text-sm text-feedback-error">{error}</Text>}

@@ -2,14 +2,15 @@ import { Post, type PostItemPreview } from '@/components/post';
 import { CommentThread } from '@/components/comments';
 import { CollectionItemDetailView } from '@/components/item-collection/CollectionItemDetailView';
 import { AnimatedPressable } from '@/components/ui/animated';
+import { Card } from '@/components/ui/Card';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 import { PostSkeleton } from '@/components/ui/PostSkeleton';
-import { MOCK_PROFILE_IMAGE_URI } from '@/mocks';
 import { type MockFeedPost } from '@/types/debug';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
 import {
   ActivityIndicator,
@@ -23,27 +24,29 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { formatDate } from '@/utils/formatDate';
 
 const PAGE_SIZE = 4;
 const MAX_FEED_PAGES = 3;
 const INITIAL_SKELETON_COUNT = 3;
 const LOAD_MORE_DELAY_MS = 100;
+const DETAIL_NOTIFICATION_TIMEOUT_MS = 2500;
 
 const Header = ({
-  topInset,
   onPressProfile,
   onPressLogo,
   onPressSettings,
   onPressCreate,
 }: {
-  topInset: number;
   onPressProfile: () => void;
   onPressLogo: () => void;
   onPressSettings: () => void;
   onPressCreate: () => void;
 }) => {
+  const { user } = useAuth();
+
   return (
-    <View style={{ paddingTop: topInset }} className="bg-surface-base">
+    <View className="bg-surface-base">
       <View className="h-14 w-full flex-row items-center justify-between border-b border-feedback-error px-5">
         <AnimatedPressable
           accessibilityRole="button"
@@ -52,8 +55,8 @@ const Header = ({
           onPress={onPressProfile}
           className="h-11 w-11 items-center justify-center rounded-full">
           <Image
-            source={{ uri: MOCK_PROFILE_IMAGE_URI }}
-            className="h-8 w-8 rounded-full border border-surface-border"
+            source={{ uri: user?.profilePictureUrl ?? undefined }}
+            className="h-8 w-8 rounded-full border border-surface-border bg-surface-muted"
             accessibilityIgnoresInvertColors
           />
         </AnimatedPressable>
@@ -67,25 +70,14 @@ const Header = ({
           <BrandIcon size={26} />
         </AnimatedPressable>
 
-        <View className="flex-row items-center gap-3">
-          <AnimatedPressable
-            accessibilityRole="button"
-            accessibilityLabel="Criar novo item ou coleção"
-            hitSlop={10}
-            onPress={onPressCreate}
-            className="h-11 w-11 items-center justify-center rounded-full">
-            <Ionicons name="add" size={28} color={tokens.colors.text.base} />
-          </AnimatedPressable>
-
-          <AnimatedPressable
-            accessibilityRole="button"
-            accessibilityLabel="Abrir configuracoes"
-            hitSlop={10}
-            onPress={onPressSettings}
-            className="h-11 w-11 items-center justify-center rounded-full">
-            <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
-          </AnimatedPressable>
-        </View>
+        <AnimatedPressable
+          accessibilityRole="button"
+          accessibilityLabel="Abrir configuracoes"
+          hitSlop={10}
+          onPress={onPressSettings}
+          className="h-11 w-11 items-center justify-center rounded-full">
+          <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
+        </AnimatedPressable>
       </View>
     </View>
   );
@@ -94,11 +86,11 @@ const Header = ({
 export default function FeedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const headerHeight = insets.top + 56;
   const listRef = useRef<FlatListRef<MockFeedPost>>(null);
   const loadMoreTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const scrollToTopTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const refreshLatestTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailNotificationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasStartedScrollRef = useRef(false);
   const canLoadMoreOnMomentumRef = useRef(false);
   const isLoadMoreInFlightRef = useRef(false);
@@ -112,9 +104,20 @@ export default function FeedScreen() {
   const [selectedPost, setSelectedPost] = useState<MockFeedPost | null>(null);
   const [isDetailFollowing, setIsDetailFollowing] = useState(false);
   const [isDetailNotificationsEnabled, setIsDetailNotificationsEnabled] = useState(false);
+  const [isDetailNotificationCardVisible, setIsDetailNotificationCardVisible] = useState(false);
+  const [detailNotificationCardMessage, setDetailNotificationCardMessage] = useState('');
   const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
 
   const postService = usePostService();
+
+  const clearDetailNotificationTimer = useCallback((): void => {
+    if (!detailNotificationTimeoutRef.current) {
+      return;
+    }
+
+    clearTimeout(detailNotificationTimeoutRef.current);
+    detailNotificationTimeoutRef.current = null;
+  }, []);
 
   const loadPage = useCallback(
     async (page: number): Promise<MockFeedPost[]> => {
@@ -127,7 +130,7 @@ export default function FeedScreen() {
         author: {
           name: post.author.name,
           username: post.author.username,
-          avatarUri: post.author.profilePictureUrl || MOCK_PROFILE_IMAGE_URI,
+          avatarUri: post.author.profilePictureUrl || '',
         },
         content: post.item.description || 'Novo item na coleção!',
         publishedLabel: 'Agora',
@@ -169,6 +172,12 @@ export default function FeedScreen() {
     };
   }, [applyFeedSnapshot, loadPage]);
 
+  useEffect(() => {
+    return () => {
+      clearDetailNotificationTimer();
+    };
+  }, [clearDetailNotificationTimer]);
+
   const handleOpenItemCollection = (_item: PostItemPreview, postId: string): void => {
     const selected = posts.find((post) => post.id === postId);
 
@@ -179,6 +188,9 @@ export default function FeedScreen() {
     setSelectedPost(selected);
     setIsDetailFollowing(false);
     setIsDetailNotificationsEnabled(false);
+    setIsDetailNotificationCardVisible(false);
+    setDetailNotificationCardMessage('');
+    clearDetailNotificationTimer();
   };
 
   const handleTogglePostLike = useCallback(
@@ -249,6 +261,10 @@ export default function FeedScreen() {
   );
 
   const handleCloseItemDetail = (): void => {
+    clearDetailNotificationTimer();
+    setIsDetailNotificationsEnabled(false);
+    setIsDetailNotificationCardVisible(false);
+    setDetailNotificationCardMessage('');
     setSelectedPost(null);
   };
 
@@ -261,13 +277,23 @@ export default function FeedScreen() {
       (p) => p.id === selectedPost.id
     )?.item;
 
+    const attributeList = postItem?.attributes
+      ? Object.entries(postItem.attributes).map(([key, value]) => ({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          value: String(value ?? ''),
+        }))
+      : [];
+
     return {
       title: selectedPost.item.title,
       images: postItem?.imageFilesUrls ?? [selectedPost.item.imageUri],
-      acquiredDate: postItem?.acquisitionDate ?? '--/--/----',
-      lastUsedDate: postItem?.lastUsedDate ?? '--/--/----',
+      acquiredDate: formatDate(postItem?.acquisitionDate),
+      lastUsedDate: formatDate(postItem?.lastUsedDate),
       description: postItem?.description ?? selectedPost.content,
-      characteristics: [{ label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' }],
+      characteristics: [
+        ...attributeList,
+        { label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' },
+      ],
     };
   }, [postService, selectedPost]);
 
@@ -297,7 +323,22 @@ export default function FeedScreen() {
   const isItemDetailOpen = selectedPost !== null && detailItem !== null && detailProfile !== null;
 
   const handleModalNotificationToggle = (): void => {
-    setIsDetailNotificationsEnabled((current) => !current);
+    clearDetailNotificationTimer();
+    setIsDetailNotificationsEnabled((current) => {
+      const nextEnabled = !current;
+      setDetailNotificationCardMessage(
+        nextEnabled
+          ? 'Notificacoes ativadas para este item.'
+          : 'Notificacoes desativadas para este item.'
+      );
+      return nextEnabled;
+    });
+    setIsDetailNotificationCardVisible(true);
+
+    detailNotificationTimeoutRef.current = setTimeout(() => {
+      setIsDetailNotificationCardVisible(false);
+      detailNotificationTimeoutRef.current = null;
+    }, DETAIL_NOTIFICATION_TIMEOUT_MS);
   };
 
   const handleOpenProfile = (): void => {
@@ -359,6 +400,9 @@ export default function FeedScreen() {
       setSelectedPost(null);
       setIsDetailFollowing(false);
       setIsDetailNotificationsEnabled(false);
+      setIsDetailNotificationCardVisible(false);
+      setDetailNotificationCardMessage('');
+      clearDetailNotificationTimer();
       setIsInitialLoading(true);
 
       if (refreshLatestTimeoutRef.current) {
@@ -372,7 +416,15 @@ export default function FeedScreen() {
         setIsRefreshingLatest(false);
       }, LOAD_MORE_DELAY_MS);
     });
-  }, [applyFeedSnapshot, isInitialLoading, isLoadingMore, isRefreshingLatest, loadPage, posts]);
+  }, [
+    applyFeedSnapshot,
+    clearDetailNotificationTimer,
+    isInitialLoading,
+    isLoadingMore,
+    isRefreshingLatest,
+    loadPage,
+    posts,
+  ]);
 
   const handleLoadMore = (): void => {
     if (
@@ -456,7 +508,6 @@ export default function FeedScreen() {
     <View className="flex-1 bg-surface-base">
       <View className="absolute left-0 right-0 top-0 z-20">
         <Header
-          topInset={insets.top}
           onPressProfile={handleOpenProfile}
           onPressLogo={handleScrollToTop}
           onPressSettings={handleOpenSettings}
@@ -477,7 +528,6 @@ export default function FeedScreen() {
         alwaysBounceVertical
         onRefresh={handleRefreshLatestPosts}
         refreshing={isRefreshingLatest}
-        progressViewOffset={headerHeight}
         onScrollBeginDrag={handleScrollActivation}
         onMomentumScrollBegin={handleScrollActivation}
         onEndReachedThreshold={0.2}
@@ -492,7 +542,7 @@ export default function FeedScreen() {
           ) : null
         }
         contentContainerStyle={{
-          paddingTop: headerHeight,
+          paddingTop: insets.top,
           paddingBottom: 40,
         }}
         ItemSeparatorComponent={() => <View className="h-4" />}
@@ -506,7 +556,7 @@ export default function FeedScreen() {
         presentationStyle="fullScreen"
         onRequestClose={handleCloseItemDetail}>
         <View className="flex-1 bg-surface-base">
-          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+          <View className="px-4 pb-2">
             <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Fechar detalhes do item"
@@ -521,6 +571,7 @@ export default function FeedScreen() {
               isOwner={false}
               profile={detailProfile}
               isFollowing={isDetailFollowing}
+              isNotificationsEnabled={isDetailNotificationsEnabled}
               item={detailItem}
               onFollowToggle={() => setIsDetailFollowing((current) => !current)}
               onShare={() => {
@@ -530,12 +581,12 @@ export default function FeedScreen() {
             />
           ) : null}
 
-          {isDetailNotificationsEnabled ? (
-            <View className="absolute bottom-6 left-4 right-4 rounded-xl border border-surface-border bg-surface-card px-4 py-3">
+          {isDetailNotificationCardVisible ? (
+            <Card className="absolute bottom-6 left-4 right-4">
               <Text className="font-body text-sm text-text-base">
-                Notificacoes ativadas para este item.
+                {detailNotificationCardMessage}
               </Text>
-            </View>
+            </Card>
           ) : null}
         </View>
       </Modal>
@@ -546,7 +597,7 @@ export default function FeedScreen() {
         presentationStyle="formSheet"
         onRequestClose={() => setCommentThreadPostId(null)}>
         <View className="flex-1 bg-surface-base">
-          <View style={{ paddingTop: insets.top + 8 }} className="px-4 pb-2">
+          <View className="px-4 pb-2">
             <AnimatedPressable
               accessibilityRole="button"
               accessibilityLabel="Fechar comentários"

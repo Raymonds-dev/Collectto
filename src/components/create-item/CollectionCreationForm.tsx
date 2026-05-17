@@ -1,39 +1,21 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Modal, View } from 'react-native';
 import type { Collection } from '@/types/collections';
-import { MotionView } from '@/components/ui/animated';
 import { CollectionSelector } from './CollectionSelector';
 import { CollectionCreator } from './CollectionCreator';
 import { CollectionCreationSuccess } from './CollectionCreationSuccess';
 import { type CollectionCreationInput, useCollectionCreation } from '@/hooks/useCollectionCreation';
 
-/**
- * Props for the CollectionCreationForm component.
- */
 interface CollectionCreationFormProps {
-  /** The ID of the currently selected collection. */
   selectedCollectionId: string | null;
-  /** Callback function when a collection is selected. */
   onSelectCollection: (collectionId: string | null) => void;
-  /** Callback function when a new collection is successfully created. */
   onCollectionCreated: (collection: Collection) => void;
-  /** List of available collections to choose from. */
   collections: Collection[];
-  /** Whether the collections are currently loading. */
   isLoading?: boolean;
-  /** Optional error message to display in the selector. */
   error?: string;
-  /** Whether to allow skipping collection selection (saving as uncategorized). */
   allowSkip?: boolean;
 }
 
-/**
- * A composite component that manages the collection selection and creation flow.
- * It allows users to pick an existing collection or create a new one inline.
- *
- * @param props - The component props.
- * @returns A React component managing the collection selection/creation UI.
- */
 export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
   selectedCollectionId,
   onSelectCollection,
@@ -49,6 +31,7 @@ export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
     error: creationError,
     resetError,
   } = useCollectionCreation();
+
   const [isCreatingInline, setIsCreatingInline] = useState(false);
   const [createdCollection, setCreatedCollection] = useState<Collection | null>(null);
 
@@ -87,16 +70,24 @@ export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
         allowSkip={allowSkip}
       />
 
-      <MotionView visible={isCreatingInline} presets={['slideUp', 'fade']} className="px-4">
-        {isCreatingInline ? (
-          <CollectionCreator
-            isLoading={isCreating}
-            error={creationError}
-            onCreate={handleCreateCollection}
-            onCancel={handleCancelCreate}
-          />
-        ) : null}
-      </MotionView>
+      <Modal
+        visible={isCreatingInline}
+        transparent
+        animationType="fade"
+        onRequestClose={handleCancelCreate}>
+        <View className="flex-1 items-center justify-center bg-black/40 px-6">
+          <View className="w-full max-w-md rounded-2xl bg-surface-card p-6">
+            <CollectionCreator
+              isLoading={isCreating}
+              error={creationError}
+              onCreate={async (input) => {
+                await handleCreateCollection(input);
+              }}
+              onCancel={handleCancelCreate}
+            />
+          </View>
+        </View>
+      </Modal>
 
       {createdCollection && (
         <View className="px-4">

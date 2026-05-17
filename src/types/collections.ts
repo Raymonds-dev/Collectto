@@ -22,6 +22,8 @@ export interface CollectionResponse {
   name: string;
   description: string;
   coverImageURL?: string;
+  /** Optional array of image URLs for modern API responses */
+  coverImageUrls?: string[];
   visibility: CollectionVisibility;
   followersCount: number;
   tags?: string[];
@@ -33,7 +35,7 @@ export interface CollectionResponse {
 export interface CollectionSummaryResponse {
   id: string;
   name: string;
-  imagesURL: string[];
+  imageFilesUrls: string[];
 }
 
 export interface CollectionPageResponse {

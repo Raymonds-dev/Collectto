@@ -174,7 +174,7 @@ export default function AccountScreen() {
                   Data de Nascimento
                 </Text>
                 <DatePicker
-                  initialDate={profileData.birthdayDate}
+                  value={profileData.birthdayDate}
                   onDateChange={(date) => setProfileData({ ...profileData, birthdayDate: date })}
                 />
               </View>

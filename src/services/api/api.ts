@@ -1,6 +1,7 @@
-import { create } from 'axios';
+import axios from 'axios';
+import { AuthUser } from '@/types/auth';
 
-const api = create({
+const api = axios.create({
   baseURL: 'http://89.167.89.185:8080',
 });
 

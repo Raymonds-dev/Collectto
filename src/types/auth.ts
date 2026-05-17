@@ -41,6 +41,8 @@ export interface UserResponse {
   bio?: string;
   profilePictureUrl?: string;
   profileBackgroundUrl?: string;
+  /** Compatibility alias used across the codebase for profile picture */
+  photoUrl?: string;
   followersCount?: number;
   followingCount?: number;
   isActive?: boolean;

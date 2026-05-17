@@ -53,8 +53,13 @@ const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): Auth
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
+    username:
+      typeof source.username === 'string' && source.username.length > 0
+        ? (source.username as string)
+        : name.toLowerCase(),
     photoUrl,
     birthdayDate,
+    createdAt: new Date().toISOString(),
   };
 };
 
@@ -72,7 +77,7 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
       ? source.name
       : email.split('@')[0] || 'User';
 
-      const photoUrl =
+  const photoUrl =
     typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
   const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
 
@@ -81,6 +86,8 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
     email,
     name,
     username: name.toLowerCase(),
+    photoUrl,
+    birthdayDate,
     createdAt: new Date().toISOString(),
   };
 };
@@ -259,4 +266,3 @@ function buildMockAuthUser(fallbackEmail: string): AuthUser {
     createdAt: new Date().toISOString(),
   } as AuthUser;
 }
-

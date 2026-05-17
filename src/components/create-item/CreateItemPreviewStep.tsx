@@ -1,4 +1,5 @@
-import { Image, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { ItemCover } from '@/components/ui/ItemCover';
 import type { Collection } from '@/types/collections';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
@@ -22,12 +23,13 @@ export const CreateItemPreviewStep = ({
     <View className="flex-1 gap-4 px-1 pt-2">
       <View className="overflow-hidden rounded-[28px] border border-surface-border bg-surface-card">
         {heroPhoto ? (
-          <Image
-            source={{ uri: heroPhoto.localUri }}
-            resizeMode="cover"
-            className="h-72 w-full"
-            accessibilityLabel={`Imagem principal do item ${itemName}`}
-          />
+          <View className="h-72 w-full">
+            <ItemCover
+              images={photos.map((p) => p.localUri)}
+              roundedClass="rounded-[28px]"
+              stackOffset={10}
+            />
+          </View>
         ) : (
           <View className="h-72 w-full items-center justify-center bg-surface-muted">
             <Text className="text-sm text-text-muted">Nenhuma foto para preview</Text>
@@ -61,12 +63,14 @@ export const CreateItemPreviewStep = ({
 
           <View className="flex-row flex-wrap gap-2">
             {photos.slice(0, 4).map((photo, index) => (
-              <Image
-                key={photo.tempId}
-                source={{ uri: photo.localUri }}
-                className="h-16 w-16 rounded-2xl border border-surface-border"
-                accessibilityLabel={`Miniatura ${index + 1} do item ${itemName}`}
-              />
+              <View key={photo.tempId} className="h-16 w-16">
+                <ItemCover
+                  images={[photo.localUri]}
+                  size={64}
+                  roundedClass="rounded-2xl"
+                  stackOffset={4}
+                />
+              </View>
             ))}
           </View>
         </View>

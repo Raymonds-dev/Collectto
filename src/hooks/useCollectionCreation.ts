@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import type { Collection } from '@/types/collections';
+import type { Collection, CollectionVisibility } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { createPhotoStorageProvider } from '@/services/photo-storage';
 
@@ -7,6 +7,8 @@ export interface CollectionCreationInput {
   name: string;
   description?: string;
   coverLocalUri?: string | null;
+  visibility?: CollectionVisibility;
+  tags?: string[];
 }
 
 interface CollectionCreationResult {
@@ -47,6 +49,7 @@ export const useCollectionCreation = () => {
           name,
           description: input.description?.trim() || '',
           coverImageUrl: coverImageUrl || undefined,
+          tags: input.tags,
         });
 
         return {

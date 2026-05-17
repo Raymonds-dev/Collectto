@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { PhotoPicker } from './PhotoPicker';
 import { CollectionCoverPreview } from './CollectionCoverPreview';
+import { TagInput } from '@/components/ui/TagInput';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 import type { CollectionCreationInput } from '@/hooks/useCollectionCreation';
+import type { CollectionVisibility } from '@/types/collections';
 
 /**
  * Props for the CollectionCreator component.
@@ -47,6 +49,8 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [coverPhoto, setCoverPhoto] = useState<LocalPhotoReference | null>(null);
+  const [visibility, setVisibility] = useState<CollectionVisibility>('PUBLIC');
+  const [tags, setTags] = useState<string[]>([]);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
 
   const validate = (): boolean => {
@@ -76,6 +80,8 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
       name: name.trim(),
       description: description.trim() || undefined,
       coverLocalUri: coverPhoto?.localUri ?? null,
+      visibility,
+      tags: tags.length > 0 ? tags : undefined,
     });
   };
 
@@ -136,6 +142,42 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           mode="inline"
         />
         <CollectionCoverPreview coverPhoto={coverPhoto} onRemove={() => setCoverPhoto(null)} />
+      </View>
+
+      {/* Visibility Picker */}
+      <View className="gap-2">
+        <Text className="text-sm font-medium text-text-base">Visibilidade</Text>
+        <View className="flex-row gap-2">
+          {(['PUBLIC', 'PRIVATE', 'FRIENDS'] as CollectionVisibility[]).map((v) => (
+            <Pressable
+              key={v}
+              onPress={() => setVisibility(v)}
+              className={`flex-1 items-center rounded-xl border-2 py-2 ${
+                visibility === v
+                  ? 'border-brand-500 bg-brand-500'
+                  : 'border-surface-border bg-surface-card'
+              }`}
+              accessibilityRole="button"
+              accessibilityLabel={`Visibilidade ${v === 'PUBLIC' ? 'Público' : v === 'PRIVATE' ? 'Privado' : 'Amigos'}`}>
+              <Text
+                className={`text-sm font-semibold ${
+                  visibility === v ? 'text-white' : 'text-text-base'
+                }`}>
+                {v === 'PUBLIC' ? 'Público' : v === 'PRIVATE' ? 'Privado' : 'Amigos'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      </View>
+
+      {/* Tags */}
+      <View className="gap-2">
+        <TagInput
+          label="Tags (opcional)"
+          tags={tags}
+          onChange={setTags}
+          placeholder="Adicionar tag..."
+        />
       </View>
 
       {error && <Text className="text-sm text-feedback-error">{error}</Text>}

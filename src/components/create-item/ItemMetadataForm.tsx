@@ -1,5 +1,8 @@
 import React, { forwardRef, useImperativeHandle, useState } from 'react';
-import { Text, View } from 'react-native';
+import { Alert, Pressable, Text, View } from 'react-native';
+import { usePhotoSource } from '@/hooks/usePhotoSource';
+import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
+import { createPhotoStorageProvider } from '@/services/photo-storage';
 import { ItemForm } from './ItemForm';
 import { PhotoGallery } from './PhotoGallery';
 import { PhotoPicker } from './PhotoPicker';
@@ -26,6 +29,22 @@ interface ItemMetadataFormProps {
   itemDescription: string;
   /** Callback function when the item description changes. */
   onItemDescriptionChange: (description: string) => void;
+  /** Optional acquisition date. */
+  acquisitionDate?: string | null;
+  /** Callback for acquisition date changes. */
+  onAcquisitionDateChange?: (date: string) => void;
+  /** Optional last used date. */
+  lastUsedDate?: string | null;
+  /** Callback for last used date changes. */
+  onLastUsedDateChange?: (date: string) => void;
+  /** Current tags. */
+  tags?: string[];
+  /** Callback for tag changes. */
+  onTagsChange?: (tags: string[]) => void;
+  /** Current attributes. */
+  attributes?: Record<string, unknown>;
+  /** Callback for attribute changes. */
+  onAttributesChange?: (attributes: Record<string, unknown>) => void;
   /** The ID of the currently selected collection. */
   selectedCollectionId: string | null;
   /** Callback function when a collection is selected. */
@@ -64,6 +83,8 @@ interface ValidationErrors {
   name?: string;
   /** Error message related to collection selection. */
   collection?: string;
+  /** Error message related to date validation. */
+  lastUsedDate?: string;
 }
 
 /**
@@ -93,6 +114,14 @@ export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataF
       onItemNameChange,
       itemDescription,
       onItemDescriptionChange,
+      acquisitionDate,
+      onAcquisitionDateChange,
+      lastUsedDate,
+      onLastUsedDateChange,
+      tags,
+      onTagsChange,
+      attributes,
+      onAttributesChange,
       selectedCollectionId,
       onSelectCollection,
       onCollectionCreated,
@@ -110,6 +139,40 @@ export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataF
     ref
   ) => {
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
+    const { launchGallery } = usePhotoSource();
+    const { requestGalleryPermission } = usePhotoPermissions();
+    const [isGalleryLoading, setIsGalleryLoading] = useState(false);
+
+    const handleEmptyStatePress = async () => {
+      try {
+        setIsGalleryLoading(true);
+        const hasPermission = await requestGalleryPermission();
+
+        if (!hasPermission) {
+          Alert.alert(
+            'Permissão Negada',
+            'Acesse as configurações do aplicativo para ativar acesso à galeria.'
+          );
+          return;
+        }
+
+        const selected = await launchGallery(true);
+        if (selected && selected.length > 0) {
+          const storageProvider = createPhotoStorageProvider();
+          const localRefs: LocalPhotoReference[] = [];
+          for (const photo of selected) {
+            const localRef = await storageProvider.saveToLocal(photo);
+            localRefs.push(localRef);
+          }
+          onAddPhotos(localRefs);
+        }
+      } catch (error) {
+        console.error('Gallery error:', error);
+        Alert.alert('Erro', 'Falha ao abrir galeria. Tente novamente.');
+      } finally {
+        setIsGalleryLoading(false);
+      }
+    };
 
     useImperativeHandle(ref, () => ({
       validate: () => validateForm(),
@@ -127,6 +190,12 @@ export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataF
 
       if (!collectionOptional && !selectedCollectionId) {
         errors.collection = 'Selecione uma coleção';
+      }
+
+      if (acquisitionDate && lastUsedDate) {
+        if (new Date(lastUsedDate) < new Date(acquisitionDate)) {
+          errors.lastUsedDate = 'Data de uso não pode ser anterior à data de aquisição';
+        }
       }
 
       setValidationErrors(errors);
@@ -148,18 +217,16 @@ export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataF
       <View className="flex-1 gap-4 bg-surface-canvas">
         {/* Photos Section */}
         <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <View className="mb-2">
-            <Text
-              className={`text-base font-semibold ${validationErrors.photos ? 'text-feedback-error' : 'text-text-base'}`}>
-              Fotos do item *
-            </Text>
-          </View>
           {showPhotoActions ? <PhotoPicker onPhotosSelected={onAddPhotos} /> : null}
           {photos.length === 0 && (
-            <View
-              className={`mt-2 rounded-2xl border border-dashed px-4 py-5 ${validationErrors.photos ? 'border-feedback-error bg-feedback-errorSoft' : 'border-surface-border bg-surface-canvas'}`}>
-              <Text className="text-sm font-semibold text-text-base">Adicione a primeira foto</Text>
-            </View>
+            <Pressable
+              onPress={handleEmptyStatePress}
+              disabled={isGalleryLoading}
+              className={`mt-2 items-center justify-center rounded-2xl border border-dashed px-4 py-8 ${validationErrors.photos ? 'border-feedback-error bg-feedback-errorSoft' : 'border-surface-border bg-surface-canvas'}`}>
+              <Text className="text-sm font-semibold text-text-base">
+                {isGalleryLoading ? 'Abrindo galeria...' : 'Adicione a primeira foto'}
+              </Text>
+            </Pressable>
           )}
           <PhotoGallery photos={photos} onRemovePhoto={onRemovePhoto} />
           {validationErrors.photos && (
@@ -174,8 +241,17 @@ export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataF
             description={itemDescription}
             onNameChange={onItemNameChange}
             onDescriptionChange={onItemDescriptionChange}
+            acquisitionDate={acquisitionDate}
+            onAcquisitionDateChange={onAcquisitionDateChange}
+            lastUsedDate={lastUsedDate}
+            onLastUsedDateChange={onLastUsedDateChange}
+            tags={tags}
+            onTagsChange={onTagsChange}
+            attributes={attributes}
+            onAttributesChange={onAttributesChange}
             errors={{
               name: validationErrors.name,
+              lastUsedDate: validationErrors.lastUsedDate,
             }}
           />
         </View>

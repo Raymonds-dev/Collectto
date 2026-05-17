@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { Text, TextInput, View } from 'react-native';
+import { tokens } from '@/styles/tailwind/tokens.native';
 
 /**
  * Props for the ItemForm component.
@@ -56,35 +57,35 @@ export const ItemForm: React.FC<ItemFormProps> = ({
   };
 
   return (
-    <View className="gap-4 px-4 py-6">
+    <View className="gap-4 px-4 py-5">
       {/* Name Field */}
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-semibold" accessibilityRole="header">
+        <Text className="text-sm font-semibold text-brand-500" accessibilityRole="header">
           Nome do Item *
         </Text>
         <TextInput
           value={name}
           onChangeText={handleNameChange}
           placeholder="Digite o nome do item"
-          placeholderTextColor="#999"
+          placeholderTextColor={tokens.colors.text.muted}
           maxLength={255}
           returnKeyType="next"
           onSubmitEditing={handleNameSubmit}
           accessibilityLabel="Nome do item"
           accessibilityHint="Digite o nome do seu item. Máximo 255 caracteres."
-          className={`border-surface-tertiary bg-surface-secondary text-text-primary rounded-lg border px-3 py-2 ${errors.name ? 'border-feedback-error' : ''}`}
+          className={`rounded-xl border border-surface-border bg-surface-base px-3 py-3 text-text-base ${errors.name ? 'border-feedback-error' : ''}`}
         />
         <View className="flex-row items-center justify-between">
           {errors.name && (
             <Text className="text-sm font-semibold text-feedback-error">⚠️ {errors.name}</Text>
           )}
-          <Text className="text-text-secondary ml-auto text-xs">{nameLength}/255</Text>
+          <Text className="ml-auto text-xs text-text-muted">{nameLength}/255</Text>
         </View>
       </View>
 
       {/* Description Field */}
       <View className="gap-2">
-        <Text className="text-text-primary text-sm font-semibold" accessibilityRole="header">
+        <Text className="text-sm font-semibold text-brand-500" accessibilityRole="header">
           Descrição (Opcional)
         </Text>
         <TextInput
@@ -92,13 +93,13 @@ export const ItemForm: React.FC<ItemFormProps> = ({
           value={description}
           onChangeText={onDescriptionChange}
           placeholder="Adicione uma descrição"
-          placeholderTextColor="#999"
+          placeholderTextColor={tokens.colors.text.muted}
           maxLength={1000}
           multiline
           numberOfLines={4}
           accessibilityLabel="Descrição do item"
           accessibilityHint="Digite uma descrição opcional para seu item."
-          className={`border-surface-tertiary bg-surface-secondary text-text-primary rounded-lg border px-3 py-2 ${errors.description ? 'border-feedback-error' : ''}`}
+          className={`rounded-xl border border-surface-border bg-surface-base px-3 py-3 text-text-base ${errors.description ? 'border-feedback-error' : ''}`}
           style={{ textAlignVertical: 'top' }}
         />
         {errors.description && (

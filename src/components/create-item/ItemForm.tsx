@@ -60,7 +60,9 @@ export const ItemForm: React.FC<ItemFormProps> = ({
     <View className="gap-4 px-4 py-5">
       {/* Name Field */}
       <View className="gap-2">
-        <Text className="text-sm font-semibold text-brand-500" accessibilityRole="header">
+        <Text
+          className={`text-sm font-semibold ${errors.name ? 'text-feedback-error' : 'text-brand-500'}`}
+          accessibilityRole="header">
           Nome do Item *
         </Text>
         <TextInput
@@ -73,12 +75,10 @@ export const ItemForm: React.FC<ItemFormProps> = ({
           onSubmitEditing={handleNameSubmit}
           accessibilityLabel="Nome do item"
           accessibilityHint="Digite o nome do seu item. Máximo 255 caracteres."
-          className={`rounded-xl border border-surface-border bg-surface-base px-3 py-3 text-text-base ${errors.name ? 'border-feedback-error' : ''}`}
+          className={`rounded-xl border px-3 py-3 ${errors.name ? 'border-feedback-error bg-feedback-errorSoft' : 'border-surface-border bg-surface-base'}`}
         />
         <View className="flex-row items-center justify-between">
-          {errors.name && (
-            <Text className="text-sm font-semibold text-feedback-error">⚠️ {errors.name}</Text>
-          )}
+          {errors.name && <Text className="text-xs text-feedback-error">{errors.name}</Text>}
           <Text className="ml-auto text-xs text-text-muted">{nameLength}/255</Text>
         </View>
       </View>
@@ -99,11 +99,11 @@ export const ItemForm: React.FC<ItemFormProps> = ({
           numberOfLines={4}
           accessibilityLabel="Descrição do item"
           accessibilityHint="Digite uma descrição opcional para seu item."
-          className={`rounded-xl border border-surface-border bg-surface-base px-3 py-3 text-text-base ${errors.description ? 'border-feedback-error' : ''}`}
+          className={`rounded-xl border px-3 py-3 ${errors.description ? 'border-feedback-error bg-feedback-errorSoft' : 'border-surface-border bg-surface-base'}`}
           style={{ textAlignVertical: 'top' }}
         />
         {errors.description && (
-          <Text className="text-sm font-semibold text-feedback-error">⚠️ {errors.description}</Text>
+          <Text className="text-xs text-feedback-error">{errors.description}</Text>
         )}
       </View>
     </View>

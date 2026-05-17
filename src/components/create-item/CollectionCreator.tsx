@@ -93,8 +93,10 @@ export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
           onChangeText={setName}
           maxLength={255}
           placeholder="Ex.: Relógios Vintage"
-          className={`rounded-xl border bg-surface-card px-3 py-3 text-text-base ${
-            formErrors.name ? 'border-feedback-error' : 'border-surface-border'
+          className={`rounded-xl border px-3 py-3 text-text-base ${
+            formErrors.name
+              ? 'border-feedback-error bg-feedback-errorSoft'
+              : 'border-surface-border bg-surface-card'
           }`}
           accessibilityRole="text"
           accessibilityLabel="Nome da coleção"

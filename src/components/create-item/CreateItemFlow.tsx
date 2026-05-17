@@ -121,6 +121,10 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
 
   const canMoveToPreview = formData.name.trim().length > 0 && localPhotos.length > 0;
 
+  const metadataFormRef = React.useRef<{
+    validate: () => boolean;
+  } | null>(null);
+
   const loadCollections = useCallback(async (): Promise<void> => {
     setCollectionsLoading(true);
     setCollectionsError(undefined);
@@ -191,9 +195,12 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
 
   const handleNextStep = (): void => {
     setSaveError(undefined);
-
     if (currentStep === 'details') {
-      setCurrentStep('collection');
+      // Request child form validation via ref so it can display errors
+      const valid = metadataFormRef.current?.validate() ?? true;
+      if (valid) {
+        setCurrentStep('collection');
+      }
       return;
     }
 
@@ -268,6 +275,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
               showCollectionSection={false}
               showSaveAction={false}
               onSave={handleSaveItem}
+              ref={metadataFormRef}
               isSaving={false}
               saveError={saveError}
             />
@@ -329,7 +337,6 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
               variant="primary"
               label="Avançar"
               onPress={handleNextStep}
-              disabled={currentStep === 'details' && !canMoveToPreview}
               accessibilityLabel="Avançar para a próxima etapa"
               className="flex-1"
             />

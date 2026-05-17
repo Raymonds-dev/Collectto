@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { updateProfile, uploadPhoto } from '@/services/api/api';
+import { updateProfile, uploadPhoto } from '@/services/profileService';
 
 interface ProfileFormData {
   name: string;

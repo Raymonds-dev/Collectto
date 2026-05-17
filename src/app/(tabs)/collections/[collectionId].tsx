@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { formatDate } from '@/utils/formatDate';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
+import { getUserById } from '@/services/api/api';
 import { useItemService } from '@/providers/ItemContextProvider';
 
 type CollectionViewProfile = {
@@ -235,10 +236,11 @@ export function CollectionViewScreen({
 }
 
 export default function CollectionViewScreenRoute() {
-  const params = useLocalSearchParams<{ collectionId?: string }>();
+  const params = useLocalSearchParams<{ collectionId?: string; ownerId?: string }>();
   const collectionId = Array.isArray(params.collectionId)
     ? (params.collectionId[0] ?? 'default')
     : (params.collectionId ?? 'default');
+  const ownerIdParam = Array.isArray(params.ownerId) ? params.ownerId[0] : params.ownerId;
 
   const collectionService = useCollectionService();
   const itemService = useItemService();
@@ -251,8 +253,17 @@ export default function CollectionViewScreenRoute() {
       Promise.all([
         collectionService.getById(collectionId),
         itemService.getByCollection(collectionId),
-      ]).then(([collection, items]) => {
+      ]).then(async ([collection, items]) => {
         if (isMounted && collection) {
+          let authorProfile = user;
+          try {
+            const fetchId = ownerIdParam ?? collection.userId;
+            const fetched = await getUserById(fetchId);
+            if (fetched) authorProfile = fetched;
+          } catch {
+            // ignore and fallback to current user
+          }
+
           setData({
             isOwner: collection.userId === user?.id,
             collectionTitle: collection.name,
@@ -280,10 +291,10 @@ export default function CollectionViewScreenRoute() {
               };
             }),
             profile: {
-              name: user?.name || 'Usuário',
-              username: user?.username || 'collectto',
-              bio: user?.bio || '',
-              profileImage: user?.profilePictureUrl || null,
+              name: authorProfile?.name || 'Usuário',
+              username: authorProfile?.username || 'collectto',
+              bio: authorProfile?.bio || '',
+              profileImage: authorProfile?.profilePictureUrl || null,
             },
             isFollowing: false,
           });
@@ -292,7 +303,7 @@ export default function CollectionViewScreenRoute() {
       return () => {
         isMounted = false;
       };
-    }, [collectionId, collectionService, itemService, user])
+    }, [collectionId, collectionService, itemService, user, ownerIdParam])
   );
 
   if (!data) return null;

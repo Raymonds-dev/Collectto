@@ -1,7 +1,7 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   type GestureResponderEvent,
@@ -16,8 +16,9 @@ import {
   View,
 } from 'react-native';
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
-import { MOCK_EXPLORE_CATEGORIES, MOCK_EXPLORE_SPOTLIGHTS } from '@/mocks/explore';
-import type { ExploreCategory, ExploreSpotlight } from '@/mocks/explore';
+import { MOCK_EXPLORE_CATEGORIES as FALLBACK_CATEGORIES } from '@/mocks/explore';
+import type { ExploreCategory, ExploreSpotlight } from '@/types/explore';
+import { getExploreCategories, getExploreSpotlights } from '@/services/api/explore';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 type ExploreColumnProps = {
@@ -36,11 +37,49 @@ const ExploreScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpotlight, setSelectedSpotlight] = useState<ExploreSpotlight | null>(null);
+  const [categories, setCategories] = useState<ExploreCategory[]>(FALLBACK_CATEGORIES);
+  const [spotlights, setSpotlights] = useState<ExploreSpotlight[]>([]);
+  const loadedRef = useRef(false);
+
+  // Load categories + spotlights once (debug uses mocks inside service)
+  useEffect(() => {
+    if (loadedRef.current) return;
+    loadedRef.current = true;
+
+    let cancelled = false;
+
+    const load = async () => {
+      try {
+        const [cats, sp] = await Promise.all([getExploreCategories(), getExploreSpotlights()]);
+
+        if (cancelled) return;
+
+        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
+
+        // shuffle once deterministically per load
+        const items = [...sp];
+        for (let i = items.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [items[i], items[j]] = [items[j], items[i]];
+        }
+        setSpotlights(items);
+      } catch {
+        // fallback to mocks on any error
+        setCategories(FALLBACK_CATEGORIES);
+        setSpotlights([]);
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredCards = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return MOCK_EXPLORE_SPOTLIGHTS.filter((card) => {
+    return spotlights.filter((card) => {
       const matchesCategory =
         selectedCategoryId === 'all' || card.categoryId === selectedCategoryId;
 
@@ -52,11 +91,13 @@ const ExploreScreen = () => {
         return true;
       }
 
-      const searchableText = [card.title, card.subtitle, ...card.tags].join(' ').toLowerCase();
+      const searchableText = [card.title, card.subtitle, ...(card.tags || [])]
+        .join(' ')
+        .toLowerCase();
 
       return searchableText.includes(normalizedQuery);
     });
-  }, [searchQuery, selectedCategoryId]);
+  }, [searchQuery, selectedCategoryId, spotlights]);
 
   const leftColumnCards = filteredCards.filter((_, index) => index % 2 === 0);
   const rightColumnCards = filteredCards.filter((_, index) => index % 2 === 1);
@@ -69,10 +110,10 @@ const ExploreScreen = () => {
     setSelectedSpotlight(null);
   };
 
-  const handleOpenCollection = (collectionId: string) => {
+  const handleOpenCollection = (collectionId: string, ownerId?: string) => {
     router.push({
       pathname: '/(tabs)/collections/[collectionId]',
-      params: { collectionId },
+      params: { collectionId, ownerId },
     });
     handleCloseSheet();
   };
@@ -109,7 +150,7 @@ const ExploreScreen = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipsContent}>
-            {MOCK_EXPLORE_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <CategoryChip
                 key={category.id}
                 category={category}
@@ -227,7 +268,13 @@ const ExploreScreen = () => {
                 <AnimatedPressable
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir coleção ${selectedSpotlight.title}`}
-                  onPress={() => handleOpenCollection(selectedSpotlight.collectionId)}
+                  onPress={() =>
+                    selectedSpotlight.collectionId &&
+                    handleOpenCollection(
+                      selectedSpotlight.collectionId,
+                      selectedSpotlight.postedById
+                    )
+                  }
                   className="mt-2 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
                   <Text className="font-poetsenone text-lg  text-text-inverse">
                     Ver coleção completa
@@ -263,7 +310,7 @@ const ExploreColumn = ({ cards, onOpenCard }: ExploreColumnProps) => {
             <StackedPreview
               images={card.images}
               tags={card.tags}
-              caption={card.caption}
+              caption={card.caption || ''}
               postType={card.postType}
             />
           </View>

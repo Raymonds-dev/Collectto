@@ -43,13 +43,8 @@ export const MOCK_PROFILE_COLLECTIONS: CollectionGridEntry[] = [
 ];
 
 // Substituir assets locais por URLs vindas da API de perfil do usuario.
-export const MOCK_PROFILE_BANNER_URI = Asset.fromModule(
-  require('@/assets/example/banner.png')
-).uri;
-export const MOCK_PROFILE_IMAGE_URI = Asset.fromModule(
-  require('@/assets/example/profile.png')
-).uri;
-
+export const MOCK_PROFILE_BANNER_URI = Asset.fromModule(require('@/assets/example/banner.png')).uri;
+export const MOCK_PROFILE_IMAGE_URI = Asset.fromModule(require('@/assets/example/profile.png')).uri;
 
 // TODO(api): substituir bio e contadores fixos por dados reais da API de perfil.
 export const MOCK_PROFILE_BIO =

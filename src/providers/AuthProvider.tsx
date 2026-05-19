@@ -221,13 +221,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         try {
-          const { data } = await api.post('auth/login', {
-            email: normalizedEmail,
-            password: credentials.password,
+          const baseUrl = api.defaults.baseURL;
+
+          if (!baseUrl) {
+            throw new Error('Base URL da API não configurada.');
+          }
+
+          const loginResponse = await fetch(`${baseUrl}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              email: normalizedEmail,
+              password: credentials.password,
+            }),
           });
+
+          const responseText = await loginResponse.text();
+          let responseData: unknown = null;
+
+          if (responseText) {
+            try {
+              responseData = JSON.parse(responseText) as unknown;
+            } catch {
+              responseData = responseText;
+            }
+          }
+
+          if (!loginResponse.ok) {
+            // eslint-disable-next-line no-console
+            console.log('[SIGNIN ERROR] fetch login failed', {
+              status: loginResponse.status,
+              data: responseData,
+            });
+
+            throw new Error(
+              typeof responseData === 'string' && responseData.trim()
+                ? responseData
+                : 'Falha ao realizar o login'
+            );
+          }
+
           const accessToken =
-            typeof data?.accessToken === 'string' && data.accessToken.length > 0
-              ? data.accessToken
+            responseData && typeof responseData === 'object' &&
+            typeof (responseData as { accessToken?: unknown }).accessToken === 'string' &&
+            (responseData as { accessToken: string }).accessToken.length > 0
+              ? (responseData as { accessToken: string }).accessToken
               : null;
 
           if (!accessToken) {

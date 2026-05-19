@@ -13,6 +13,7 @@ import { ProfileActionsBar } from '@/components/profile-actions-bar/ProfileActio
 import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { Card } from '@/components/ui/Card';
+import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { formatDate } from '@/utils/formatDate';
@@ -28,20 +29,24 @@ type CollectionViewProfile = {
 
 type CollectionViewScreenProps = {
   isOwner: boolean;
+  collectionId: string;
   collectionTitle: string;
   items: CollectionGridItem[];
   profile: CollectionViewProfile;
   isFollowing: boolean;
+  isSystem: boolean;
 };
 
 const NOTIFICATION_CARD_TIMEOUT_MS = 200;
 
 export function CollectionViewScreen({
   isOwner,
+  collectionId,
   collectionTitle,
   items,
   profile,
   isFollowing,
+  isSystem,
 }: CollectionViewScreenProps) {
   const router = useRouter();
   const [following, setFollowing] = useState(isFollowing);
@@ -49,7 +54,18 @@ export function CollectionViewScreen({
   const [isNotificationCardVisible, setIsNotificationCardVisible] = useState(false);
   const [notificationCardMessage, setNotificationCardMessage] = useState('');
   const [selectedItem, setSelectedItem] = useState<CollectionGridItem | null>(null);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const [isSystemModalVisible, setIsSystemModalVisible] = useState(false);
   const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleEditCollection = useCallback(() => {
+    setIsMenuVisible(false);
+    if (isSystem) {
+      setIsSystemModalVisible(true);
+    } else {
+      router.push(`/collections/edit/${collectionId}`);
+    }
+  }, [collectionId, isSystem, router]);
 
   const clearNotificationTimer = useCallback(() => {
     if (!notificationTimerRef.current) {
@@ -82,6 +98,14 @@ export function CollectionViewScreen({
       message: `${collectionTitle} no Collectto`,
     });
   }, [collectionTitle]);
+
+  const handleAddItem = useCallback(() => {
+    setIsMenuVisible(false);
+    router.push({
+      pathname: '/(tabs)/create-item',
+      params: { collectionId },
+    });
+  }, [router, collectionId]);
 
   const handleOpenItem = useCallback((item: CollectionGridItem) => {
     setSelectedItem(item);
@@ -158,7 +182,7 @@ export function CollectionViewScreen({
 
   return (
     <View className="flex-1 bg-surface-base">
-      <View className="px-4 pb-2 pt-4">
+      <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={selectedItem ? 'Voltar para itens da colecao' : 'Voltar'}
@@ -170,7 +194,58 @@ export function CollectionViewScreen({
             color={tokens.colors.text.base}
           />
         </Pressable>
+
+        {/* Owner actions: Edit item when viewing item, collection menu when viewing list */}
+        {isOwner && selectedItem && (
+          <Pressable
+            onPress={() => {
+              router.push(`/collections/edit-item/${selectedItem.id}`);
+            }}
+            accessibilityRole="button"
+            accessibilityLabel="Editar item"
+            className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
+            <Ionicons name="create-outline" size={18} color={tokens.colors.text.base} />
+          </Pressable>
+        )}
+        {isOwner && !selectedItem && (
+          <Pressable
+            onPress={() => setIsMenuVisible(true)}
+            accessibilityRole="button"
+            accessibilityLabel="Menu de acoes da colecao"
+            className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card">
+            <Ionicons name="ellipsis-vertical" size={20} color={tokens.colors.text.base} />
+          </Pressable>
+        )}
       </View>
+
+      {/* Owner context menu */}
+      {isMenuVisible && (
+        <Pressable
+          onPress={() => setIsMenuVisible(false)}
+          className="absolute inset-0 z-50"
+          accessibilityRole="button"
+          accessibilityLabel="Fechar menu">
+          <View className="absolute right-4 top-16 z-50 overflow-hidden rounded-2xl border border-surface-border bg-surface-card shadow-lg">
+            <Pressable
+              onPress={handleEditCollection}
+              className="flex-row items-center gap-3 px-4 py-3"
+              accessibilityRole="button"
+              accessibilityLabel="Editar colecao">
+              <Ionicons name="create-outline" size={18} color={tokens.colors.text.base} />
+              <Text className="font-body text-sm text-text-base">Editar</Text>
+            </Pressable>
+            <View className="h-px bg-surface-border" />
+            <Pressable
+              onPress={handleAddItem}
+              className="flex-row items-center gap-3 px-4 py-3"
+              accessibilityRole="button"
+              accessibilityLabel="Adicionar item">
+              <Ionicons name="add-circle-outline" size={18} color={tokens.colors.text.base} />
+              <Text className="font-body text-sm text-text-base">Adicionar item</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      )}
 
       {selectedItem && activeItem ? (
         <CollectionItemDetailView
@@ -230,6 +305,17 @@ export function CollectionViewScreen({
           <Text className="font-body text-sm text-text-base">{notificationCardMessage}</Text>
         </Card>
       ) : null}
+
+      <Modal
+        visible={isSystemModalVisible}
+        onClose={() => setIsSystemModalVisible(false)}
+        title="Coleção de Sistema"
+        description="Esta é uma coleção padrão do sistema e não pode ser editada ou excluída."
+        confirmText="Entendi"
+        type="info"
+        iconName="information-circle-outline"
+        onConfirm={() => setIsSystemModalVisible(false)}
+      />
     </View>
   );
 }
@@ -255,7 +341,9 @@ export default function CollectionViewScreenRoute() {
         if (isMounted && collection) {
           setData({
             isOwner: collection.userId === user?.id,
+            collectionId: collectionId,
             collectionTitle: collection.name,
+            isSystem: collection.isSystem ?? false,
             items: items.map((item) => {
               const characteristics = Object.entries(item.attributes ?? {}).map(([key, value]) => ({
                 label: key.charAt(0).toUpperCase() + key.slice(1),

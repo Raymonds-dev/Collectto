@@ -61,7 +61,7 @@ export function CollectionsGrid({
 
     if (navigateOnPress) {
       router.push({
-        pathname: '/(tabs)/collections/[collectionId]',
+        pathname: '/collections/[collectionId]',
         params: { collectionId },
       });
     }
@@ -94,7 +94,7 @@ export function CollectionsGrid({
 
   return (
     <View style={contentContainerStyle as ViewStyle} className={`${className}`}>
-      <View className="flex-row flex-wrap" style={{ gap, justifyContent: 'center' }}>
+      <View className="flex-row flex-wrap" style={{ gap, justifyContent: 'flex-start' }}>
         {collections.map((item) => {
           const isSelected = selectionMode && selectedCollectionId === item.id;
           return (

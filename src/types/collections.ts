@@ -1,5 +1,7 @@
 export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
 
+export type DeleteCollectionItemsStrategy = 'MOVE_TO_UNCATEGORIZED' | 'DELETE_ALL_ITEMS';
+
 export interface CreateCollectionRequest {
   name: string;
   description: string;
@@ -16,6 +18,20 @@ export interface UpdateCollectionRequest {
   tags?: string[];
 }
 
+export interface DeleteCollectionRequest {
+  collectionId: string;
+  strategy: DeleteCollectionItemsStrategy;
+  /** Required when strategy is MOVE_TO_UNCATEGORIZED */
+  uncategorizedCollectionId?: string;
+}
+
+export interface DeleteCollectionResponse {
+  success: boolean;
+  deletedCollectionId: string;
+  movedItemsCount?: number;
+  deletedItemsCount?: number;
+}
+
 export interface CollectionResponse {
   id: string;
   userId: string;
@@ -28,6 +44,8 @@ export interface CollectionResponse {
   followersCount: number;
   tags?: string[];
   isActive: boolean;
+  /** True for system-managed collections like "Sem categoria" */
+  isSystem?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -51,7 +69,9 @@ export interface CollectionService {
   getMe(): Promise<CollectionResponse[]>;
   update(collectionId: string, input: UpdateCollectionRequest): Promise<CollectionResponse>;
   delete(collectionId: string): Promise<void>;
+  deleteWithStrategy(request: DeleteCollectionRequest): Promise<DeleteCollectionResponse>;
   getItemCount(collectionId: string): Promise<number>;
+  getUncategorized(): Promise<CollectionResponse>;
 }
 
 export type Collection = CollectionResponse;

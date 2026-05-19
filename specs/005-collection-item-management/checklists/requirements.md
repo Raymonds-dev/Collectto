@@ -22,6 +22,14 @@
 - [x] Scope is clearly bounded
 - [x] Dependencies and assumptions identified
 
+## Plan Artifacts
+
+- [x] `plan.md` generated and committed
+- [x] `research.md` generated and committed
+- [x] `data-model.md` generated and committed
+- [x] `quickstart.md` generated and committed
+- [x] `contracts/` TypeScript interfaces added
+
 ## Feature Readiness
 
 - [x] All functional requirements have clear acceptance criteria

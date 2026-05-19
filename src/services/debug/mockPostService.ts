@@ -6,13 +6,31 @@ export const mockPostService = {
   getFeed: async (): Promise<PostProjection[]> => {
     const user = debugSession.currentUser;
     if (!user) return [];
-    return deriveFeedPosts(debugSession.items, user);
+
+    const feedItems = debugSession.items.filter((item) => {
+      const collection = debugSession.collections.find((c) => c.id === item.collectionId);
+      if (!collection) return false;
+      if (collection.isSystem) return false;
+      if (collection.visibility === 'PRIVATE') return false;
+      return true;
+    });
+
+    return deriveFeedPosts(feedItems, user);
   },
 
   getFeedSync: (): PostProjection[] => {
     const user = debugSession.currentUser;
     if (!user) return [];
-    return deriveFeedPosts(debugSession.items, user);
+
+    const feedItems = debugSession.items.filter((item) => {
+      const collection = debugSession.collections.find((c) => c.id === item.collectionId);
+      if (!collection) return false;
+      if (collection.isSystem) return false;
+      if (collection.visibility === 'PRIVATE') return false;
+      return true;
+    });
+
+    return deriveFeedPosts(feedItems, user);
   },
 
   likePost: async (postId: string): Promise<void> => {

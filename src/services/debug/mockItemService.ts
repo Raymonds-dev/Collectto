@@ -1,4 +1,13 @@
-import { CreateItemRequest, ItemResponse, ItemService, UpdateItemRequest } from '@/types/items';
+import {
+  CreateItemRequest,
+  DeleteItemsBulkResponse,
+  ItemResponse,
+  ItemService,
+  MoveItemCommand,
+  MoveItemsBulkCommand,
+  MoveItemsResponse,
+  UpdateItemRequest,
+} from '@/types/items';
 import { debugSession } from './debugSession';
 
 export const mockItemService: ItemService = {
@@ -51,5 +60,81 @@ export const mockItemService: ItemService = {
 
   getUserItems: async (userId: string): Promise<ItemResponse[]> => {
     return debugSession.items.filter((i) => i.userId === userId);
+  },
+
+  moveItem: async (command: MoveItemCommand): Promise<ItemResponse> => {
+    const idx = debugSession.items.findIndex((i) => i.id === command.itemId);
+    if (idx === -1) throw new Error('Item not found');
+
+    // Prevent move to same collection (no-op)
+    if (debugSession.items[idx].collectionId === command.targetCollectionId) {
+      return debugSession.items[idx];
+    }
+
+    const targetCollection = debugSession.collections.find(
+      (c) => c.id === command.targetCollectionId
+    );
+    if (!targetCollection) throw new Error('Target collection not found');
+
+    const updated = {
+      ...debugSession.items[idx],
+      collectionId: command.targetCollectionId,
+      updatedAt: new Date().toISOString(),
+    };
+    debugSession.items[idx] = updated;
+    return updated;
+  },
+
+  moveItemsBulk: async (command: MoveItemsBulkCommand): Promise<MoveItemsResponse> => {
+    const targetCollection = debugSession.collections.find(
+      (c) => c.id === command.targetCollectionId
+    );
+    if (!targetCollection) throw new Error('Target collection not found');
+
+    const movedItemIds: string[] = [];
+    const failedItemIds: string[] = [];
+
+    for (const itemId of command.itemIds) {
+      const idx = debugSession.items.findIndex((i) => i.id === itemId);
+      if (idx === -1) {
+        failedItemIds.push(itemId);
+        continue;
+      }
+
+      debugSession.items[idx] = {
+        ...debugSession.items[idx],
+        collectionId: command.targetCollectionId,
+        updatedAt: new Date().toISOString(),
+      };
+      movedItemIds.push(itemId);
+    }
+
+    return {
+      success: failedItemIds.length === 0,
+      movedItemIds,
+      failedItemIds: failedItemIds.length > 0 ? failedItemIds : undefined,
+    };
+  },
+
+  deleteItemsBulk: async (itemIds: string[]): Promise<DeleteItemsBulkResponse> => {
+    const existingIds = new Set(debugSession.items.map((i) => i.id));
+    const deletedItemIds: string[] = [];
+    const failedItemIds: string[] = [];
+
+    for (const id of itemIds) {
+      if (existingIds.has(id)) {
+        deletedItemIds.push(id);
+      } else {
+        failedItemIds.push(id);
+      }
+    }
+
+    debugSession.items = debugSession.items.filter((i) => !deletedItemIds.includes(i.id));
+
+    return {
+      success: failedItemIds.length === 0,
+      deletedItemIds,
+      failedItemIds: failedItemIds.length > 0 ? failedItemIds : undefined,
+    };
   },
 };

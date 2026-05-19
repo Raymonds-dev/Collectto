@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { Collection } from '@/types/collections';
@@ -110,20 +110,34 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
     );
   }, [resolvedCollections, searchQuery]);
 
-  const collectionEntries = useMemo<CollectionGridEntry[]>(
+  const userCollectionEntries = useMemo<CollectionGridEntry[]>(
     () =>
-      filteredCollections.map((collection) => ({
-        id: collection.id,
-        name: collection.name,
-        images: collection.coverImageURL ? [collection.coverImageURL] : [],
-      })),
+      filteredCollections
+        .filter((c) => !c.isSystem)
+        .map((collection) => ({
+          id: collection.id,
+          name: collection.name,
+          images: collection.coverImageURL ? [collection.coverImageURL] : [],
+        })),
     [filteredCollections]
+  );
+
+  const systemCollectionEntries = useMemo<CollectionGridEntry[]>(
+    () =>
+      resolvedCollections
+        .filter((c) => c.isSystem)
+        .map((collection) => ({
+          id: collection.id,
+          name: collection.name,
+          images: collection.coverImageURL ? [collection.coverImageURL] : [],
+        })),
+    [resolvedCollections]
   );
 
   const skeletonRows = useMemo(() => Array.from({ length: 3 }), []);
 
   return (
-    <View className="bg-surface-primary gap-4 px-4 py-6">
+    <View className="bg-surface-primary gap-4 py-6">
       <View>
         <Text className="text-base font-semibold text-text-base">Escolha uma categoria</Text>
         <Text className="mt-1 text-sm text-text-muted">
@@ -156,10 +170,10 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
             onChangeText={setSearchQuery}
             placeholder="Pesquisar por nome ou tag..."
           />
-          <ScrollView className="max-h-[360px]" showsVerticalScrollIndicator={false}>
-            {collectionEntries.length > 0 ? (
+          <View className="flex-1">
+            {userCollectionEntries.length > 0 ? (
               <CollectionsGrid
-                collections={collectionEntries}
+                collections={userCollectionEntries}
                 isOwner={true}
                 selectionMode
                 selectedCollectionId={selectedCollectionId}
@@ -178,7 +192,26 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
                 </Text>
               </View>
             )}
-          </ScrollView>
+
+            {systemCollectionEntries.length > 0 && (
+              <View className="mt-2 border-t border-surface-border pt-4">
+                <Text className="mb-3 font-body text-xs font-semibold uppercase text-text-muted">
+                  Outros
+                </Text>
+                <CollectionsGrid
+                  collections={systemCollectionEntries}
+                  isOwner={true}
+                  selectionMode
+                  selectedCollectionId={selectedCollectionId}
+                  navigateOnPress={false}
+                  onPressCollection={onSelectCollection}
+                  numColumns={3}
+                  gap={8}
+                  className="px-0"
+                />
+              </View>
+            )}
+          </View>
         </View>
       )}
 
@@ -190,28 +223,14 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         </View>
       )}
 
-      <View className="gap-2">
+      <View className="mt-4">
         <Button
           onPress={onCreateNew}
           variant="secondary"
           label="Criar nova coleção"
           accessibilityLabel="Criar nova coleção"
         />
-        {allowSkip && (
-          <Button
-            onPress={() => onSelectCollection(null)}
-            variant={selectedCollectionId ? 'ghost' : 'secondary'}
-            label="Continuar sem coleção"
-            accessibilityLabel="Continuar sem coleção"
-          />
-        )}
       </View>
-
-      {allowSkip && selectedCollectionId === null && (
-        <Text className="text-text-secondary text-xs">
-          O item será salvo como <Text className="font-semibold">Sem categoria</Text>.
-        </Text>
-      )}
     </View>
   );
 };

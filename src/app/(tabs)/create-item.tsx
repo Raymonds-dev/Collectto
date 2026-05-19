@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ItemContextProvider } from '@/providers/ItemContextProvider';
 import { CollectionContextProvider } from '@/providers/CollectionContextProvider';
 import { CreateItemFlow } from '@/components/create-item/CreateItemFlow';
@@ -12,6 +12,7 @@ import { CreateItemFlow } from '@/components/create-item/CreateItemFlow';
  */
 export default function CreateItemScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ collectionId?: string }>();
 
   useEffect(() => {
     return () => {
@@ -28,7 +29,7 @@ export default function CreateItemScreen() {
     <View className="bg-surface-default flex-1">
       <ItemContextProvider>
         <CollectionContextProvider>
-          <CreateItemFlow onClose={handleClose} />
+          <CreateItemFlow onClose={handleClose} preSelectedCollectionId={params.collectionId} />
         </CollectionContextProvider>
       </ItemContextProvider>
     </View>

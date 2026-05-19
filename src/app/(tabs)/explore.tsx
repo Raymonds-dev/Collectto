@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   type GestureResponderEvent,
   Image,
@@ -39,34 +40,38 @@ const ExploreScreen = () => {
   const [selectedSpotlight, setSelectedSpotlight] = useState<ExploreSpotlight | null>(null);
   const [categories, setCategories] = useState<ExploreCategory[]>(FALLBACK_CATEGORIES);
   const [spotlights, setSpotlights] = useState<ExploreSpotlight[]>([]);
-  const loadedRef = useRef(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Load categories + spotlights once (debug uses mocks inside service)
+  // Load categories + spotlights from the API, with debug fallback handled in the service.
   useEffect(() => {
-    if (loadedRef.current) return;
-    loadedRef.current = true;
-
     let cancelled = false;
 
     const load = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
       try {
-        const [cats, sp] = await Promise.all([getExploreCategories(), getExploreSpotlights()]);
+        const [cats, sp] = await Promise.all([
+          getExploreCategories(),
+          getExploreSpotlights({ page: 0, size: 24 }),
+        ]);
 
         if (cancelled) return;
 
         setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
 
-        // shuffle once deterministically per load
-        const items = [...sp];
-        for (let i = items.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [items[i], items[j]] = [items[j], items[i]];
-        }
-        setSpotlights(items);
+        setSpotlights(sp);
       } catch {
-        // fallback to mocks on any error
+        if (cancelled) return;
+
         setCategories(FALLBACK_CATEGORIES);
         setSpotlights([]);
+        setLoadError('Não foi possível carregar as informações.');
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -108,6 +113,31 @@ const ExploreScreen = () => {
 
   const handleCloseSheet = () => {
     setSelectedSpotlight(null);
+  };
+
+  const handleRetry = () => {
+    const reload = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const [cats, sp] = await Promise.all([
+          getExploreCategories(),
+          getExploreSpotlights({ page: 0, size: 24 }),
+        ]);
+
+        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
+        setSpotlights(sp);
+      } catch {
+        setCategories(FALLBACK_CATEGORIES);
+        setSpotlights([]);
+        setLoadError('Não foi possível carregar as informações no momento.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void reload();
   };
 
   const handleOpenCollection = (collectionId: string, ownerId?: string) => {
@@ -162,10 +192,37 @@ const ExploreScreen = () => {
         </View>
 
         <View style={styles.scrollContent}>
-          {filteredCards.length ? (
+          {isLoading ? (
+            <View className="items-center px-5 py-10">
+              <ActivityIndicator color={tokens.colors.brand.primary} size="large" />
+              <Text className="mt-3 text-center text-base font-medium text-text-base">
+                Carregando Explorar
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
+                Buscando coleções e itens.
+              </Text>
+            </View>
+          ) : filteredCards.length ? (
             <View className="flex-row gap-2">
               <ExploreColumn cards={leftColumnCards} onOpenCard={handleOpenCard} />
               <ExploreColumn cards={rightColumnCards} onOpenCard={handleOpenCard} />
+            </View>
+          ) : loadError ? (
+            <View className="items-center px-5 py-10">
+              <Ionicons name="cloud-offline-outline" size={28} color={tokens.colors.text.muted} />
+              <Text className="mt-3 text-center text-base font-medium text-text-base">
+                {loadError}
+              </Text>
+
+              <AnimatedPressable
+                accessibilityRole="button"
+                accessibilityLabel="Tentar carregar explorar novamente"
+                onPress={handleRetry}
+                className="mt-4 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
+                <Text className="font-poetsenone text-base text-text-inverse">
+                  Tentar novamente
+                </Text>
+              </AnimatedPressable>
             </View>
           ) : (
             <View className="items-center rounded-3xl border border-dashed border-surface-border bg-surface-card px-5 py-10">

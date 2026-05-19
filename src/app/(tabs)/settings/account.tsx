@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { Alert } from 'react-native';
+import { AxiosError } from 'axios';
 import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -6,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { updateProfile, uploadPhoto } from '@/services/profileService';
+import { getProfileById, persistProfileFilePath, updateProfile, uploadProfilePhoto } from '@/services/profileService';
 
 interface ProfileFormData {
   name: string;
@@ -14,8 +16,22 @@ interface ProfileFormData {
   birthdayDate?: string;
 }
 
+const buildProfilePayload = (
+  currentUser: ReturnType<typeof useAuth>['user'],
+  overrides: Partial<ProfileFormData> & { profilePictureUrl?: string | null }
+) => {
+  return {
+    name: overrides.name ?? currentUser?.name,
+    username: currentUser?.username,
+    bio: currentUser?.bio,
+    profilePictureUrl: overrides.profilePictureUrl ?? currentUser?.profilePictureUrl,
+    profileBackgroundUrl: currentUser?.profileBackgroundUrl,
+    birthdayDate: overrides.birthdayDate ?? currentUser?.birthdayDate,
+  };
+};
+
 export default function AccountScreen() {
-  const { user, updateUserPhoto, updateUserProfile } = useAuth();
+  const { user, updateUserProfile } = useAuth();
   const { requestGallery, galleryGranted } = usePhotoPermissionsFlow();
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [profileData, setProfileData] = useState<ProfileFormData>({
@@ -34,14 +50,9 @@ export default function AccountScreen() {
 
   const handleEditProfile = async (): Promise<void> => {
     try {
-      const updated = await updateProfile({
-        name: profileData.name,
-        birthdayDate: profileData.birthdayDate,
-      });
-      updateUserProfile({
-        name: updated.name,
-        birthdayDate: updated.birthdayDate,
-      });
+      const updated = await updateProfile(buildProfilePayload(user, profileData));
+      const refreshedProfile = await getProfileById(updated.id);
+      updateUserProfile(refreshedProfile);
       setEditProfileVisible(false);
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -65,11 +76,42 @@ export default function AccountScreen() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const selectedImage = result.assets[0];
-      try {
-        const { photoUrl } = await uploadPhoto(selectedImage.uri);
-        updateUserPhoto(photoUrl);
+        try {
+        if (!user?.id) {
+          throw new Error('Usuário não encontrado para atualizar a foto de perfil.');
+        }
+
+        const uploadedPhotoUrl = await uploadProfilePhoto(
+          user.id,
+          selectedImage.uri,
+          selectedImage.mimeType || 'image/jpeg'
+        );
+
+        // Temporary alert to show upload result in-app for debugging
+        Alert.alert('Upload', `upload returned filePath:\n${uploadedPhotoUrl}`);
+
+        try {
+          const updated = await persistProfileFilePath(uploadedPhotoUrl);
+          const refreshedProfile = await getProfileById(updated.id);
+          updateUserProfile(refreshedProfile);
+          Alert.alert('Success', 'Foto atualizada com sucesso');
+        } catch (err) {
+          if (err instanceof Error) {
+            Alert.alert('Erro ao salvar', err.message);
+          } else {
+            Alert.alert('Erro ao salvar', 'Erro desconhecido');
+          }
+          throw err;
+        }
       } catch (error) {
-        console.error('Erro ao fazer upload de foto:', error);
+        if (error instanceof AxiosError) {
+          console.error('Erro ao atualizar foto de perfil (AxiosError):', {
+            status: error.response?.status,
+            data: error.response?.data,
+          });
+        } else {
+          console.error('Erro ao atualizar foto de perfil:', error);
+        }
       }
     }
   };
@@ -80,9 +122,9 @@ export default function AccountScreen() {
         <View className="items-center py-6">
           <Pressable onPress={handleChoosePhoto}>
             <View className="h-32 w-32 items-center justify-center rounded-full bg-brand-100">
-              {user?.photoUrl ? (
+              {user?.profilePictureUrl ? (
                 <Image
-                  source={{ uri: user.photoUrl }}
+                  source={{ uri: user.profilePictureUrl }}
                   className="h-full w-full rounded-full"
                   resizeMode="cover"
                 />

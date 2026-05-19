@@ -3,7 +3,13 @@ import api, { getUserById } from '@/services/api/api';
 import { isDebugModeEnabled, mockExploreService } from '@/services/debug';
 import { debugSession } from '@/services/debug/debugSession';
 import type { CollectionResponse } from '@/types/collections';
-import type { ExploreCategory, ExploreFeedQuery, ExploreSpotlight } from '@/types/explore';
+import type {
+  ExploreAuthorSummary,
+  ExploreCategory,
+  ExploreFeedQuery,
+  ExploreSpotlight,
+  ExploreSpotlightType,
+} from '@/types/explore';
 import type { ItemPageResponse, ItemSummaryResponse } from '@/types/items';
 
 const DEFAULT_EXPLORE_CATEGORIES: ExploreCategory[] = [
@@ -14,6 +20,98 @@ const DEFAULT_EXPLORE_CATEGORIES: ExploreCategory[] = [
 
 const toImageSources = (urls: string[]): ImageSourcePropType[] => {
   return urls.map((url) => ({ uri: url }));
+};
+
+type ExploreSpotlightApiEntry = {
+  id: string;
+  title?: string;
+  subtitle?: string;
+  caption?: string;
+  postType?: ExploreSpotlightType;
+  context?: string;
+  postedBy?: ExploreAuthorSummary | string;
+  postedAt?: string;
+  images?: string[];
+  imageUrls?: string[];
+  tags?: string[];
+  categoryId?: string;
+  collectionId?: string;
+  itemId?: string;
+  height?: number;
+};
+
+type ExploreSpotlightsApiResponse = {
+  content?: ExploreSpotlightApiEntry[];
+  items?: ExploreSpotlightApiEntry[];
+  size?: number;
+  currentPage?: number;
+  hasNext?: boolean;
+  totalElements?: number;
+  totalPages?: number;
+};
+
+const buildExploreParams = (query: ExploreFeedQuery): Record<string, string | number> => {
+  const params: Record<string, string | number> = {
+    page: query.page ?? 0,
+    size: query.size ?? 24,
+  };
+
+  if (query.q) {
+    params.q = query.q;
+  }
+
+  if (query.categoryId) {
+    params.categoryId = query.categoryId;
+  }
+
+  if (query.postType) {
+    params.postType = query.postType;
+  }
+
+  return params;
+};
+
+const resolvePostType = (entry: ExploreSpotlightApiEntry): ExploreSpotlightType => {
+  if (entry.postType) {
+    return entry.postType;
+  }
+
+  return entry.itemId ? 'item' : 'collection';
+};
+
+const resolvePostedBy = (postedBy?: ExploreAuthorSummary | string): string => {
+  if (!postedBy) {
+    return 'collectto';
+  }
+
+  return typeof postedBy === 'string' ? postedBy : postedBy.username;
+};
+
+const mapExploreSpotlight = (entry: ExploreSpotlightApiEntry): ExploreSpotlight => {
+  const postType = resolvePostType(entry);
+  const imageUrls = entry.images || entry.imageUrls || [];
+
+  return {
+    id: entry.id,
+    postType,
+    title: entry.title || entry.caption || entry.subtitle || 'Destaques',
+    subtitle: entry.subtitle || entry.caption || '',
+    caption: entry.caption || entry.subtitle || '',
+    postedBy: resolvePostedBy(entry.postedBy),
+    postedAt: entry.postedAt || 'agora',
+    images: toImageSources(imageUrls.slice(0, 3)),
+    tags: entry.tags || [],
+    categoryId: entry.categoryId || (postType === 'item' ? 'items' : 'collections'),
+    collectionId: entry.collectionId,
+    itemId: entry.itemId,
+    height: entry.height || 214,
+  };
+};
+
+const getExploreSpotlightEntries = (
+  data: ExploreSpotlightsApiResponse
+): ExploreSpotlightApiEntry[] => {
+  return data.content || data.items || [];
 };
 
 const getCollectionById = async (collectionId: string): Promise<CollectionResponse> => {
@@ -116,16 +214,17 @@ export const getExploreCategories = async (): Promise<ExploreCategory[]> => {
 };
 
 export const getExploreSpotlights = async (
-  _query: ExploreFeedQuery = {}
+  query: ExploreFeedQuery = {}
 ): Promise<ExploreSpotlight[]> => {
   if (isDebugModeEnabled()) {
     return mockExploreService.getSpotlights();
   }
 
-  // Ainda não existe endpoint de feed agregado para Explore.
-  // Quando estiver disponível, esta função deve consumir a lista paginada do backend.
-  void _query;
-  throw new Error('Explore feed endpoint is not available yet.');
+  const { data } = await api.get<ExploreSpotlightsApiResponse>('social/explore', {
+    params: buildExploreParams(query),
+  });
+
+  return getExploreSpotlightEntries(data).map(mapExploreSpotlight);
 };
 
 export const getExploreCollectionSpotlight = async (

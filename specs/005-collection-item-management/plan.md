@@ -7,7 +7,14 @@
 
 ## Summary
 
-Implementar telas de edição e ações em massa para `Collection` e `Item`, disponíveis somente para o proprietário. A implementação inicial será integrada ao modo DEBUG (dados em memória) e exporá contratos/serviços compatíveis com a API pública (OpenAPI `/v3/api-docs`) para facilitar futura migração para o backend real. As atualizações de frontend devem usar estruturas de request alinhadas com `UpdateItemRequest` e `UpdateCollectionRequest` (conforme Swagger).
+Implementar telas de edição e ações em massa para `Collection` e `Item`, disponíveis somente para o proprietário. A implementação inicial será integrada ao modo DEBUG (dados em memória) e exporá contratos/serviços compatíveis com a API pública (OpenAPI `/v3/api-docs`) para facilitar futura migração para o backend real.
+
+Estratégia confirmada para esta feature:
+
+- Primeiro entregar DEBUG mode completo (editar, excluir e mover em massa/individual).
+- Exigir endpoints `DELETE` no backend para integração real de exclusão.
+- Tratar movimentação entre coleções como operação DEBUG-first enquanto não existe endpoint dedicado.
+- Usar coleção de sistema fixa por usuário para `Sem categoria`.
 
 ## Technical Context
 
@@ -20,6 +27,35 @@ Implementar telas de edição e ações em massa para `Collection` e `Item`, dis
 **Performance Goals**: Responsive forms (<500ms perceived), bulk operations safe for up to 50 items.  
 **Constraints**: Feature must work in DEBUG mode without external API calls.  
 **Scale/Scope**: Two primary screens (collection edit full-screen, item edit), list + bulk selection UI.
+
+## Delivery Strategy (Debug First)
+
+### Phase A - Debug provider (entrega imediata)
+
+- Implementar `edit`, `delete`, `move` e operações em massa no provider de DEBUG.
+- Operações de exclusão e movimentação atualizam estado em memória e refletem instantaneamente na UI.
+- `Sem categoria` representada por coleção de sistema fixa por usuário.
+
+### Phase B - API integration (futura)
+
+- Reaproveitar os mesmos contratos de serviço usados no DEBUG.
+- Integrar updates com `PATCH /items/update` e `PATCH /collections/update`.
+- Integrar exclusão com endpoints de backend a serem disponibilizados:
+  - `DELETE /items/{itemId}` (ou equivalente)
+  - `DELETE /collections/{collectionId}` com estratégia de itens vinculados
+- Movimentação de item permanece bloqueada para API até endpoint dedicado (ou ajuste oficial de contrato) ser publicado.
+
+## API Gaps & Dependencies
+
+- Gap 1: Não há endpoint explícito para mover item entre coleções.
+  - Decisão: operação disponível apenas em DEBUG na primeira entrega.
+  - Dependência futura: endpoint dedicado de move (`PATCH /items/move` ou equivalente).
+
+- Gap 2: Não há endpoint explícito de exclusão de item/coleção na documentação disponível.
+  - Decisão: criar contratos frontend de exclusão desde já e habilitar integração real quando backend expor os endpoints DELETE.
+
+- Gap 3: Estratégia para `Sem categoria`.
+  - Decisão: coleção de sistema fixa por usuário (não nula), evitando ambiguidades de `collectionId = null`.
 
 ## Constitution Check
 
@@ -65,6 +101,14 @@ src/
 ```
 
 **Structure Decision**: Reuse existing `src/providers` and `src/services` abstractions; add adapter services and screens as new files. Contracts will live in `specs/.../contracts` and be copy-pasted to `src/types/api.ts` during implementation.
+
+### Contract Additions for This Plan
+
+- `contracts/UpdateItemRequest.ts`
+- `contracts/UpdateCollectionRequest.ts`
+- `contracts/DeleteItemRequest.ts`
+- `contracts/DeleteCollectionRequest.ts`
+- `contracts/MoveItemCommand.ts` (debug-first command contract)
 
 ## Complexity Tracking
 

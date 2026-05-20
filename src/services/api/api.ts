@@ -19,18 +19,20 @@ export const updateProfile = async (profileData: UpdateUserRequest): Promise<Aut
 };
 
 export const generatePresignedUploadUrls = async (
-  payload: GenerateUploadUrlsRequest
+  payload: GenerateUploadUrlsRequest,
+  authorization?: string
 ): Promise<GenerateUploadUrlsResponse> => {
-  const { data } = await api.post('uploads/presigned-urls', payload);
-  // Backend may return either an array of file items or an object with a `files` array.
+  const { data } = await api.post('uploads/presigned-urls', payload, {
+    headers: authorization ? { Authorization: authorization } : undefined,
+  });
+
   if (Array.isArray(data)) {
     return data as GenerateUploadUrlsResponse;
   }
 
-  if (data && Array.isArray(data.files)) {
-    return data.files as GenerateUploadUrlsResponse;
+  if (data && typeof data === 'object' && Array.isArray((data as { files?: unknown[] }).files)) {
+    return (data as { files: GenerateUploadUrlsResponse }).files;
   }
 
-  // Fallback: return empty array to avoid runtime crashes; caller should handle missing data.
   return [] as GenerateUploadUrlsResponse;
 };

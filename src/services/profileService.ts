@@ -3,10 +3,10 @@ import { mockAuthService } from '@/services/debug/mockAuthService';
 import api, {
   getUserById as apiGetUserById,
   updateProfile as apiUpdateProfile,
+  generatePresignedUploadUrls,
 } from '@/services/api/api';
-import { AxiosError } from 'axios';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
-import type { GenerateUploadUrlsResponse } from '@/types/uploads';
+import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 
 const resolveFileName = (photoUri: string, contentType: string): string => {
   const lastSegment = photoUri.split('/').pop();
@@ -29,25 +29,30 @@ const toBlob = async (photoUri: string): Promise<Blob> => {
   return response.blob();
 };
 
+const getCurrentAuthorizationHeader = (): string => {
+  const headerValue = api.defaults.headers.common.Authorization;
+
+  if (typeof headerValue !== 'string' || headerValue.trim().length === 0) {
+    throw new Error('Sessão autenticada não encontrada para esta ação. Faça login novamente.');
+  }
+
+  return headerValue.replace(/^"|"$/g, '');
+};
+
 const requestPresignedUpload = async (
   userId: string,
   photoUri: string,
-  contentType: string
+  contentType: string,
+  authorization: string
 ): Promise<GenerateUploadUrlsResponse[number]> => {
-  // Passando o contentType para garantir a extensão correta
   const fileName = resolveFileName(photoUri, contentType);
-
-  const { data } = await api.post('uploads/presigned-urls', {
+  const payload: GenerateUploadUrlsRequest = {
     resourceId: userId,
     context: 'PROFILE_PICTURE',
     files: [{ fileName, contentType }],
-  });
+  };
 
-  const response = Array.isArray(data)
-    ? (data as GenerateUploadUrlsResponse)
-    : data && Array.isArray(data.files)
-      ? (data.files as GenerateUploadUrlsResponse)
-      : [];
+  const response = await generatePresignedUploadUrls(payload, authorization);
 
   if (response.length === 0) {
     throw new Error('O backend não retornou dados para upload da foto.');
@@ -65,23 +70,21 @@ export const uploadProfilePhoto = async (
     return photoUri;
   }
 
-  const { filePath, uploadUrl } = await requestPresignedUpload(userId, photoUri, contentType);
+  const authorization = getCurrentAuthorizationHeader();
+  const { filePath, uploadUrl } = await requestPresignedUpload(
+    userId,
+    photoUri,
+    contentType,
+    authorization
+  );
   const rawBlob = await toBlob(photoUri);
 
-  const typedBlob = new Blob([rawBlob], { type: contentType });
-
-  console.log('--- DEBUG UPLOAD ---');
-  console.log('Upload URL:', uploadUrl);
-  console.log('Content-Type esperado pela URL:', contentType);
-  console.log('Tipo real do Blob forçado:', typedBlob.type);
-
   const uploadResponse = await fetch(uploadUrl, {
-    method: 'POST',
+    method: 'PUT',
     headers: {
-      // É obrigatório enviar exatamente a mesma string que o back-end usou na assinatura
       'Content-Type': contentType,
     },
-    body: typedBlob, // Enviamos o blob recriado com o tipo correto
+    body: rawBlob,
   });
 
   if (!uploadResponse.ok) {
@@ -97,19 +100,34 @@ export const persistProfileFilePath = async (filePath: string) => {
     return mockAuthService.updateProfile({ profilePictureUrl: filePath } as UpdateUserRequest);
   }
 
-  try {
-    const payload = { profilePictureUrl: filePath } as UpdateUserRequest;
+  const baseUrl = api.defaults.baseURL;
 
-    const { data } = await api.patch('users/update', payload);
-
-    return data as UserResponse;
-  } catch (error: unknown) {
-    if (error instanceof AxiosError) {
-      throw error;
-    } else {
-      throw error;
-    }
+  if (!baseUrl) {
+    throw new Error('Base URL da API não configurada.');
   }
+
+  const authorization = getCurrentAuthorizationHeader();
+  const response = await fetch(`${baseUrl}/users/update`, {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      Authorization: authorization,
+    },
+    body: JSON.stringify({ profilePictureUrl: filePath } satisfies UpdateUserRequest),
+  });
+
+  const responseText = await response.text();
+
+  if (!response.ok) {
+    throw new Error(
+      responseText.trim()
+        ? responseText
+        : `Falha ao atualizar a foto de perfil. Status: ${response.status}`
+    );
+  }
+
+  return responseText ? (JSON.parse(responseText) as UserResponse) : ({} as UserResponse);
 };
 
 export const updateProfile = async (data: UpdateUserRequest): Promise<UserResponse> => {

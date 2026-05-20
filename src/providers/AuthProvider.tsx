@@ -57,16 +57,30 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
       ? source.name
       : email.split('@')[0] || 'User';
 
-  const photoUrl =
+  const profilePictureUrl =
     typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
+  const profileBackgroundUrl =
+    typeof source.profileBackgroundUrl === 'string' ? source.profileBackgroundUrl : undefined;
+  const bio = typeof source.bio === 'string' ? source.bio : undefined;
   const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
+  const followersCount =
+    typeof source.followersCount === 'number' ? source.followersCount : undefined;
+  const followingCount =
+    typeof source.followingCount === 'number' ? source.followingCount : undefined;
+  const isActive = typeof source.isActive === 'boolean' ? source.isActive : undefined;
 
   return {
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
     username: name.toLowerCase(),
-    photoUrl,
+    bio,
+    profilePictureUrl,
+    profileBackgroundUrl,
+    photoUrl: profilePictureUrl,
+    followersCount,
+    followingCount,
+    isActive,
     birthdayDate,
     createdAt: new Date().toISOString(),
   };
@@ -196,6 +210,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+const shouldRestorePersistentSession = false;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -206,32 +221,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         if (isDebugModeEnabled()) {
           startDebugSession();
-          const debugUser = await mockAuthService.getCurrentUser();
-          setUser(debugUser);
-          return;
         }
 
-        const token = await getSessionToken();
+        if (shouldRestorePersistentSession) {
+          const token = await getSessionToken();
 
-        if (token) {
-          const cleanToken = token.replace(/^"|"$/g, '');
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          if (token) {
+            const cleanToken = token.replace(/^"|"$/g, '');
+            api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
 
-          const resolvedUserId = resolveUserIdFromToken(cleanToken);
+            const resolvedUserId = resolveUserIdFromToken(cleanToken);
 
-          if (resolvedUserId) {
-            try {
-              const profile = await getUserById(resolvedUserId);
-              setUser(resolveAuthUserFromProfile(profile, profile.email));
-              return;
-            } catch {
-              // Ignore profile hydration failures here and fall back to token claims.
+            if (resolvedUserId) {
+              try {
+                const profile = await getUserById(resolvedUserId);
+                setUser(resolveAuthUserFromProfile(profile, profile.email));
+                return;
+              } catch {
+                // Ignore profile hydration failures here and fall back to token claims.
+              }
             }
-          }
 
-          setUser(resolveAuthUserFromToken(token, 'user@example.com'));
-          return;
+            setUser(resolveAuthUserFromToken(cleanToken, 'user@example.com'));
+            return;
+          }
         }
+
+        await clearSessionToken();
+        delete api.defaults.headers.common['Authorization'];
       } finally {
         setIsLoading(false);
       }
@@ -309,12 +326,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           const cleanToken = accessToken.replace(/^"|"$/g, '');
-          // Persist token immediately so the session survives even if profile hydration fails.
-          await setSessionToken(cleanToken);
+          if (shouldRestorePersistentSession) {
+            await setSessionToken(cleanToken);
+          }
 
-          // Keep the axios instance authenticated for the next request.
+          // Keep the axios instance authenticated for the current app session.
           api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
-          const resolvedUserId = resolveUserIdFromToken(accessToken);
+          const resolvedUserId = resolveUserIdFromToken(cleanToken);
 
           if (resolvedUserId) {
             try {
@@ -326,7 +344,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
           }
 
-          setUser(resolveAuthUserFromToken(accessToken, normalizedEmail));
+          setUser(resolveAuthUserFromToken(cleanToken, normalizedEmail));
           return;
         } catch (error: unknown) {
           throw new Error(resolveErrorMessage(error, '*Falha no login'));

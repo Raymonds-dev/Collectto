@@ -124,9 +124,11 @@ As a user, I want to upload images when creating or editing collections and item
 - **FR-012**: System MUST allow users to delete items via DELETE `/items/{itemId}`
 - **FR-013**: System MUST generate pre-signed upload URLs via POST `/uploads/presigned-urls` for image uploads (contexts: PROFILE_PICTURE, PROFILE_BACKGROUND, COLLECTION, ITEM)
 - **FR-014**: System MUST handle pagination for collections and items lists (page, size, sortBy parameters)
-- **FR-015**: System MUST display appropriate error messages for failed API requests (network errors, validation errors, authorization errors)
-- **FR-016**: System MUST cache profile and collection data with a configurable TTL to reduce API calls during navigation
-- **FR-017**: System MUST validate form inputs before sending requests (e.g., required fields, email format, birth date format: yyyy-MM-dd)
+- **FR-015**: System MUST display context-specific error messages based on HTTP status: 403 → "Sem permissão"; 401 → re-auth flow; 5xx → "Servidor indisponível"; network → "Sem conexão"; default → "Erro ao carregar"
+- **FR-016**: System MUST implement exponential backoff with jitter for transient errors (5xx, network timeouts) with max 5 retries; do NOT retry permanent errors (400, 401, 403)
+- **FR-017**: System MUST implement caching with TTL of 5 minutes using stale-while-revalidate pattern: serve cached data immediately, revalidate in background, update UI when fresh data arrives
+- **FR-018**: System MUST support offline-read mode: cached profile, collection, and item data is accessible without network connection; all write operations (create/update/delete) require active connection
+- **FR-019**: System MUST validate form inputs before sending requests (e.g., required fields, email format, birth date format: yyyy-MM-dd)
 
 ### Key Entities
 
@@ -174,5 +176,23 @@ As a user, I want to upload images when creating or editing collections and item
 
 ### Session 2026-05-19
 
-*Clarifications will be recorded here after the interactive questioning session.*
+- **Q1**: Deve o app suportar visualização de perfis de outros usuários? **A**: Sim, com filtro de visibilidade (opção B) – Usuários podem ver perfis alheios com regras PUBLIC/PRIVATE/FRIENDS aplicadas, incluindo contadores de seguidores para descoberta social.
+- **Q2**: Qual estratégia de cache para perfis e coleções? **A**: Cache com TTL (5 min) + revalidação em background (opção C) – Mostra dados em cache imediatamente; revalida em background silenciosamente; atualiza UI quando novos dados chegam.
+- **Q3**: Estratégia para deletar coleção com itens? **A**: Escolher na confirmação (opção B) – Modal oferece "Deletar tudo" ou "Mover itens para Sem categoria"; usuário escolhe antes de confirmar. *Nota: `deleteWithStrategy` já implementado em `mockCollectionService`; reutilizar.*
+- **Q4**: Tratamento de erros e retry? **A**: Erro específico + ação contextual (opção B) com ressalvas:
+  - **Max Retries**: 5 tentativas padrão
+  - **Jitter**: Pequena variação (exponential backoff com jitter)
+  - **Filtro de Exceções**: Aplicar retry apenas em erros transientes (5xx, timeouts); NÃO aplicar em erros permanentes (400, 401, 403)
+- **Q5**: Suporte a offline e sincronização? **A**: Offline-read apenas (opção A) – Usuário pode VER dados em cache; ações (create/update/delete) exigem conexão online. Evolução futura: offline-first com sync.
+
+### User Story 2 (Updated)
+**Viewing Other Users' Profiles with Visibility Filtering** (Priority: P2)
+
+As an authenticated user, I want to view other users' profiles with appropriate visibility filtering so that I can discover other collectors and their public collections.
+
+**Acceptance Scenarios**:
+1. **Given** a user navigates to another user's profile (via search or collection owner link), **When** the profile loads, **Then** a GET request is sent to `/users/{targetUserId}`
+2. **Given** the target user's profile has PUBLIC visibility, **When** the profile renders, **Then** all profile data is displayed (name, username, bio, picture, background, follower/following counts, collections)
+3. **Given** the target user's profile is PRIVATE, **When** the profile renders, **Then** limited data is shown (name, username, profile picture) with a "Follow to see more" prompt
+4. **Given** the current user is in the target user's FRIENDS follow list, **When** the target profile is FRIENDS visibility, **Then** full profile data is displayed
 

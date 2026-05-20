@@ -69,7 +69,9 @@ export default function UserCreateScreen() {
         return;
       }
       if (!usernameIsValid) {
-        setError('Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).');
+        setError(
+          'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+        );
         return;
       }
       if (!birthdayDate) {

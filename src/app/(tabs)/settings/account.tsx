@@ -1,14 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { AxiosError } from 'axios';
-import { Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { getProfileById, persistProfileFilePath, updateProfile, uploadProfilePhoto } from '@/services/profileService';
+import {
+  persistProfileFilePath,
+  updateProfile,
+  uploadProfilePhoto,
+} from '@/services/profileService';
 
 interface ProfileFormData {
   name: string;
@@ -51,8 +54,7 @@ export default function AccountScreen() {
   const handleEditProfile = async (): Promise<void> => {
     try {
       const updated = await updateProfile(buildProfilePayload(user, profileData));
-      const refreshedProfile = await getProfileById(updated.id);
-      updateUserProfile(refreshedProfile);
+      updateUserProfile(updated);
       setEditProfileVisible(false);
     } catch (error) {
       console.error('Erro ao atualizar perfil:', error);
@@ -68,7 +70,7 @@ export default function AccountScreen() {
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,
@@ -76,7 +78,7 @@ export default function AccountScreen() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const selectedImage = result.assets[0];
-        try {
+      try {
         if (!user?.id) {
           throw new Error('Usuário não encontrado para atualizar a foto de perfil.');
         }
@@ -87,13 +89,9 @@ export default function AccountScreen() {
           selectedImage.mimeType || 'image/jpeg'
         );
 
-        // Temporary alert to show upload result in-app for debugging
-        Alert.alert('Upload', `upload returned filePath:\n${uploadedPhotoUrl}`);
-
         try {
-          const updated = await persistProfileFilePath(uploadedPhotoUrl);
-          const refreshedProfile = await getProfileById(updated.id);
-          updateUserProfile(refreshedProfile);
+          const updatedProfile = await persistProfileFilePath(uploadedPhotoUrl);
+          updateUserProfile(updatedProfile);
           Alert.alert('Success', 'Foto atualizada com sucesso');
         } catch (err) {
           if (err instanceof Error) {

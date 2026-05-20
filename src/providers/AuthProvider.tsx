@@ -1,4 +1,4 @@
-import api from '@/services/api/api';
+import api, { getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
@@ -87,6 +87,32 @@ interface JwtPayloadClaims {
   iat?: number;
 }
 
+const resolveUserIdFromToken = (token: string): string | null => {
+  const claims = decodeJwtPayload(token);
+
+  if (!claims) {
+    return null;
+  }
+
+  if (typeof claims.userId === 'string' && claims.userId.length > 0) {
+    return claims.userId;
+  }
+
+  if (typeof claims.uid === 'string' && claims.uid.length > 0) {
+    return claims.uid;
+  }
+
+  if (typeof claims.id === 'string' && claims.id.length > 0) {
+    return claims.id;
+  }
+
+  if (typeof claims.sub === 'string' && claims.sub.length > 0) {
+    return claims.sub;
+  }
+
+  return null;
+};
+
 const decodeBase64Url = (value: string): string | null => {
   try {
     const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
@@ -126,9 +152,7 @@ const decodeJwtPayload = (token: string): JwtPayloadClaims | null => {
 const resolveAuthUserFromToken = (token: string, fallbackEmail: string): AuthUser => {
   const claims = decodeJwtPayload(token);
   const email =
-    typeof claims?.email === 'string' && claims.email.length > 0
-      ? claims.email
-      : fallbackEmail;
+    typeof claims?.email === 'string' && claims.email.length > 0 ? claims.email : fallbackEmail;
   const nameSource =
     typeof claims?.name === 'string' && claims.name.length > 0
       ? claims.name
@@ -190,7 +214,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await getSessionToken();
 
         if (token) {
+          const cleanToken = token.replace(/^"|"$/g, '');
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+
+          const resolvedUserId = resolveUserIdFromToken(cleanToken);
+
+          if (resolvedUserId) {
+            try {
+              const profile = await getUserById(resolvedUserId);
+              setUser(resolveAuthUserFromProfile(profile, profile.email));
+              return;
+            } catch {
+              // Ignore profile hydration failures here and fall back to token claims.
+            }
+          }
+
           setUser(resolveAuthUserFromToken(token, 'user@example.com'));
           return;
         }
@@ -251,12 +289,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (!loginResponse.ok) {
-            // eslint-disable-next-line no-console
-            console.log('[SIGNIN ERROR] fetch login failed', {
-              status: loginResponse.status,
-              data: responseData,
-            });
-
             throw new Error(
               typeof responseData === 'string' && responseData.trim()
                 ? responseData
@@ -265,7 +297,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           const accessToken =
-            responseData && typeof responseData === 'object' &&
+            responseData &&
+            typeof responseData === 'object' &&
             typeof (responseData as { accessToken?: unknown }).accessToken === 'string' &&
             (responseData as { accessToken: string }).accessToken.length > 0
               ? (responseData as { accessToken: string }).accessToken
@@ -275,27 +308,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error('Token de acesso não retornado pelo backend.');
           }
 
+          const cleanToken = accessToken.replace(/^"|"$/g, '');
           // Persist token immediately so the session survives even if profile hydration fails.
-          await setSessionToken(accessToken);
+          await setSessionToken(cleanToken);
 
           // Keep the axios instance authenticated for the next request.
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+          const resolvedUserId = resolveUserIdFromToken(accessToken);
+
+          if (resolvedUserId) {
+            try {
+              const profile = await getUserById(resolvedUserId);
+              setUser(resolveAuthUserFromProfile(profile, normalizedEmail));
+              return;
+            } catch {
+              // Ignore profile hydration failures here and fall back to token claims.
+            }
+          }
+
           setUser(resolveAuthUserFromToken(accessToken, normalizedEmail));
           return;
         } catch (error: unknown) {
-          // Log the error details for debugging (dev only)
-          try {
-            // eslint-disable-next-line no-console
-            if (error instanceof AxiosError) {
-              console.log('[SIGNIN ERROR] status=', error.response?.status, 'data=', error.response?.data);
-            } else {
-              // eslint-disable-next-line no-console
-              console.log('[SIGNIN ERROR]', error);
-            }
-          } catch (e) {
-            // ignore logging errors
-          }
-
           throw new Error(resolveErrorMessage(error, '*Falha no login'));
         }
       },
@@ -325,7 +358,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           if (!usernameIsValid) {
-            throw new Error('Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).');
+            throw new Error(
+              'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+            );
           }
 
           if (!birthdayDateIsValid) {

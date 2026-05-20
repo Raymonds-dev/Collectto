@@ -1,73 +1,170 @@
-import { useState } from 'react';
-import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { AxiosError } from 'axios';
+import * as ImagePicker from 'expo-image-picker';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
+import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
+import { DatePicker } from '@/components/ui/DatePicker';
+import {
+  persistProfileFilePath,
+  updateProfile,
+  uploadProfilePhoto,
+} from '@/services/profileService';
 
 interface ProfileFormData {
   name: string;
   email: string;
+  birthdayDate?: string;
 }
 
-interface PasswordFormData {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
+const buildProfilePayload = (
+  currentUser: ReturnType<typeof useAuth>['user'],
+  overrides: Partial<ProfileFormData> & { profilePictureUrl?: string | null }
+) => {
+  return {
+    name: overrides.name ?? currentUser?.name,
+    username: currentUser?.username,
+    bio: currentUser?.bio,
+    profilePictureUrl: overrides.profilePictureUrl ?? currentUser?.profilePictureUrl,
+    profileBackgroundUrl: currentUser?.profileBackgroundUrl,
+    birthdayDate: overrides.birthdayDate ?? currentUser?.birthdayDate,
+  };
+};
 
 export default function AccountScreen() {
-  const { user } = useAuth();
+  const { user, updateUserProfile } = useAuth();
+  const { requestGallery, galleryGranted } = usePhotoPermissionsFlow();
   const [editProfileVisible, setEditProfileVisible] = useState(false);
-  const [changePasswordVisible, setChangePasswordVisible] = useState(false);
   const [profileData, setProfileData] = useState<ProfileFormData>({
     name: user?.name || '',
     email: user?.email || '',
-  });
-  const [passwordData, setPasswordData] = useState<PasswordFormData>({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: '',
+    birthdayDate: user?.birthdayDate,
   });
 
-  const handleEditProfile = (): void => {
-    // TODO: API call to update profile
-    console.log('Profile updated:', profileData);
-    setEditProfileVisible(false);
+  useEffect(() => {
+    setProfileData({
+      name: user?.name || '',
+      email: user?.email || '',
+      birthdayDate: user?.birthdayDate,
+    });
+  }, [user]);
+
+  const handleEditProfile = async (): Promise<void> => {
+    try {
+      const updated = await updateProfile(buildProfilePayload(user, profileData));
+      updateUserProfile(updated);
+      setEditProfileVisible(false);
+    } catch (error) {
+      console.error('Erro ao atualizar perfil:', error);
+    }
   };
 
-  const handleChangePassword = (): void => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      console.error('Passwords do not match');
-      return;
+  const handleChoosePhoto = async () => {
+    if (!galleryGranted) {
+      const granted = await requestGallery();
+      if (!granted) {
+        return;
+      }
     }
-    // TODO: API call to change password
-    console.log('Password changed');
-    setChangePasswordVisible(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      const selectedImage = result.assets[0];
+      try {
+        if (!user?.id) {
+          throw new Error('Usuário não encontrado para atualizar a foto de perfil.');
+        }
+
+        const uploadedPhotoUrl = await uploadProfilePhoto(
+          user.id,
+          selectedImage.uri,
+          selectedImage.mimeType || 'image/jpeg'
+        );
+
+        try {
+          const updatedProfile = await persistProfileFilePath(uploadedPhotoUrl);
+          updateUserProfile(updatedProfile);
+          Alert.alert('Success', 'Foto atualizada com sucesso');
+        } catch (err) {
+          if (err instanceof Error) {
+            Alert.alert('Erro ao salvar', err.message);
+          } else {
+            Alert.alert('Erro ao salvar', 'Erro desconhecido');
+          }
+          throw err;
+        }
+      } catch (error) {
+        if (error instanceof AxiosError) {
+          console.error('Erro ao atualizar foto de perfil (AxiosError):', {
+            status: error.response?.status,
+            data: error.response?.data,
+          });
+        } else {
+          console.error('Erro ao atualizar foto de perfil:', error);
+        }
+      }
+    }
   };
 
   return (
     <ScrollView className="flex-1 bg-surface-base">
       <View className="space-y-4 px-4 py-6">
-        {/* Profile Photo Section */}
         <View className="items-center py-6">
-          <View className="h-24 w-24 rounded-full bg-brand-100" />
-          <Text className="mt-4 text-xl font-semibold text-text-base">{user?.name}</Text>
-          <Text className="mt-2 text-sm text-text-muted">{user?.email}</Text>
+          <Pressable onPress={handleChoosePhoto}>
+            <View className="h-32 w-32 items-center justify-center rounded-full bg-brand-100">
+              {user?.profilePictureUrl ? (
+                <Image
+                  source={{ uri: user.profilePictureUrl }}
+                  className="h-full w-full rounded-full"
+                  resizeMode="cover"
+                />
+              ) : (
+                <Ionicons name="camera-outline" size={48} color="#FE5E00" />
+              )}
+              <View className="absolute bottom-0 right-0 rounded-full bg-brand-primary p-2">
+                <Ionicons name="pencil" size={14} color="white" />
+              </View>
+            </View>
+          </Pressable>
+          <Text className="mt-2 font-poetsenone text-3xl text-text-base">{user?.name}</Text>
+          <Text className="text-md mt-2 text-text-muted">{user?.email}</Text>
         </View>
 
-        {/* Profile Information Card */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="text-lg font-semibold text-text-base">Dados Pessoais</Text>
+        <View className="mb-5 rounded-xl border border-surface-border bg-surface-card p-4">
+          <Text className="self-center font-poetsenone text-2xl text-text-base">
+            Dados Pessoais
+          </Text>
 
-          <View className="mt-4 space-y-3">
+          <View className="mt-2 space-y-3">
             <View>
-              <Text className="text-sm font-medium text-text-subtle">Nome</Text>
-              <Text className="mt-1 text-base text-text-base">{user?.name}</Text>
+              <Text className="text-xl font-medium text-text-base">Nome:</Text>
+              <Text className="mt-1 text-lg text-text-base">{user?.name}</Text>
             </View>
 
             <View className="mt-4">
-              <Text className="text-sm font-medium text-text-subtle">E-mail</Text>
-              <Text className="mt-1 text-base text-text-base">{user?.email}</Text>
+              <Text className="text-xl font-medium text-text-base">E-mail:</Text>
+              <Text className="mt-1 text-lg text-text-base">{user?.email}</Text>
+            </View>
+
+            <View className="mt-4">
+              <Text className="text-xl font-medium text-text-base">Data de Nascimento</Text>
+              <Text className="mt-1 text-lg text-text-base">
+                {user?.birthdayDate
+                  ? (() => {
+                      // Backend retorna YYYY-MM-DD, converter para DD/MM/YYYY
+                      const [year, month, day] = user.birthdayDate.split('-');
+                      return day && month && year ? `${day}/${month}/${year}` : 'Não informada';
+                    })()
+                  : 'Não informada'}
+              </Text>
             </View>
           </View>
 
@@ -79,22 +176,8 @@ export default function AccountScreen() {
             onPress={() => setEditProfileVisible(true)}
           />
         </View>
-
-        {/* Security Section */}
-        <View className="rounded-2xl border border-surface-border bg-surface-card p-4">
-          <Text className="text-lg font-semibold text-text-base">Segurança</Text>
-
-          <Button
-            label="Alterar Senha"
-            variant="secondary"
-            size="md"
-            className="mt-4"
-            onPress={() => setChangePasswordVisible(true)}
-          />
-        </View>
       </View>
 
-      {/* Edit Profile Modal */}
       <Modal
         visible={editProfileVisible}
         animationType="slide"
@@ -102,11 +185,11 @@ export default function AccountScreen() {
         onRequestClose={() => setEditProfileVisible(false)}>
         <View className="flex-1 bg-surface-base">
           <View className="flex-1 px-4 py-6">
-            <Text className="text-2xl font-bold text-text-base">Editar Perfil</Text>
+            <Text className="mt-10 text-2xl font-bold text-text-base">Editar Perfil</Text>
 
-            <View className="mt-6 space-y-4">
+            <View className="mt-4 space-y-4">
               <View>
-                <Text className="text-sm font-medium text-text-subtle">Nome Completo</Text>
+                <Text className="text-lg font-medium text-text-subtle">Nome Completo</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Seu nome"
@@ -116,13 +199,23 @@ export default function AccountScreen() {
               </View>
 
               <View>
-                <Text className="text-sm font-medium text-text-subtle">E-mail</Text>
+                <Text className="mt-4 text-lg font-medium text-text-subtle">E-mail</Text>
                 <TextInput
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="seu@email.com"
                   value={profileData.email}
                   onChangeText={(text) => setProfileData({ ...profileData, email: text })}
                   editable={false}
+                />
+              </View>
+
+              <View>
+                <Text className="mb-4 mt-4 text-lg font-medium text-text-subtle">
+                  Data de Nascimento
+                </Text>
+                <DatePicker
+                  value={profileData.birthdayDate}
+                  onDateChange={(date) => setProfileData({ ...profileData, birthdayDate: date })}
                 />
               </View>
             </View>
@@ -141,75 +234,6 @@ export default function AccountScreen() {
                 size="md"
                 className="flex-1"
                 onPress={handleEditProfile}
-              />
-            </View>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Change Password Modal */}
-      <Modal
-        visible={changePasswordVisible}
-        animationType="slide"
-        transparent={false}
-        onRequestClose={() => setChangePasswordVisible(false)}>
-        <View className="flex-1 bg-surface-base">
-          <View className="flex-1 px-4 py-6">
-            <Text className="text-2xl font-bold text-text-base">Alterar Senha</Text>
-
-            <View className="mt-6 space-y-4">
-              <View>
-                <Text className="text-sm font-medium text-text-subtle">Senha Atual</Text>
-                <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Digite sua senha atual"
-                  secureTextEntry
-                  value={passwordData.currentPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, currentPassword: text })
-                  }
-                />
-              </View>
-
-              <View>
-                <Text className="text-sm font-medium text-text-subtle">Nova Senha</Text>
-                <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Digite uma nova senha"
-                  secureTextEntry
-                  value={passwordData.newPassword}
-                  onChangeText={(text) => setPasswordData({ ...passwordData, newPassword: text })}
-                />
-              </View>
-
-              <View>
-                <Text className="text-sm font-medium text-text-subtle">Confirmar Senha</Text>
-                <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="Confirme sua nova senha"
-                  secureTextEntry
-                  value={passwordData.confirmPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, confirmPassword: text })
-                  }
-                />
-              </View>
-            </View>
-
-            <View className="mt-6 flex-row gap-3">
-              <Button
-                label="Cancelar"
-                variant="ghost"
-                size="md"
-                className="flex-1"
-                onPress={() => setChangePasswordVisible(false)}
-              />
-              <Button
-                label="Alterar"
-                variant="primary"
-                size="md"
-                className="flex-1"
-                onPress={handleChangePassword}
               />
             </View>
           </View>

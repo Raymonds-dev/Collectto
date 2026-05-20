@@ -1,4 +1,4 @@
-import api from '@/services/api/api';
+import api, { getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
@@ -6,7 +6,7 @@ import {
 } from '@/services/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { AxiosError } from 'axios';
+import axios, { AxiosError } from 'axios';
 import {
   clearDebugSession,
   isDebugModeEnabled,
@@ -15,30 +15,40 @@ import {
 } from '@/services/debug';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+
   if (error instanceof AxiosError && error.response) {
-    const responseData = error.response.data as { message?: string } | undefined;
-    return responseData?.message || fallbackMessage;
+    const responseData = error.response.data as
+      | { message?: string; error?: string }
+      | string
+      | undefined;
+
+    if (typeof responseData === 'string' && responseData.trim()) {
+      return responseData;
+    }
+
+    if (responseData && typeof responseData === 'object') {
+      return responseData.message || responseData.error || fallbackMessage;
+    }
+
+    if (error.response.status === 403) {
+      return 'A requisição foi recusada pelo servidor';
+    }
+
+    return fallbackMessage;
   }
 
   return fallbackMessage;
 };
 
-const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): AuthUser => {
+const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): AuthUser => {
   if (!payload || typeof payload !== 'object') {
-    return {
-      id: 'local-user',
-      email: fallbackEmail,
-      name: fallbackEmail.split('@')[0] || 'User',
-      username: fallbackEmail.split('@')[0] || 'user',
-      createdAt: new Date().toISOString(),
-    } as AuthUser;
+    return buildMockAuthUser(fallbackEmail);
   }
 
-  const rawPayload = payload as Record<string, unknown>;
-  const source =
-    rawPayload.user && typeof rawPayload.user === 'object'
-      ? (rawPayload.user as Record<string, unknown>)
-      : rawPayload;
+  const source = payload as Record<string, unknown>;
 
   const email =
     typeof source.email === 'string' && source.email.length > 0 ? source.email : fallbackEmail;
@@ -47,13 +57,132 @@ const resolveAuthUserFromLogin = (payload: unknown, fallbackEmail: string): Auth
       ? source.name
       : email.split('@')[0] || 'User';
 
+  const photoUrl =
+    typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
+  const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
+
   return {
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
     username: name.toLowerCase(),
+    photoUrl,
+    birthdayDate,
     createdAt: new Date().toISOString(),
   };
+};
+
+interface JwtPayloadClaims {
+  sub?: string;
+  userId?: string;
+  uid?: string;
+  id?: string;
+  email?: string;
+  name?: string;
+  fullName?: string;
+  username?: string;
+  preferred_username?: string;
+  given_name?: string;
+  family_name?: string;
+  iat?: number;
+}
+
+const resolveUserIdFromToken = (token: string): string | null => {
+  const claims = decodeJwtPayload(token);
+
+  if (!claims) {
+    return null;
+  }
+
+  if (typeof claims.userId === 'string' && claims.userId.length > 0) {
+    return claims.userId;
+  }
+
+  if (typeof claims.uid === 'string' && claims.uid.length > 0) {
+    return claims.uid;
+  }
+
+  if (typeof claims.id === 'string' && claims.id.length > 0) {
+    return claims.id;
+  }
+
+  if (typeof claims.sub === 'string' && claims.sub.length > 0) {
+    return claims.sub;
+  }
+
+  return null;
+};
+
+const decodeBase64Url = (value: string): string | null => {
+  try {
+    const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
+    const paddingLength = (4 - (normalized.length % 4)) % 4;
+    const padded = normalized + '='.repeat(paddingLength);
+
+    if (typeof globalThis.atob !== 'function') {
+      return null;
+    }
+
+    return globalThis.atob(padded);
+  } catch {
+    return null;
+  }
+};
+
+const decodeJwtPayload = (token: string): JwtPayloadClaims | null => {
+  const parts = token.split('.');
+
+  if (parts.length < 2) {
+    return null;
+  }
+
+  const decodedPayload = decodeBase64Url(parts[1]);
+
+  if (!decodedPayload) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(decodedPayload) as JwtPayloadClaims;
+  } catch {
+    return null;
+  }
+};
+
+const resolveAuthUserFromToken = (token: string, fallbackEmail: string): AuthUser => {
+  const claims = decodeJwtPayload(token);
+  const email =
+    typeof claims?.email === 'string' && claims.email.length > 0 ? claims.email : fallbackEmail;
+  const nameSource =
+    typeof claims?.name === 'string' && claims.name.length > 0
+      ? claims.name
+      : typeof claims?.fullName === 'string' && claims.fullName.length > 0
+        ? claims.fullName
+        : typeof claims?.username === 'string' && claims.username.length > 0
+          ? claims.username
+          : email.split('@')[0] || 'User';
+
+  const idSource =
+    typeof claims?.userId === 'string' && claims.userId.length > 0
+      ? claims.userId
+      : typeof claims?.uid === 'string' && claims.uid.length > 0
+        ? claims.uid
+        : typeof claims?.id === 'string' && claims.id.length > 0
+          ? claims.id
+          : typeof claims?.sub === 'string' && claims.sub.length > 0
+            ? claims.sub
+            : email;
+
+  return {
+    id: idSource,
+    email,
+    name: nameSource,
+    username:
+      typeof claims?.username === 'string' && claims.username.length > 0
+        ? claims.username
+        : nameSource.toLowerCase(),
+    createdAt: new Date().toISOString(),
+  } as AuthUser;
 };
 
 interface AuthContextType {
@@ -62,6 +191,8 @@ interface AuthContextType {
   signIn: (credentials: Credentials) => Promise<void>;
   signOut: () => Promise<void>;
   signUp: (data: RegisterData) => Promise<void>;
+  updateUserPhoto: (photoUrl: string) => void;
+  updateUserProfile: (data: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -83,9 +214,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = await getSessionToken();
 
         if (token) {
+          const cleanToken = token.replace(/^"|"$/g, '');
           api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          // NOTE: the original code had USEMOCK fallback here, now removed. We would ideally fetch user from API here.
-          // Since the original code used MOCK_AUTH_BOOTSTRAP_EMAIL if USEMOCK was true, we will just leave it empty for real API unless we have a real /me endpoint.
+
+          const resolvedUserId = resolveUserIdFromToken(cleanToken);
+
+          if (resolvedUserId) {
+            try {
+              const profile = await getUserById(resolvedUserId);
+              setUser(resolveAuthUserFromProfile(profile, profile.email));
+              return;
+            } catch {
+              // Ignore profile hydration failures here and fall back to token claims.
+            }
+          }
+
+          setUser(resolveAuthUserFromToken(token, 'user@example.com'));
+          return;
         }
       } finally {
         setIsLoading(false);
@@ -100,7 +245,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       user,
       signIn: async (credentials: Credentials) => {
-        if (!credentials.email || !credentials.password) {
+        const normalizedEmail = credentials.email.trim().toLowerCase();
+
+        if (!normalizedEmail || !credentials.password) {
           throw new Error('Preencha email e senha.');
         }
 
@@ -112,41 +259,130 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         try {
-          const { data } = await api.post('auth/login', credentials);
+          const baseUrl = api.defaults.baseURL;
+
+          if (!baseUrl) {
+            throw new Error('Base URL da API não configurada.');
+          }
+
+          const loginResponse = await fetch(`${baseUrl}/auth/login`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Accept: 'application/json',
+            },
+            body: JSON.stringify({
+              email: normalizedEmail,
+              password: credentials.password,
+            }),
+          });
+
+          const responseText = await loginResponse.text();
+          let responseData: unknown = null;
+
+          if (responseText) {
+            try {
+              responseData = JSON.parse(responseText) as unknown;
+            } catch {
+              responseData = responseText;
+            }
+          }
+
+          if (!loginResponse.ok) {
+            throw new Error(
+              typeof responseData === 'string' && responseData.trim()
+                ? responseData
+                : 'Falha ao realizar o login'
+            );
+          }
+
           const accessToken =
-            typeof data?.accessToken === 'string' && data.accessToken.length > 0
-              ? data.accessToken
+            responseData &&
+            typeof responseData === 'object' &&
+            typeof (responseData as { accessToken?: unknown }).accessToken === 'string' &&
+            (responseData as { accessToken: string }).accessToken.length > 0
+              ? (responseData as { accessToken: string }).accessToken
               : null;
 
           if (!accessToken) {
             throw new Error('Token de acesso não retornado pelo backend.');
           }
 
-          await setSessionToken(accessToken);
-          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          setUser(resolveAuthUserFromLogin(data, credentials.email));
+          const cleanToken = accessToken.replace(/^"|"$/g, '');
+          // Persist token immediately so the session survives even if profile hydration fails.
+          await setSessionToken(cleanToken);
+
+          // Keep the axios instance authenticated for the next request.
+          api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+          const resolvedUserId = resolveUserIdFromToken(accessToken);
+
+          if (resolvedUserId) {
+            try {
+              const profile = await getUserById(resolvedUserId);
+              setUser(resolveAuthUserFromProfile(profile, normalizedEmail));
+              return;
+            } catch {
+              // Ignore profile hydration failures here and fall back to token claims.
+            }
+          }
+
+          setUser(resolveAuthUserFromToken(accessToken, normalizedEmail));
+          return;
         } catch (error: unknown) {
-          throw new Error(resolveErrorMessage(error, 'Falha no login'));
+          throw new Error(resolveErrorMessage(error, '*Falha no login'));
         }
       },
 
       signUp: async (registerData: RegisterData) => {
         try {
+          const normalizedBirthdayDate = registerData.birthdayDate.trim().split('T')[0];
+          const normalizedPayload: RegisterData = {
+            name: registerData.name.trim(),
+            username: registerData.username.trim().toLowerCase(),
+            email: registerData.email.trim().toLowerCase(),
+            password: registerData.password,
+            birthdayDate: normalizedBirthdayDate,
+          };
+
+          const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedPayload.username);
+          const birthdayDateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(normalizedPayload.birthdayDate);
+
           if (
-            !registerData.email ||
-            !registerData.password ||
-            !registerData.name ||
-            !registerData.username
+            !normalizedPayload.email ||
+            !normalizedPayload.password ||
+            !normalizedPayload.name ||
+            !normalizedPayload.username ||
+            !normalizedPayload.birthdayDate
           ) {
             throw new Error('Preencha todos os campos');
           }
 
+          if (!usernameIsValid) {
+            throw new Error(
+              'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+            );
+          }
+
+          if (!birthdayDateIsValid) {
+            throw new Error('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
+          }
+
           if (isDebugModeEnabled()) {
-            await mockAuthService.register(registerData);
+            await mockAuthService.register(normalizedPayload);
             return;
           }
 
-          await api.post('users/create', registerData);
+          const publicBaseUrl = api.defaults.baseURL;
+          if (!publicBaseUrl) {
+            throw new Error('Base URL da API não configurada.');
+          }
+
+          // Use a public request that does not inherit Authorization from authenticated instance.
+          await axios.post(`${publicBaseUrl}/users/create`, normalizedPayload, {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          });
         } catch (error: unknown) {
           throw new Error(resolveErrorMessage(error, 'Falha ao realizar o cadastro'));
         }
@@ -163,6 +399,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
       },
+      updateUserPhoto: (photoUrl: string) => {
+        setUser((currentUser) => {
+          if (!currentUser) {
+            return null;
+          }
+          return { ...currentUser, profilePictureUrl: photoUrl, photoUrl };
+        });
+      },
+      updateUserProfile: (data: Partial<AuthUser>) => {
+        setUser((currentUser) => {
+          if (!currentUser) {
+            return null;
+          }
+          const nextProfilePictureUrl =
+            typeof data.profilePictureUrl === 'string'
+              ? data.profilePictureUrl
+              : currentUser.profilePictureUrl;
+          const nextPhotoUrl =
+            typeof data.photoUrl === 'string' ? data.photoUrl : nextProfilePictureUrl;
+
+          return {
+            ...currentUser,
+            ...data,
+            profilePictureUrl: nextProfilePictureUrl,
+            photoUrl: nextPhotoUrl,
+          };
+        });
+      },
     }),
     [isLoading, user]
   );
@@ -178,4 +442,16 @@ export function useAuth(): AuthContextType {
   }
 
   return context;
+}
+function buildMockAuthUser(fallbackEmail: string): AuthUser {
+  const email = fallbackEmail || 'user@example.com';
+  const name = email.split('@')[0] || 'User';
+
+  return {
+    id: 'local-user',
+    email,
+    name,
+    username: name.toLowerCase(),
+    createdAt: new Date().toISOString(),
+  } as AuthUser;
 }

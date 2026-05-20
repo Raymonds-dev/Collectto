@@ -1,8 +1,9 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   type GestureResponderEvent,
   Image,
@@ -16,8 +17,9 @@ import {
   View,
 } from 'react-native';
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
-import { MOCK_EXPLORE_CATEGORIES, MOCK_EXPLORE_SPOTLIGHTS } from '@/mocks/explore';
-import type { ExploreCategory, ExploreSpotlight } from '@/mocks/explore';
+import { MOCK_EXPLORE_CATEGORIES as FALLBACK_CATEGORIES } from '@/mocks/explore';
+import type { ExploreCategory, ExploreSpotlight } from '@/types/explore';
+import { getExploreCategories, getExploreSpotlights } from '@/services/api/explore';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 type ExploreColumnProps = {
@@ -36,11 +38,53 @@ const ExploreScreen = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpotlight, setSelectedSpotlight] = useState<ExploreSpotlight | null>(null);
+  const [categories, setCategories] = useState<ExploreCategory[]>(FALLBACK_CATEGORIES);
+  const [spotlights, setSpotlights] = useState<ExploreSpotlight[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  // Load categories + spotlights from the API, with debug fallback handled in the service.
+  useEffect(() => {
+    let cancelled = false;
+
+    const load = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const [cats, sp] = await Promise.all([
+          getExploreCategories(),
+          getExploreSpotlights({ page: 0, size: 24 }),
+        ]);
+
+        if (cancelled) return;
+
+        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
+
+        setSpotlights(sp);
+      } catch {
+        if (cancelled) return;
+
+        setCategories(FALLBACK_CATEGORIES);
+        setSpotlights([]);
+        setLoadError('Não foi possível carregar as informações.');
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredCards = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return MOCK_EXPLORE_SPOTLIGHTS.filter((card) => {
+    return spotlights.filter((card) => {
       const matchesCategory =
         selectedCategoryId === 'all' || card.categoryId === selectedCategoryId;
 
@@ -52,11 +96,13 @@ const ExploreScreen = () => {
         return true;
       }
 
-      const searchableText = [card.title, card.subtitle, ...card.tags].join(' ').toLowerCase();
+      const searchableText = [card.title, card.subtitle, ...(card.tags || [])]
+        .join(' ')
+        .toLowerCase();
 
       return searchableText.includes(normalizedQuery);
     });
-  }, [searchQuery, selectedCategoryId]);
+  }, [searchQuery, selectedCategoryId, spotlights]);
 
   const leftColumnCards = filteredCards.filter((_, index) => index % 2 === 0);
   const rightColumnCards = filteredCards.filter((_, index) => index % 2 === 1);
@@ -69,10 +115,35 @@ const ExploreScreen = () => {
     setSelectedSpotlight(null);
   };
 
-  const handleOpenCollection = (collectionId: string) => {
+  const handleRetry = () => {
+    const reload = async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const [cats, sp] = await Promise.all([
+          getExploreCategories(),
+          getExploreSpotlights({ page: 0, size: 24 }),
+        ]);
+
+        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
+        setSpotlights(sp);
+      } catch {
+        setCategories(FALLBACK_CATEGORIES);
+        setSpotlights([]);
+        setLoadError('Não foi possível carregar as informações no momento.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    void reload();
+  };
+
+  const handleOpenCollection = (collectionId: string, ownerId?: string) => {
     router.push({
       pathname: '/collections/[collectionId]',
-      params: { collectionId },
+      params: { collectionId, ownerId },
     });
     handleCloseSheet();
   };
@@ -82,11 +153,11 @@ const ExploreScreen = () => {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <MotionView className="mb-4" visible presets={['slideDown', 'fade']} duration={260}>
           <View className="mb-3">
-            <Text className="self-center text-center font-poetsenone text-2xl uppercase tracking-[0.04em] text-text-base">
+            <Text className="mt-4 self-center text-center font-poetsenone text-3xl text-text-base">
               Explorar
             </Text>
-            <Text className="text-mg ml-3 mt-2 leading-5 text-text-muted">
-              Encontre itens e coleções que combinam com seu interesse...
+            <Text className="ml-4 mt-2 text-lg leading-5 text-text-muted">
+              Encontre itens e coleções que combinam com você...
             </Text>
           </View>
 
@@ -109,7 +180,7 @@ const ExploreScreen = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.chipsContent}>
-            {MOCK_EXPLORE_CATEGORIES.map((category) => (
+            {categories.map((category) => (
               <CategoryChip
                 key={category.id}
                 category={category}
@@ -121,10 +192,37 @@ const ExploreScreen = () => {
         </View>
 
         <View style={styles.scrollContent}>
-          {filteredCards.length ? (
+          {isLoading ? (
+            <View className="items-center px-5 py-10">
+              <ActivityIndicator color={tokens.colors.brand.primary} size="large" />
+              <Text className="mt-3 text-center text-base font-medium text-text-base">
+                Carregando Explorar
+              </Text>
+              <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
+                Buscando coleções e itens.
+              </Text>
+            </View>
+          ) : filteredCards.length ? (
             <View className="flex-row gap-2">
               <ExploreColumn cards={leftColumnCards} onOpenCard={handleOpenCard} />
               <ExploreColumn cards={rightColumnCards} onOpenCard={handleOpenCard} />
+            </View>
+          ) : loadError ? (
+            <View className="items-center px-5 py-10">
+              <Ionicons name="cloud-offline-outline" size={28} color={tokens.colors.text.muted} />
+              <Text className="mt-3 text-center text-base font-medium text-text-base">
+                {loadError}
+              </Text>
+
+              <AnimatedPressable
+                accessibilityRole="button"
+                accessibilityLabel="Tentar carregar explorar novamente"
+                onPress={handleRetry}
+                className="mt-4 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
+                <Text className="font-poetsenone text-base text-text-inverse">
+                  Tentar novamente
+                </Text>
+              </AnimatedPressable>
             </View>
           ) : (
             <View className="items-center rounded-3xl border border-dashed border-surface-border bg-surface-card px-5 py-10">
@@ -227,7 +325,13 @@ const ExploreScreen = () => {
                 <AnimatedPressable
                   accessibilityRole="button"
                   accessibilityLabel={`Abrir coleção ${selectedSpotlight.title}`}
-                  onPress={() => handleOpenCollection(selectedSpotlight.collectionId)}
+                  onPress={() =>
+                    selectedSpotlight.collectionId &&
+                    handleOpenCollection(
+                      selectedSpotlight.collectionId,
+                      selectedSpotlight.postedById
+                    )
+                  }
                   className="mt-2 min-h-11 items-center justify-center rounded-2xl bg-brand-primary px-4 py-3">
                   <Text className="font-poetsenone text-lg  text-text-inverse">
                     Ver coleção completa
@@ -263,7 +367,7 @@ const ExploreColumn = ({ cards, onOpenCard }: ExploreColumnProps) => {
             <StackedPreview
               images={card.images}
               tags={card.tags}
-              caption={card.caption}
+              caption={card.caption || ''}
               postType={card.postType}
             />
           </View>

@@ -36,9 +36,18 @@ export default function UserCreateScreen() {
   const handleUserCreate = async (): Promise<void> => {
     setError(null);
 
+    const normalizedName = name.trim();
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedUsername = username.trim().toLowerCase();
+    const emailIsValid = /^\S+@\S+\.\S+$/.test(normalizedEmail);
+
     if (step === 1) {
-      if (!name || !email) {
+      if (!normalizedName || !normalizedEmail) {
         setError('Por favor, preencha seu nome e email.');
+        return;
+      }
+      if (!emailIsValid) {
+        setError('Informe um email válido.');
         return;
       }
       if (!date) {
@@ -51,8 +60,30 @@ export default function UserCreateScreen() {
     }
 
     if (step === 2) {
-      if (!username || !password) {
+      const birthdayDate = date;
+      const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedUsername);
+      const birthdayDateIsValid = Boolean(birthdayDate && /^\d{4}-\d{2}-\d{2}$/.test(birthdayDate));
+
+      if (!normalizedUsername || !password) {
         setError('Por favor, preencha seu nome de usuário e senha.');
+        return;
+      }
+      if (!usernameIsValid) {
+        setError(
+          'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+        );
+        return;
+      }
+      if (!birthdayDate) {
+        setError('Selecione sua data de nascimento completa.');
+        return;
+      }
+      if (!birthdayDateIsValid) {
+        setError('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('As senhas não conferem.');
         return;
       }
       if (!termsAccepted) {
@@ -64,7 +95,13 @@ export default function UserCreateScreen() {
         setIsSubmitting(true);
         setError(null);
 
-        await signUp({ name, username, email, password, birthdayDate: date! });
+        await signUp({
+          name: normalizedName,
+          username: normalizedUsername,
+          email: normalizedEmail,
+          password,
+          birthdayDate,
+        });
 
         router.replace('/(auth)/login');
       } catch (registerError) {
@@ -108,11 +145,11 @@ export default function UserCreateScreen() {
               />
 
               <TextInput
+                autoCapitalize="none"
                 className="mt-10 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
                 onChangeText={setEmail}
                 placeholder="EMAIL"
                 placeholderTextColor="#D9D9D9"
-                secureTextEntry
                 style={styles.input}
                 value={email}
                 keyboardType="email-address"

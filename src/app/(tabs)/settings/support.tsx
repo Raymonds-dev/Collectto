@@ -32,9 +32,9 @@ export default function SupportScreen() {
   }
 
   return (
-    <ScrollView className="flex-1 bg-surface-base" contentContainerClassName="gap-6 px-4 py-6">
+    <ScrollView className="flex-1 bg-surface-base" contentContainerClassName="gap-4 px-4 py-6">
       <View>
-        <Text className="font-body text-2xl font-bold text-text-base">Ajuda e Suporte</Text>
+        <Text className="font-poetsenone text-2xl text-text-base">Ajuda e Suporte</Text>
         <Text className="mt-2 text-sm text-text-muted">
           Encontre respostas e suporte para suas dúvidas
         </Text>

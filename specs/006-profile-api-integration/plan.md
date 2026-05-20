@@ -90,7 +90,7 @@ src/
 
 ---
 
-## Phase 0: Outline & Research
+## Phase 0: Research & Validation
 
 **Status**: READY TO EXECUTE
 
@@ -120,7 +120,7 @@ src/
    - Map error handling in debug services
    - Plan production service architecture (no direct mock imports)
 
-### Output: research.md
+**Output**: research.md (consolidates all findings with decisions + rationale)
 
 ---
 
@@ -205,94 +205,192 @@ Update `.github/copilot-instructions.md` with reference to this plan file (betwe
 
 ---
 
-## Phase 2: Implementation (High-Level Breakdown)
+## Phase 1: Setup (Shared Infrastructure)
 
-### P1 Tasks (Foundational)
+**Purpose**: Initialize project structure and foundational patterns
 
-**Task 001: Create profileService**
-- GET `/users/{userId}` with retry logic
-- PATCH `/users/update` with context-specific error handling
-- Integrate with existing auth context for userId
+- [ ] T001 Create directory structure per plan: `src/services/api/`, `src/hooks/`, `src/components/profile/`
+- [ ] T002 Create contract files in `specs/006-profile-api-integration/contracts/`: `profile-service.contract.ts`, `collection-api-service.contract.ts`, `item-api-service.contract.ts`, `upload-service.contract.ts`
+- [ ] T003 [P] Configure TypeScript strict mode validation for new services (update `tsconfig.json` if needed)
 
-**Task 002: Create collectionAPIService**
-- GET `/collections/by-user/{userId}` with pagination
-- POST `/collections/create`, PATCH `/collections/update`, DELETE `/collections/{id}`
-- Handle `deleteWithStrategy` pattern (reference debug service logic, don't import)
+**Checkpoint**: Project structure ready - foundational phase can begin
 
-**Task 003: Create itemAPIService**
-- GET `/items/by-collection/{collectionId}` with pagination
-- GET `/items/{collectionId}/{itemId}` for detail view
-- POST `/items/create`, PATCH `/items/update`, DELETE `/items/{id}`
+---
 
-**Task 004: Create uploadService**
-- POST `/uploads/presigned-urls` with context routing (PROFILE_PICTURE, PROFILE_BACKGROUND, COLLECTION, ITEM)
-- Coordinate with collectionAPIService and itemAPIService for final save
+## Phase 2: Foundational Services & Infrastructure
 
-**Task 005: Implement cache layer with stale-while-revalidate**
-- 5-minute TTL using AsyncStorage
-- Background revalidation hooks (useProfile, useCollections, useItems)
-- Offline-read mode (use cache when offline; block writes)
+**Purpose**: Core services and caching that MUST be complete before ANY user story can be implemented
 
-**Task 006: Refactor ProfileHeader component**
-- Display user data (name, username, bio, pictures, counts)
-- "Edit Profile" button → modal/sheet
-- Loading skeleton while fetching
-- Error state with retry button
+**⚠️ CRITICAL**: No UI work can begin until this phase is complete
 
-**Task 007: Create ProfileEditForm component**
-- Editable fields: name, username, bio, profilePictureUrl, profileBackgroundUrl, birthdayDate
-- Image picker integration
-- Form validation (email, username, date format)
-- Save with retry logic + error feedback
+### Services (No Dependencies on User Stories)
 
-**Task 008: Refactor CollectionsTab component**
-- List user collections from API with pagination
-- Empty state + loading skeleton
-- Collection cards with covers, item count, follower count
-- Edit/Delete actions for each collection
-- Create collection button
+- [ ] T004 Create `src/services/api/profileService.ts` with getProfile() and updateProfile() methods
+- [ ] T005 Create `src/services/api/collectionAPIService.ts` with pagination + CRUD operations
+- [ ] T006 Create `src/services/api/itemAPIService.ts` with pagination + CRUD operations
+- [ ] T007 Create `src/services/api/uploadService.ts` for pre-signed URL flow (POST `/uploads/presigned-urls`)
+- [ ] T008 Implement useRetry hook in `src/hooks/useRetry.ts` (exponential backoff, max 5 retries, filter 400/401/403)
 
-**Task 009: Create CollectionEditModal component**
-- Create or edit collection
-- Fields: name, description, coverImageUrl, visibility, tags
-- Image upload with pre-signed URLs
-- Form validation
+### Cache & Hooks (Depends on T004-T007)
 
-**Task 010: Refactor ItemsGrid component**
-- List collection items with pagination
-- Empty state + loading skeleton
-- Item cards with thumbnails, name, metadata
-- Edit/Delete actions
-- Create item button
+- [ ] T009 [P] Create cache layer utilities in `src/services/cache/` (TTL 5 min, AsyncStorage integration)
+- [ ] T010 [P] Create `src/hooks/useProfile.ts` with stale-while-revalidate pattern (depends on T004, T009)
+- [ ] T011 [P] Create `src/hooks/useCollections.ts` with pagination + cache (depends on T005, T009)
+- [ ] T012 [P] Create `src/hooks/useItems.ts` with pagination + cache (depends on T006, T009)
 
-**Task 011: Create ItemEditModal component**
-- Create or edit item
-- Fields: name, description, acquisitionDate, lastUsedDate, imageFilesUrls, attributes, tags
-- Multi-image upload with pre-signed URLs
-- Form validation + attribute manager
+**Checkpoint**: Services + cache + hooks ready - user story implementation can now begin
 
-**Task 012: Implement error handling + retry layer**
-- useRetry hook (exponential backoff, max 5 retries, filter permanent errors)
-- Context-specific error messages (403 → "No permission", 401 → re-auth, 5xx → "Server unavailable")
-- Retry UI (inline button or banner)
+---
 
-### P2 Tasks (Enhancement)
+## Phase 3: User Story 1 - View & Edit Own Profile (Priority: P1) 🎯 MVP
 
-**Task 013: View other users' profiles**
-- GET `/users/{userId}` with visibility filtering (apply PUBLIC/PRIVATE/FRIENDS logic)
-- Display limited vs full profile based on access level
-- Follow/unfollow actions
+**Goal**: Authenticated user can view and edit their own profile with API integration
 
-**Task 014: Item detail screen with comments/likes**
-- GET `/items/{collectionId}/{itemId}` with full metadata
-- Display likes/comments pagination
-- Like/unlike toggle
-- Comment form (if in scope)
+**Independent Test**: 
+- Navigate to profile screen → data loads from API with skeleton
+- Click "Edit Profile" → form opens with current data
+- Edit fields (name, bio, picture) and save → API updates, UI reflects change
+- Verify form validation (email format, date format)
 
-**Task 015: Collection follow/unfollow**
-- POST `/collections/follow/{collectionId}`
-- DELETE `/collections/follow/{collectionId}` (unfollow)
-- Update UI state + follower count
+### Implementation for User Story 1
+
+- [ ] T013 [P] [US1] Refactor ProfileHeader component `src/components/profile/ProfileHeader.tsx`: display user data, add "Edit" button, show skeleton while loading (depends on T010)
+- [ ] T014 [P] [US1] Create ProfileEditForm component `src/components/profile/ProfileEditForm.tsx`: name, username, bio, profilePictureUrl, birthdayDate fields with validation (depends on T010, T008)
+- [ ] T015 [US1] Integrate image picker for profile picture `src/components/profile/ProfileEditForm.tsx`: use expo-image-picker, generate pre-signed URL via uploadService (depends on T007, T014)
+- [ ] T016 [US1] Connect ProfileEditForm to profileService.updateProfile() in `src/components/profile/ProfileEditForm.tsx`: save on submit, show error/success feedback (depends on T004, T014)
+- [ ] T017 [US1] Add error handling + retry UI to ProfileEditForm `src/components/profile/ProfileEditForm.tsx`: handle 403, 401, 5xx via useRetry (depends on T008, T016)
+- [ ] T018 [US1] Test form validation: email format, username, date format in ProfileEditForm
+- [ ] T019 [US1] Test profile load performance: verify ≤2s on cold cache (SC-001)
+- [ ] T020 [US1] Test edit response time: verify ≤1s after API response (SC-002)
+
+**Checkpoint**: User Story 1 fully functional - profile view/edit works independently
+
+---
+
+## Phase 4: User Story 2 - Manage Collections (Priority: P1)
+
+**Goal**: User can view, create, edit, and delete their collections via API
+
+**Independent Test**:
+- Navigate to Collections tab → list loads from API with pagination (10+ items)
+- Click "New Collection" → modal opens, can create collection
+- Click edit on collection → can update name/description/cover/visibility
+- Click delete → modal prompt for delete strategy (Delete all / Move to Uncategorized)
+
+### Implementation for User Story 2
+
+- [ ] T021 [P] [US2] Refactor CollectionsTab component `src/components/profile/CollectionsTab.tsx`: fetch collections via useCollections hook, display list with pagination (depends on T011)
+- [ ] T022 [P] [US2] Create CollectionEditModal component `src/components/profile/CollectionEditModal.tsx`: create/edit form with name, description, coverImageUrl, visibility, tags fields (depends on T011, T008)
+- [ ] T023 [US2] Integrate image picker for collection cover `src/components/profile/CollectionEditModal.tsx`: generate pre-signed URL, handle upload (depends on T007, T022)
+- [ ] T024 [US2] Connect CollectionEditModal to collectionAPIService `src/components/profile/CollectionEditModal.tsx`: POST (create), PATCH (update), DELETE (delete with strategy) (depends on T005, T022)
+- [ ] T025 [US2] Implement delete strategy modal in CollectionsTab `src/components/profile/CollectionsTab.tsx`: "Delete all items" vs "Move to Uncategorized" choice (depends on T021, T024)
+- [ ] T026 [US2] Add error handling + retry to CollectionsTab `src/components/profile/CollectionsTab.tsx`: handle API errors with useRetry (depends on T008, T021)
+- [ ] T027 [US2] Test collection CRUD operations: create, read, update, delete scenarios
+- [ ] T028 [US2] Test pagination: scroll load 10+ collections smoothly (SC-003)
+- [ ] T029 [US2] Test offline mode: verify collections cached, writes blocked (FR-018)
+
+**Checkpoint**: User Story 2 fully functional - collections management works independently
+
+---
+
+## Phase 5: User Story 3 - Manage Items (Priority: P2)
+
+**Goal**: User can view, create, edit, and delete items within collections
+
+**Independent Test**:
+- From collection detail → ItemsGrid loads items from API with pagination
+- Click "New Item" → modal opens, can create item with images
+- Click edit → can update item details
+- Click delete → item removed from API
+
+### Implementation for User Story 3
+
+- [ ] T030 [P] [US3] Create ItemsGrid component `src/components/profile/ItemsGrid.tsx`: fetch items via useItems hook, display paginated grid (depends on T012)
+- [ ] T031 [P] [US3] Create ItemEditModal component `src/components/profile/ItemEditModal.tsx`: create/edit form with name, description, dates, multi-image URLs, attributes, tags (depends on T012, T008)
+- [ ] T032 [US3] Integrate multi-image picker for items `src/components/profile/ItemEditModal.tsx`: upload multiple images via pre-signed URLs (depends on T007, T031)
+- [ ] T033 [US3] Connect ItemEditModal to itemAPIService `src/components/profile/ItemEditModal.tsx`: POST (create), PATCH (update), DELETE (depends on T006, T031)
+- [ ] T034 [US3] Add attribute manager for items `src/components/profile/ItemEditModal.tsx`: key-value pairs UI (depends on T031)
+- [ ] T035 [US3] Add error handling + retry to ItemsGrid `src/components/profile/ItemsGrid.tsx`: handle API errors with useRetry (depends on T008, T030)
+- [ ] T036 [US3] Test item CRUD operations: create, read, update, delete scenarios
+- [ ] T037 [US3] Test multi-image upload: verify ≤5s for ≤5MB files (SC-004)
+- [ ] T038 [US3] Test pagination: items list smooth scroll (SC-003)
+
+**Checkpoint**: User Story 3 fully functional - items management works independently
+
+---
+
+## Phase 6: User Story 4 - View Other Profiles & Collections (Priority: P2)
+
+**Goal**: Discover and view other users' PUBLIC profiles and collections
+
+**Independent Test**:
+- From collection detail → can navigate to collection owner's profile
+- View other profile with visibility filtering applied (PUBLIC/PRIVATE/FRIENDS)
+- Can follow/unfollow collection
+
+### Implementation for User Story 4
+
+- [ ] T039 [US4] Add visibility filtering logic to profileService `src/services/api/profileService.ts`: apply PUBLIC/PRIVATE/FRIENDS filtering when viewing other profile (depends on T004)
+- [ ] T040 [US4] Create OtherProfileScreen component `src/app/(tabs)/profile/[userId].tsx`: display limited/full profile based on visibility (depends on T039, T013)
+- [ ] T041 [US4] Add follow/unfollow actions to collectionAPIService `src/services/api/collectionAPIService.ts`: POST/DELETE `/collections/follow/{id}` (depends on T005)
+- [ ] T042 [US4] Integrate follow button in CollectionsTab `src/components/profile/CollectionsTab.tsx`: show follow button when viewing other user (depends on T041, T021)
+- [ ] T043 [US4] Test visibility filtering: verify correct access to PUBLIC/PRIVATE/FRIENDS profiles
+
+**Checkpoint**: User Story 4 fully functional - profile discovery works
+
+---
+
+## Phase 7: Polish & Validation
+
+**Purpose**: Cross-cutting concerns and final validation
+
+- [ ] T044 [P] Audit all components for accessibility: touch targets, labels, contrast (SC-009, SC-010)
+- [ ] T045 [P] Audit all components for design system compliance: NativeWind tokens, motion presets, reusable primitives
+- [ ] T046 [P] Performance audit: profile load ≤2s, edit ≤1s, pagination smooth, media upload ≤5s (SC-001–SC-004)
+- [ ] T047 [P] Error injection testing: simulate 400, 401, 403, 5xx, network timeouts; verify user messages (SC-006)
+- [ ] T048 [P] Offline testing: enable offline mode, verify cache read, write blocked (FR-018)
+- [ ] T049 Run `npm run validate`: lint, format, type-check pass
+- [ ] T050 Update documentation: quickstart.md with integration examples + cache behavior
+- [ ] T051 Code review + merge preparation: commit history clean, PR ready
+
+**Checkpoint**: Feature complete and validated - ready for release
+
+---
+
+## Dependencies & Execution Order
+
+### Critical Path
+
+```
+T001-T003 (Setup)
+    ↓
+T004-T012 (Foundational Services + Cache) ⚠️ BLOCKS all UI
+    ↓
+T013-T020 (US1: Profile) → Independent, testable
+    ↓
+T021-T029 (US2: Collections) → Independent, testable
+    ↓
+T030-T038 (US3: Items) → Independent, testable
+    ↓
+T039-T043 (US4: Other Profiles) → Independent, testable
+    ↓
+T044-T051 (Polish & Validation)
+```
+
+### Parallel Opportunities
+
+- **Phase 2**: T009-T012 can run in parallel after T004-T007 complete
+- **Phase 3+**: Once Phase 2 complete, US1-US4 can proceed in parallel (different components, no cross-story dependencies)
+  - Developer A: US1 (T013-T020)
+  - Developer B: US2 (T021-T029)
+  - Developer C: US3 (T030-T038)
+  - Developer D: US4 (T039-T043)
+- **Phase 7**: T044-T050 can mostly run in parallel
+
+### Within Each User Story
+
+- Component refactor [P] tasks can run in parallel if different files
+- Integration tasks sequence: hooks/services → components → error handling → testing
 
 ---
 
@@ -362,28 +460,34 @@ Upon completion:
 - [x] Constitution check passed
 - [x] Technical context documented
 
-### Before Phase 1 Design
+### Before Phase 1 Setup
+- [x] Feature approved for development
 - [ ] research.md complete + all unknowns resolved
 - [ ] API endpoints validated vs OpenAPI spec
-- [ ] Cache infrastructure reviewed
 
-### Before Phase 2 Implementation
-- [ ] data-model.md + contracts complete
-- [ ] quickstart.md written for developers
-- [ ] Agent context updated
-- [ ] Constitution re-checked on designs
+### Before Phase 2 Foundational
+- [ ] research.md + data-model.md complete
+- [ ] Service contracts designed (`/contracts/`)
+- [ ] Cache infrastructure validated
+
+### Before Phase 3+ User Stories
+- [x] Phase 2 (Foundational) 100% complete
+- [ ] All services (profileService, collectionAPIService, itemAPIService, uploadService) created
+- [ ] All hooks (useProfile, useCollections, useItems, useRetry) implemented
+- [ ] Cache layer working with TTL + stale-while-revalidate
 
 ### Before Merge
-- [ ] All P1 tasks complete + tested
+- [ ] All P1 tasks complete + tested (US1, US2)
+- [ ] P2 tasks complete + tested (US3, US4)
 - [ ] Error handling verified (all 5 error scenarios)
-- [ ] Pagination works with 10+ items
-- [ ] Offline-read mode tested
-- [ ] Performance targets met
-- [ ] Accessibility check passed
+- [ ] Pagination works with 10+ items (SC-003)
+- [ ] Offline-read mode tested (FR-018)
+- [ ] Performance targets met (SC-001 to SC-004)
+- [ ] Accessibility check passed (SC-009, SC-010)
 - [ ] Code reviewed + lint/format clean
 - [ ] npm run validate passes
 
 ---
 
-**Status**: Ready for Phase 0 Research  
-**Next Command**: Proceder com planejamento detalhado de tarefas
+**Status**: Ready for Phase 1 Setup  
+**Next Command**: Execute Phase 1 tasks (T001-T003) to initialize project structure

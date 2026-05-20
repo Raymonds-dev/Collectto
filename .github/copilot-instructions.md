@@ -100,9 +100,7 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 - Project rules: AGENTS.md
 
 <!-- SPECKIT START -->
-
 For additional context about technologies to be used, project structure,
 shell commands, and other important information, read the current plan:
 [specs/006-profile-api-integration/plan.md](specs/006-profile-api-integration/plan.md)
-
 <!-- SPECKIT END -->

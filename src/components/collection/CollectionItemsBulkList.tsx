@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Image, Pressable, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -7,6 +7,7 @@ import { tokens } from '@/styles/tailwind/tokens.native';
 import type { ItemResponse } from '@/types/items';
 import type { CollectionResponse } from '@/types/collections';
 import { CollectionSelector } from '@/components/create-item/CollectionSelector';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CollectionItemsBulkListProps {
   items: ItemResponse[];
@@ -34,6 +35,7 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
   const [isMoveModalVisible, setIsMoveModalVisible] = useState(false);
   const [moveTargetId, setMoveTargetId] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const hasSelection = selectedIds.size > 0;
   const allSelected = items.length > 0 && selectedIds.size === items.length;
@@ -187,12 +189,15 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
           renderItem={renderItem}
           showsVerticalScrollIndicator={false}
           className="flex-1"
+          contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 16) }}
         />
       )}
 
       {/* Bulk actions bar (visible when items selected) */}
       {hasSelection && (
-        <View className="flex-row gap-3 border-t border-surface-border bg-surface-canvas px-4 py-3">
+        <View
+          className="flex-row gap-3 border-t border-surface-border bg-surface-canvas px-4 pt-3"
+          style={{ paddingBottom: Math.max(insets.bottom, 12) }}>
           <Button
             variant="secondary"
             label="Mover"
@@ -250,7 +255,7 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
           onConfirm={() => {
             void handleMoveConfirm();
           }}>
-          <View className="mt-4 max-h-[300px]">
+          <ScrollView className="mb-6 mt-4 max-h-[300px]" showsVerticalScrollIndicator={false}>
             <CollectionSelector
               selectedCollectionId={moveTargetId}
               onSelectCollection={setMoveTargetId}
@@ -260,7 +265,7 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
               collections={moveableCollections}
               allowSkip={false}
             />
-          </View>
+          </ScrollView>
         </Modal>
       )}
     </View>

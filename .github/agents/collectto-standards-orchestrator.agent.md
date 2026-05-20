@@ -3,19 +3,7 @@ name: Collectto Standards Orchestrator
 description: 'Use when implementing or refactoring frontend code in Collectto with strict alignment to project standards, product context, and specialized skills. Best for tasks that need coordinated use of animation-semantic-standardization, mock-centralization, and ui-ux-pro-max while enforcing AGENTS and PRODUCTS constraints.'
 argument-hint: 'Qual feature, tela ou fluxo deve ser implementado/refatorado seguindo os padroes do Collectto?'
 tools:
-  [
-    vscode,
-    execute,
-    read,
-    agent,
-    edit,
-    search,
-    web,
-    'github/*',
-    browser,
-    'com.figma.mcp/mcp/*',
-    todo,
-  ]
+  [vscode, execute, read, agent, edit, search, web, browser, 'github/*', todo]
 agents: ['*']
 user-invocable: true
 disable-model-invocation: false

@@ -6,6 +6,7 @@ import { PhotoPicker } from '@/components/create-item/PhotoPicker';
 import { CollectionCoverPreview } from '@/components/create-item/CollectionCoverPreview';
 import type { CollectionResponse, CollectionVisibility } from '@/types/collections';
 import type { LocalPhotoReference } from '@/types/photo-storage';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface CollectionEditFormProps {
   collection: CollectionResponse;
@@ -50,6 +51,7 @@ export const CollectionEditForm: React.FC<CollectionEditFormProps> = ({
   const [keepExistingCover, setKeepExistingCover] = useState(!!collection.coverImageURL);
   const [tags, setTags] = useState<string[]>(collection.tags || []);
   const [formErrors, setFormErrors] = useState<FormErrors>({});
+  const insets = useSafeAreaInsets();
 
   const validate = (): boolean => {
     const nextErrors: FormErrors = {};
@@ -90,7 +92,8 @@ export const CollectionEditForm: React.FC<CollectionEditFormProps> = ({
   return (
     <ScrollView
       className="flex-1 bg-surface-canvas"
-      contentContainerClassName="gap-4 px-4 py-6 pb-24"
+      contentContainerClassName="gap-4 px-4 py-6"
+      contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 24) }}
       showsVerticalScrollIndicator={false}>
       <Text className="font-poetsenone text-xl text-brand-primary">Editar coleção</Text>
 

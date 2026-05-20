@@ -111,7 +111,7 @@ npm run validate
 6. Para estados invalidos ou faltantes, aplique fallback seguro, escondendo a acao privilegiada e exibindo apenas opcoes publicas.
 7. Escreva tipagem explicita para estados de permissao, usando union types quando houver mais de dois perfis.
 
-## 9. Acessibilidade minima
+## 9. Acessibilidade
 
 1. Todo botao deve ter `accessibilityRole` e `accessibilityLabel`.
 2. Garanta area de toque adequada com `hitSlop` quando necessario.

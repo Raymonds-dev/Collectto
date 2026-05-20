@@ -10,7 +10,7 @@ description: "Task list for Profile Screen API Integration (feature 006)"
 
 **Branch**: `agents/integracao-perfil-api-colecoes-itens`
 
-**Total Tasks**: 51 | **Organized by**: 7 phases + user stories
+**Total Tasks**: 52 | **Organized by**: 7 phases + user stories
 
 ---
 
@@ -20,7 +20,7 @@ Profile Screen API Integration delivers comprehensive user profile management wi
 - **Phase 1: Setup** (3 tasks)
 - **Phase 2: Foundational** (9 tasks) ⚠️ **CRITICAL - BLOCKS all UI**
 - **Phase 3: User Story 1** - Profile View/Edit (P1, 8 tasks)
-- **Phase 4: User Story 2** - Collections (P1, 9 tasks)
+- **Phase 4: User Story 2** - Collections (P1, 10 tasks)
 - **Phase 5: User Story 3** - Items (P2, 9 tasks)
 - **Phase 6: User Story 4** - Other Profiles (P2, 5 tasks)
 - **Phase 7: Polish** (8 tasks)
@@ -103,12 +103,13 @@ Profile Screen API Integration delivers comprehensive user profile management wi
 
 - [ ] T021 [P] [US2] Refactor `src/components/profile/CollectionsTab.tsx`: fetch collections via `useCollections()` hook, display list with pagination (load next page on scroll), show empty state + skeleton during load (depends on T011)
 - [ ] T022 [P] [US2] Create `src/components/profile/CollectionEditModal.tsx`: create/edit form with name, description, coverImageUrl, visibility (PUBLIC/PRIVATE/FRIENDS), tags fields, form validation, cancel/save buttons (depends on T011, T008)
-- [ ] T023 [US2] Integrate image picker for collection cover in `src/components/profile/CollectionEditModal.tsx`: use `expo-image-picker`, generate pre-signed URL, handle S3 upload, include URL in collection create/update (depends on T007, T022)
-- [ ] T024 [US2] Connect CollectionEditModal to `collectionAPIService` in `src/components/profile/CollectionEditModal.tsx`: POST (create), PATCH (update), handle responses, invalidate cache (depends on T005, T022)
-- [ ] T025 [US2] Implement delete strategy modal in `src/components/profile/CollectionsTab.tsx`: on delete, show modal with 2 options ("Delete all items" or "Move to Uncategorized"), handle each strategy via `deleteWithStrategy()` (depends on T021, T024)
+- [ ] T023 [US2] Integrate image picker for collection cover in `src/components/profile/CollectionEditModal.tsx`: use `expo-image-picker`, generate pre-signed URL via T007, handle S3 upload, include URL in collection create/update (depends on T007, T022)
+- [ ] T024 [US2] Implement collection create flow in `src/components/profile/CollectionEditModal.tsx`: POST `/collections/create` via `collectionAPIService`, handle form submit, show loading state, invalidate cache on success, display success message (depends on T005, T023)
+- [ ] T024a [US2] Implement collection update flow in `src/components/profile/CollectionEditModal.tsx`: PATCH `/collections/update` via `collectionAPIService`, handle form submit with changed fields only, invalidate cache on success (depends on T005, T024)
+- [ ] T025 [US2] Implement collection delete with strategy in `src/components/profile/CollectionsTab.tsx`: on delete, show modal with 2 options ("Delete all items" or "Move to Uncategorized"), call `deleteWithStrategy()` with selected strategy, invalidate cache (depends on T005, T021)
 - [ ] T026 [US2] Add collection form validation in `src/utils/validation.ts`: name required (1-100 chars), description optional (max 500 chars), tags max 10 each 1-30 chars (depends on T018)
 - [ ] T027 [US2] Add error handling + retry to CollectionsTab in `src/components/profile/CollectionsTab.tsx`: handle API errors (403, 404, 5xx) via useRetry, show error banner with retry button (depends on T008, T021)
-- [ ] T028 [US2] Test collection CRUD: create, read, update, delete scenarios with mock/real API
+- [ ] T028 [US2] Test collection CRUD: create, read, update, delete scenarios with mock/real API (verify all 4 operations work independently)
 - [ ] T029 [US2] Test pagination: scroll load 10+ collections without lag (manual performance check)
 
 **Checkpoint**: User Story 2 fully functional - collections management works independently
@@ -329,5 +330,5 @@ T019-T020 Testing (manual)
 
 ---
 
-**Total**: 51 tasks across 7 phases | **MVP scope**: Phase 1 + Phase 2 + Phase 3 (US1) = ~20 tasks | **Full scope**: All phases (51 tasks)
+**Total**: 52 tasks across 7 phases | **MVP scope**: Phase 1 + Phase 2 + Phase 3 (US1) = ~20 tasks | **Full scope**: All phases (52 tasks)
 

@@ -62,7 +62,7 @@ As a profile owner, I want to view all my collections on a dedicated tab/section
 
 ---
 
-### User Story 4 - View and Manage Items Within Collections (Priority: P2)
+### User Story 3 - View and Manage Items Within Collections (Priority: P2)
 
 As a collection owner, I want to view all items in a specific collection, with options to add new items, edit, or delete existing items, so that I can organize and maintain my collection contents.
 
@@ -77,22 +77,26 @@ As a collection owner, I want to view all items in a specific collection, with o
 3. **Given** the user is viewing their own item, **When** they tap "Edit Item", **Then** the edit item modal/screen opens with current item data
 4. **Given** the user is editing an item, **When** they modify fields (name, description, attributes, tags, images, dates) and save, **Then** a PATCH request is sent to `/items/update`
 5. **Given** the user taps "Delete Item", **When** a confirmation dialog appears and they confirm, **Then** a DELETE request is sent to `/items/{itemId}`
+6. **Given** a user is creating/editing an item, **When** they select images to upload, **Then** a POST request is sent to `/uploads/presigned-urls` for each image; pre-signed URLs are returned and the client uploads via PUT; URLs are included in the item create/update request
+7. **Given** an item has multiple images, **When** the user is editing, **Then** they can add/remove/reorder images; uploads and removals are atomic (all succeed or all fail on save)
+8. **Given** an item upload fails, **When** the user retries, **Then** the system reuses cached pre-signed URLs if fresh, or generates new ones after 15 minutes
 
 ---
 
-### User Story 5 - Upload and Manage Media (Collections & Items) (Priority: P2)
+### User Story 4 - View Other Profiles with Visibility Filtering (Priority: P2)
 
-As a user, I want to upload images when creating or editing collections and items, using secure pre-signed URLs from the API, so that my collections and items are visually represented.
+As an authenticated user, I want to view other users' profiles with appropriate visibility filtering so that I can discover other collectors and their public collections.
 
-**Why this priority**: Media management is important for UX but can be deferred after core CRUD operations are implemented.
+**Why this priority**: Secondary to own profile management; enables discovery and social features.
 
-**Independent Test**: Can be tested by attempting to upload an image during collection/item creation and verifying the file is uploaded to the correct S3 location via pre-signed URL.
+**Independent Test**: Can be tested by navigating to another user's profile and verifying visibility rules are applied (PUBLIC → all data, PRIVATE → limited data, FRIENDS → conditional access).
 
 **Acceptance Scenarios**:
 
-1. **Given** a user is creating/editing a collection or item, **When** they select an image to upload, **Then** a POST request is sent to `/uploads/presigned-urls` with the file metadata (fileName, contentType, context, resourceId)
-2. **Given** pre-signed URLs are returned, **When** the user's device uploads the file to the returned URL, **Then** the image is stored in the backend and the upload completes without errors
-3. **Given** the upload is complete, **When** the user saves the collection/item, **Then** the image URL(s) are included in the request body
+1. **Given** a user navigates to another user's profile (via search or collection owner link), **When** the profile loads, **Then** a GET request is sent to `/users/{targetUserId}`
+2. **Given** the target user's profile has PUBLIC visibility, **When** the profile renders, **Then** all profile data is displayed (name, username, bio, picture, background, follower/following counts, collections)
+3. **Given** the target user's profile is PRIVATE, **When** the profile renders, **Then** limited data is shown (name, username, profile picture) with a "Follow to see more" prompt
+4. **Given** the current user is in the target user's FRIENDS follow list, **When** the target profile is FRIENDS visibility, **Then** full profile data is displayed
 
 ---
 
@@ -184,15 +188,3 @@ As a user, I want to upload images when creating or editing collections and item
   - **Jitter**: Pequena variação (exponential backoff com jitter)
   - **Filtro de Exceções**: Aplicar retry apenas em erros transientes (5xx, timeouts); NÃO aplicar em erros permanentes (400, 401, 403)
 - **Q5**: Suporte a offline e sincronização? **A**: Offline-read apenas (opção A) – Usuário pode VER dados em cache; ações (create/update/delete) exigem conexão online. Evolução futura: offline-first com sync.
-
-### User Story 2 (Updated)
-**Viewing Other Users' Profiles with Visibility Filtering** (Priority: P2)
-
-As an authenticated user, I want to view other users' profiles with appropriate visibility filtering so that I can discover other collectors and their public collections.
-
-**Acceptance Scenarios**:
-1. **Given** a user navigates to another user's profile (via search or collection owner link), **When** the profile loads, **Then** a GET request is sent to `/users/{targetUserId}`
-2. **Given** the target user's profile has PUBLIC visibility, **When** the profile renders, **Then** all profile data is displayed (name, username, bio, picture, background, follower/following counts, collections)
-3. **Given** the target user's profile is PRIVATE, **When** the profile renders, **Then** limited data is shown (name, username, profile picture) with a "Follow to see more" prompt
-4. **Given** the current user is in the target user's FRIENDS follow list, **When** the target profile is FRIENDS visibility, **Then** full profile data is displayed
-

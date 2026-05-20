@@ -4,7 +4,9 @@ import api, {
   getUserById as apiGetUserById,
   updateProfile as apiUpdateProfile,
   generatePresignedUploadUrls,
+  getAuthenticatedUser,
 } from '@/services/api/api';
+import { AxiosError } from 'axios';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 
@@ -39,6 +41,68 @@ const getCurrentAuthorizationHeader = (): string => {
   return headerValue.replace(/^"|"$/g, '');
 };
 
+type JwtClaims = {
+  sub?: string;
+  userId?: string;
+  uid?: string;
+  id?: string;
+};
+
+const isUuid = (value: string): boolean => {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+};
+
+const decodeJwtClaims = (token: string): JwtClaims | null => {
+  const parts = token.split('.');
+
+  if (parts.length < 2 || typeof globalThis.atob !== 'function') {
+    return null;
+  }
+
+  try {
+    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+    const paddingLength = (4 - (normalized.length % 4)) % 4;
+    const padded = normalized + '='.repeat(paddingLength);
+    const decoded = globalThis.atob(padded);
+    return JSON.parse(decoded) as JwtClaims;
+  } catch {
+    return null;
+  }
+};
+
+const resolveUploadResourceId = (fallbackUserId: string, authorization: string): string => {
+  const token = authorization.replace(/^Bearer\s+/i, '').trim();
+  const claims = decodeJwtClaims(token);
+  const candidates = [claims?.userId, claims?.uid, claims?.id, claims?.sub].filter(
+    (value): value is string => typeof value === 'string' && value.length > 0
+  );
+  const resolved = candidates.find((value) => isUuid(value));
+
+  return resolved ?? fallbackUserId;
+};
+
+const ensureUuidResourceId = async (
+  fallbackUserId: string,
+  authorization: string
+): Promise<string> => {
+  const resolved = resolveUploadResourceId(fallbackUserId, authorization);
+
+  if (isUuid(resolved)) {
+    return resolved;
+  }
+
+  try {
+    const currentUser = await getAuthenticatedUser();
+    if (currentUser?.id && isUuid(currentUser.id)) {
+      return currentUser.id;
+    }
+  } catch (error) {
+    console.warn('[upload] failed to resolve user id from /users/me', error);
+  }
+
+  return resolved;
+};
+
 const requestPresignedUpload = async (
   userId: string,
   photoUri: string,
@@ -46,13 +110,48 @@ const requestPresignedUpload = async (
   authorization: string
 ): Promise<GenerateUploadUrlsResponse[number]> => {
   const fileName = resolveFileName(photoUri, contentType);
+  const resourceId = await ensureUuidResourceId(userId, authorization);
   const payload: GenerateUploadUrlsRequest = {
-    resourceId: userId,
+    resourceId,
     context: 'PROFILE_PICTURE',
     files: [{ fileName, contentType }],
   };
 
-  const response = await generatePresignedUploadUrls(payload, authorization);
+  let response: GenerateUploadUrlsResponse = [] as GenerateUploadUrlsResponse;
+
+  try {
+    console.info('[upload] presigned request payload', {
+      resourceId: payload.resourceId,
+      context: payload.context,
+      fileName,
+      contentType,
+    });
+    if (payload.resourceId !== userId) {
+      console.info('[upload] resolved resourceId from token claims');
+    }
+    console.info('[upload] presigned auth header', {
+      hasAuth: Boolean(authorization),
+      prefix: authorization.split(' ')[0] || 'missing',
+      length: authorization.length,
+    });
+    response = await generatePresignedUploadUrls(payload, authorization);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      const responseData = error.response?.data;
+      const responseBody =
+        typeof responseData === 'string'
+          ? responseData
+          : responseData
+            ? JSON.stringify(responseData)
+            : 'Sem detalhes';
+      throw new Error(
+        `Falha ao gerar URL pre-signed. Status: ${error.response?.status ?? 'desconhecido'}. ` +
+          `Resposta: ${responseBody}`
+      );
+    }
+
+    throw error;
+  }
 
   if (response.length === 0) {
     throw new Error('O backend não retornou dados para upload da foto.');

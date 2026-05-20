@@ -13,6 +13,11 @@ export const getUserById = async (userId: string): Promise<AuthUser> => {
   return data as AuthUser;
 };
 
+export const getAuthenticatedUser = async (): Promise<AuthUser> => {
+  const { data } = await api.get('users/me');
+  return data as AuthUser;
+};
+
 export const updateProfile = async (profileData: UpdateUserRequest): Promise<AuthUser> => {
   const { data } = await api.patch('users/update', profileData);
   return data as AuthUser;

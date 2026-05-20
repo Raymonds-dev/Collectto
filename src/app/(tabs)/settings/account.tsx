@@ -107,6 +107,8 @@ export default function AccountScreen() {
             status: error.response?.status,
             data: error.response?.data,
           });
+        } else if (error instanceof Error) {
+          console.error('Erro ao atualizar foto de perfil:', error.message);
         } else {
           console.error('Erro ao atualizar foto de perfil:', error);
         }

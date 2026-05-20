@@ -21,6 +21,8 @@ interface CreateItemFlowProps {
   onClose?: () => void;
   /** Callback function when an item is successfully created. */
   onSuccess?: () => void;
+  /** Collection ID to pre-select, bypassing the collection selection step. */
+  preSelectedCollectionId?: string;
 }
 
 /**
@@ -101,7 +103,11 @@ class CreateItemFlowErrorBoundary extends React.Component<ErrorBoundaryProps, Er
  * @param props - The component props.
  * @returns A React component for the flow's content.
  */
-const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSuccess }) => {
+const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({
+  onClose,
+  onSuccess,
+  preSelectedCollectionId,
+}) => {
   const { formData, localPhotos, addPhotos, removePhoto, setFormField, selectCollection, reset } =
     useItemCreation();
   const collectionService = useCollectionService();
@@ -151,11 +157,15 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
     isMountedRef.current = true;
     loadCollections();
 
+    if (preSelectedCollectionId) {
+      selectCollection(preSelectedCollectionId);
+    }
+
     return () => {
       isMountedRef.current = false;
       reset();
     };
-  }, [loadCollections, reset]);
+  }, [loadCollections, reset, preSelectedCollectionId, selectCollection]);
 
   const handleCollectionCreated = useCallback(
     (collection: Collection): void => {
@@ -220,7 +230,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
       // Request child form validation via ref so it can display errors
       const valid = metadataFormRef.current?.validate() ?? true;
       if (valid) {
-        setCurrentStep('collection');
+        setCurrentStep(preSelectedCollectionId ? 'preview' : 'collection');
       }
       return;
     }
@@ -239,7 +249,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
     }
 
     if (currentStep === 'preview') {
-      setCurrentStep('collection');
+      setCurrentStep(preSelectedCollectionId ? 'details' : 'collection');
     }
   };
 
@@ -265,10 +275,18 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
     <View className="flex-1 bg-surface-canvas">
       <View>
         <CreateItemStepper
-          steps={STEP_CONFIG}
+          steps={
+            preSelectedCollectionId
+              ? STEP_CONFIG.filter((s) => s.key !== 'collection')
+              : STEP_CONFIG
+          }
           activeStepKey={currentStep}
           onStepPress={(stepKey) => {
-            if (stepKey === 'details' || stepKey === 'collection' || stepKey === 'preview') {
+            if (
+              stepKey === 'details' ||
+              (!preSelectedCollectionId && stepKey === 'collection') ||
+              stepKey === 'preview'
+            ) {
               goToStep(stepKey);
             }
           }}
@@ -316,7 +334,10 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
         ) : null}
 
         {currentStep === 'collection' ? (
-          <View className="flex-1" style={{ paddingBottom: insets.bottom + 100 }}>
+          <ScrollView
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
             <CollectionCreationForm
               selectedCollectionId={formData.collectionId}
               onSelectCollection={selectCollection}
@@ -326,7 +347,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
               error={collectionsError}
               allowSkip
             />
-          </View>
+          </ScrollView>
         ) : null}
 
         {currentStep === 'preview' ? (
@@ -352,7 +373,7 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({ onClose, onSucce
 
       <View
         className="border-t border-surface-border bg-surface-canvas px-4 pt-3"
-        style={{ paddingBottom: insets.bottom }}>
+        style={{ paddingBottom: Math.max(insets.bottom, 16) }}>
         <View className="flex-row gap-3">
           <Button
             variant="secondary"

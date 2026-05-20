@@ -1,7 +1,6 @@
-import { Tabs } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import { Tabs } from 'expo-router';
 import { createItemCollectionProviders as Providers } from '@/providers';
-// no react-native primitives required in this layout
 
 export default function TabsLayout() {
   return (
@@ -41,6 +40,7 @@ export default function TabsLayout() {
           options={{
             title: 'Criar Item',
             href: '/(tabs)/create-item',
+            tabBarStyle: { display: 'none' },
             tabBarIcon: ({ color, size, focused }) => (
               <Ionicons name={focused ? 'add' : 'add-outline'} size={size + 4} color={color} />
             ),
@@ -74,15 +74,7 @@ export default function TabsLayout() {
             ),
           }}
         />
-        <Tabs.Screen
-          name="collections/[collectionId]"
-          options={{
-            href: null,
-          }}
-        />
       </Tabs>
     </Providers>
   );
 }
-
-// layout styles removed — tabBarButton implemented inline when needed

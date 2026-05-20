@@ -18,6 +18,20 @@ export const SEED_PROFILE = {
   createdAt: new Date().toISOString(),
 };
 
+export const SEED_UNCATEGORIZED_COLLECTION = {
+  id: 'uncategorized-0000-4000-8000-000000000000',
+  userId: SEED_PROFILE.id,
+  name: 'Sem categoria',
+  description: 'Itens sem coleção definida.',
+  visibility: 'PRIVATE',
+  followersCount: 0,
+  tags: [],
+  isActive: true,
+  isSystem: true,
+  createdAt: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString(),
+  updatedAt: new Date().toISOString(),
+};
+
 export const SEED_COLLECTIONS = [
   {
     id: '11111111-0000-4000-8000-000000000000',
@@ -73,6 +87,7 @@ export const SEED_COLLECTIONS = [
     createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
     updatedAt: new Date().toISOString(),
   },
+  SEED_UNCATEGORIZED_COLLECTION,
 ];
 
 export const SEED_ITEMS = [

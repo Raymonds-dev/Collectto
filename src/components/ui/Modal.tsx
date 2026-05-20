@@ -25,6 +25,8 @@ export interface ModalProps {
   type?: ModalType;
   /** Optional icon to display at the top */
   iconName?: keyof typeof Ionicons.glyphMap;
+  /** Optional custom content rendered between description and action buttons */
+  children?: React.ReactNode;
 }
 
 const typeConfig = {
@@ -61,6 +63,7 @@ export const Modal = ({
   onConfirm,
   type = 'info',
   iconName,
+  children,
 }: ModalProps) => {
   const config = typeConfig[type];
 
@@ -80,6 +83,8 @@ export const Modal = ({
           {description && (
             <Text className="mb-6 text-base leading-6 text-text-muted">{description}</Text>
           )}
+
+          {children}
 
           <View className="flex-row gap-3">
             {onClose && cancelText && (

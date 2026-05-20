@@ -249,7 +249,7 @@ export default function FeedScreen() {
       }
 
       router.push({
-        pathname: '/(tabs)/collections/[collectionId]',
+        pathname: '/collections/[collectionId]',
         params: {
           collectionId: post.item.collectionId,
           from: 'feed',

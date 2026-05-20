@@ -142,7 +142,7 @@ const ExploreScreen = () => {
 
   const handleOpenCollection = (collectionId: string, ownerId?: string) => {
     router.push({
-      pathname: '/(tabs)/collections/[collectionId]',
+      pathname: '/collections/[collectionId]',
       params: { collectionId, ownerId },
     });
     handleCloseSheet();

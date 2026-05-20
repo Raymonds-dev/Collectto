@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { createItemCollectionProviders as Providers } from '@/providers';
 
 void SplashScreen.preventAutoHideAsync();
 
@@ -59,16 +60,18 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
         <AuthProvider>
-          <AuthGate />
-          <Stack
-            screenOptions={{
-              headerShown: false,
-              animation: 'fade',
-              gestureEnabled: true,
-            }}>
-            <Stack.Screen name="(auth)" />
-            <Stack.Screen name="(tabs)" />
-          </Stack>
+          <Providers>
+            <AuthGate />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                animation: 'fade',
+                gestureEnabled: true,
+              }}>
+              <Stack.Screen name="(auth)" />
+              <Stack.Screen name="(tabs)" />
+            </Stack>
+          </Providers>
         </AuthProvider>
         <StatusBar style="auto" />
       </SafeAreaView>

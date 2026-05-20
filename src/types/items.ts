@@ -19,6 +19,30 @@ export interface UpdateItemRequest {
   tags?: string[];
 }
 
+export interface MoveItemCommand {
+  itemId: string;
+  targetCollectionId: string;
+  sourceCollectionId?: string;
+}
+
+export interface MoveItemsBulkCommand {
+  itemIds: string[];
+  targetCollectionId: string;
+  sourceCollectionId?: string;
+}
+
+export interface MoveItemsResponse {
+  success: boolean;
+  movedItemIds: string[];
+  failedItemIds?: string[];
+}
+
+export interface DeleteItemsBulkResponse {
+  success: boolean;
+  deletedItemIds: string[];
+  failedItemIds?: string[];
+}
+
 export interface ItemResponse {
   id: string;
   collectionId: string;
@@ -57,6 +81,9 @@ export interface ItemService {
   update(itemId: string, input: UpdateItemRequest): Promise<ItemResponse>;
   delete(itemId: string): Promise<void>;
   getUserItems(userId: string): Promise<ItemResponse[]>;
+  moveItem(command: MoveItemCommand): Promise<ItemResponse>;
+  moveItemsBulk(command: MoveItemsBulkCommand): Promise<MoveItemsResponse>;
+  deleteItemsBulk(itemIds: string[]): Promise<DeleteItemsBulkResponse>;
 }
 
 export type Item = ItemResponse;

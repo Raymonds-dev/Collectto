@@ -15,10 +15,11 @@ import { ProfileSectionDivider } from '@/components/profile-section-divider/Prof
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
+import { useProfile } from '@/hooks/useProfile';
+import { useItems } from '@/hooks/useItems';
+import { collectionAPIService } from '@/services/api/collectionAPIService';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { formatDate } from '@/utils/formatDate';
-import { useCollectionService } from '@/providers/CollectionContextProvider';
-import { useItemService } from '@/providers/ItemContextProvider';
 
 type CollectionViewProfile = {
   name: string;
@@ -195,7 +196,6 @@ export function CollectionViewScreen({
           />
         </Pressable>
 
-        {/* Owner actions: Edit item when viewing item, collection menu when viewing list */}
         {isOwner && selectedItem && (
           <Pressable
             onPress={() => {
@@ -218,7 +218,6 @@ export function CollectionViewScreen({
         )}
       </View>
 
-      {/* Owner context menu */}
       {isMenuVisible && (
         <Pressable
           onPress={() => setIsMenuVisible(false)}
@@ -326,64 +325,98 @@ export default function CollectionViewScreenRoute() {
     ? (params.collectionId[0] ?? 'default')
     : (params.collectionId ?? 'default');
 
-  const collectionService = useCollectionService();
-  const itemService = useItemService();
-  const { user } = useAuth();
-  const [data, setData] = useState<CollectionViewScreenProps | null>(null);
+  const { user: authUser } = useAuth();
 
-  useFocusEffect(
-    useCallback(() => {
-      let isMounted = true;
-      Promise.all([
-        collectionService.getById(collectionId),
-        itemService.getByCollection(collectionId),
-      ]).then(([collection, items]) => {
-        if (isMounted && collection) {
-          setData({
-            isOwner: collection.userId === user?.id,
-            collectionId: collectionId,
-            collectionTitle: collection.name,
-            isSystem: collection.isSystem ?? false,
-            items: items.map((item) => {
-              const characteristics = Object.entries(item.attributes ?? {}).map(([key, value]) => ({
-                label: key.charAt(0).toUpperCase() + key.slice(1),
-                value: String(value),
-              }));
+  const [collection, setCollection] = useState<any>(null);
+  const [isLoadingCollection, setIsLoadingCollection] = useState(true);
 
-              if (characteristics.length === 0) {
-                characteristics.push({
-                  label: 'Status',
-                  value: item.isActive ? 'Ativo' : 'Inativo',
-                });
-              }
-
-              return {
-                id: item.id,
-                title: item.name,
-                images: item.imageFilesUrls,
-                description: item.description,
-                acquiredDate: formatDate(item.acquisitionDate),
-                lastUsedDate: formatDate(item.lastUsedDate),
-                characteristics,
-              };
-            }),
-            profile: {
-              name: user?.name || 'Usuário',
-              username: user?.username || 'collectto',
-              bio: user?.bio || '',
-              profileImage: user?.profilePictureUrl || null,
-            },
-            isFollowing: false,
-          });
+  useEffect(() => {
+    let isMounted = true;
+    collectionAPIService
+      .getCollection(collectionId)
+      .then((col) => {
+        if (isMounted) {
+          setCollection(col);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching collection:', err);
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingCollection(false);
         }
       });
-      return () => {
-        isMounted = false;
+    return () => {
+      isMounted = false;
+    };
+  }, [collectionId]);
+
+  const { items, isLoading: isItemsLoading } = useItems(collectionId, 0, 100);
+
+  const ownerId = collection?.userId || '';
+  const { profile: ownerProfile, isLoading: isProfileLoading } = useProfile(ownerId);
+
+  const screenData = useMemo(() => {
+    if (!collection || !ownerProfile) return null;
+
+    const mappedItems = items.map((item) => {
+      const characteristics = Object.entries(item.attributes ?? {}).map(([key, value]) => ({
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value: String(value),
+      }));
+
+      if (characteristics.length === 0) {
+        characteristics.push({
+          label: 'Status',
+          value: item.isActive ? 'Ativo' : 'Inativo',
+        });
+      }
+
+      return {
+        id: item.id,
+        title: item.name,
+        images: item.imageFilesUrls,
+        description: item.description,
+        acquiredDate: formatDate(item.acquisitionDate),
+        lastUsedDate: formatDate(item.lastUsedDate),
+        characteristics,
       };
-    }, [collectionId, collectionService, itemService, user])
-  );
+    });
 
-  if (!data) return null;
+    return {
+      isOwner: collection.userId === authUser?.id,
+      collectionId: collectionId,
+      collectionTitle: collection.name,
+      isSystem: collection.isSystem ?? false,
+      items: mappedItems,
+      profile: {
+        name: ownerProfile.name || 'Usuário',
+        username: ownerProfile.username || 'collectto',
+        bio: ownerProfile.bio || '',
+        profileImage: ownerProfile.profilePictureUrl || null,
+      },
+      isFollowing: false,
+    };
+  }, [collection, ownerProfile, items, authUser, collectionId]);
 
-  return <CollectionViewScreen {...data} />;
+  if (isLoadingCollection || isProfileLoading || (isItemsLoading && items.length === 0)) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-base">
+        <Text className="text-sm text-text-muted">Carregando coleções e itens...</Text>
+      </View>
+    );
+  }
+
+  if (!screenData) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface-base p-4">
+        <Text className="text-center text-sm text-text-muted">
+          Coleção não encontrada ou indisponível.
+        </Text>
+      </View>
+    );
+  }
+
+  return <CollectionViewScreen {...screenData} />;
 }

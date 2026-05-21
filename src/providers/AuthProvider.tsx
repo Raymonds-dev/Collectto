@@ -1,4 +1,4 @@
-import api, { getUserById } from '@/services/api/api';
+import api, { getAuthenticatedUser, getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
@@ -332,6 +332,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // Keep the axios instance authenticated for the current app session.
           api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+          try {
+            const profile = await getAuthenticatedUser(`Bearer ${cleanToken}`);
+            setUser(resolveAuthUserFromProfile(profile, normalizedEmail));
+            return;
+          } catch {
+            // Ignore profile hydration failures here and fall back to token claims.
+          }
+
           const resolvedUserId = resolveUserIdFromToken(cleanToken);
 
           if (resolvedUserId) {

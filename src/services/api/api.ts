@@ -13,8 +13,10 @@ export const getUserById = async (userId: string): Promise<AuthUser> => {
   return data as AuthUser;
 };
 
-export const getAuthenticatedUser = async (): Promise<AuthUser> => {
-  const { data } = await api.get('users/me');
+export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {
+  const { data } = await api.get('users/me', {
+    headers: authorization ? { Authorization: authorization } : undefined,
+  });
   return data as AuthUser;
 };
 

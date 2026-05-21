@@ -92,7 +92,7 @@ const ensureUuidResourceId = async (
   }
 
   try {
-    const currentUser = await getAuthenticatedUser();
+    const currentUser = await getAuthenticatedUser(authorization);
     if (currentUser?.id && isUuid(currentUser.id)) {
       return currentUser.id;
     }

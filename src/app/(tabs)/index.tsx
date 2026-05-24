@@ -126,12 +126,12 @@ export default function FeedScreen() {
       const startIndex = (page - 1) * PAGE_SIZE;
       const pageFeed = rawFeed.slice(startIndex, startIndex + PAGE_SIZE);
 
-        return pageFeed.map((post) => ({
+      return pageFeed.map((post) => ({
         id: post.id,
         author: {
           name: post.author.name,
           username: post.author.username,
-            avatarUri: resolveUserPhotoUrl(post.author) ?? '',
+          avatarUri: resolveUserPhotoUrl(post.author) ?? '',
         },
         content: post.item.description || 'Novo item na coleção!',
         publishedLabel: 'Agora',

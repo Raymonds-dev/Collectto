@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
+import { deactivateAuthenticatedUser } from '@/services/api/api';
 
 interface PasswordFormData {
   currentPassword: string;
@@ -14,6 +15,7 @@ export default function SecurityScreen() {
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
+  const [isDeletingAccount, setIsDeletingAccount] = useState(false);
   const [passwordData, setPasswordData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
@@ -25,10 +27,17 @@ export default function SecurityScreen() {
     await signOut();
   };
 
-  const handleConfirmDeleteAccount = (): void => {
-    // TODO: API call to delete account
-    console.log('Account deletion initiated');
-    setDeleteAccountModalVisible(false);
+  const handleConfirmDeleteAccount = async (): Promise<void> => {
+    try {
+      setIsDeletingAccount(true);
+      await deactivateAuthenticatedUser();
+      setDeleteAccountModalVisible(false);
+      await signOut();
+    } catch (error) {
+      console.error('Account deletion failed', error);
+    } finally {
+      setIsDeletingAccount(false);
+    }
   };
 
   const handleChangePassword = (): void => {
@@ -78,8 +87,7 @@ export default function SecurityScreen() {
         <View className="rounded-2xl border border-feedback-error bg-feedback-errorSoft p-4">
           <Text className="font-poetsenone text-lg text-feedback-error">Atenção</Text>
           <Text className="mt-2 text-sm text-feedback-error">
-            Excluir sua conta é uma ação irreversível. Todos os seus dados serão removidos
-            permanentemente.
+            Sua conta será desativada agora e excluída definitivamente após 30 dias.
           </Text>
 
           <Button
@@ -207,9 +215,8 @@ export default function SecurityScreen() {
           <View className="mx-4 w-full max-w-sm rounded-2xl bg-surface-card p-6">
             <Text className="font-poetsenone text-xl text-feedback-error">Excluir Conta</Text>
             <Text className="mt-3 text-base text-text-muted">
-              Esta ação não pode ser desfeita.{'\n'}
-              Para confirmar, clique em{' '}
-              <Text className="font-bold text-feedback-error">EXCLUIR </Text>abaixo.
+              - Sua conta será desativada agora e excluída permanentemente em 30 dias.{'\n'} {'\n'}-
+              Se você fizer login antes desse prazo, a conta será reativada automaticamente.
             </Text>
 
             <View className="mt-6 flex-row gap-3">
@@ -219,6 +226,7 @@ export default function SecurityScreen() {
                 size="md"
                 className="flex-1"
                 onPress={() => setDeleteAccountModalVisible(false)}
+                disabled={isDeletingAccount}
               />
               <Button
                 label="Excluir"
@@ -226,6 +234,8 @@ export default function SecurityScreen() {
                 size="md"
                 className="flex-1"
                 onPress={handleConfirmDeleteAccount}
+                loading={isDeletingAccount}
+                disabled={isDeletingAccount}
               />
             </View>
           </View>

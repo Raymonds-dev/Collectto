@@ -1,11 +1,11 @@
-import api, { getUserById } from '@/services/api/api';
+import api, { getAuthenticatedUser, getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
   setSessionToken,
 } from '@/services/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import axios, { AxiosError } from 'axios';
 import {
   clearDebugSession,
@@ -13,6 +13,7 @@ import {
   mockAuthService,
   startDebugSession,
 } from '@/services/debug';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof Error && error.message) {
@@ -43,6 +44,52 @@ const resolveErrorMessage = (error: unknown, fallbackMessage: string): string =>
   return fallbackMessage;
 };
 
+const resolveProfileAssetUrl = (value?: string | null): string | undefined => {
+  if (!value) {
+    return undefined;
+  }
+
+  if (/^(file|content|asset|data):/i.test(value)) {
+    return value;
+  }
+
+  if (/^\/(data|var|storage|private)\//i.test(value)) {
+    return `file://${value}`;
+  }
+
+  if (/^https?:\/\//i.test(value)) {
+    return value;
+  }
+
+  const baseUrl = api.defaults.baseURL;
+  if (!baseUrl) {
+    return value;
+  }
+
+  return `${baseUrl.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
+};
+
+const resolveRawProfilePictureUrl = (source: Record<string, unknown>): string | undefined => {
+  const candidateKeys = [
+    'profilePictureUrl',
+    'photoUrl',
+    'avatarUrl',
+    'pictureUrl',
+    'imageUrl',
+    'profileImage',
+  ] as const;
+
+  for (const key of candidateKeys) {
+    const candidate = source[key];
+
+    if (typeof candidate === 'string' && candidate.trim().length > 0) {
+      return candidate;
+    }
+  }
+
+  return undefined;
+};
+
 const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): AuthUser => {
   if (!payload || typeof payload !== 'object') {
     return buildMockAuthUser(fallbackEmail);
@@ -57,16 +104,34 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
       ? source.name
       : email.split('@')[0] || 'User';
 
-  const photoUrl =
-    typeof source.profilePictureUrl === 'string' ? source.profilePictureUrl : undefined;
+  const rawProfilePictureUrl = resolveRawProfilePictureUrl(source);
+  const profilePictureUrl = resolveProfileAssetUrl(rawProfilePictureUrl);
+  const profileBackgroundUrl =
+    typeof source.profileBackgroundUrl === 'string' ? source.profileBackgroundUrl : undefined;
+  const username =
+    typeof source.username === 'string' && source.username.length > 0
+      ? source.username
+      : name.toLowerCase();
+  const bio = typeof source.bio === 'string' ? source.bio : undefined;
   const birthdayDate = typeof source.birthdayDate === 'string' ? source.birthdayDate : undefined;
+  const followersCount =
+    typeof source.followersCount === 'number' ? source.followersCount : undefined;
+  const followingCount =
+    typeof source.followingCount === 'number' ? source.followingCount : undefined;
+  const isActive = typeof source.isActive === 'boolean' ? source.isActive : undefined;
 
   return {
     id: typeof source.id === 'string' && source.id.length > 0 ? source.id : 'local-user',
     email,
     name,
-    username: name.toLowerCase(),
-    photoUrl,
+    username,
+    bio,
+    profilePictureUrl,
+    profileBackgroundUrl,
+    photoUrl: profilePictureUrl,
+    followersCount,
+    followingCount,
+    isActive,
     birthdayDate,
     createdAt: new Date().toISOString(),
   };
@@ -185,6 +250,51 @@ const resolveAuthUserFromToken = (token: string, fallbackEmail: string): AuthUse
   } as AuthUser;
 };
 
+const hydrateAuthenticatedProfile = async (
+  authorization: string,
+  fallbackEmail: string,
+  fallbackUserId?: string
+): Promise<AuthUser | null> => {
+  const profile = await getAuthenticatedUser(authorization);
+  const hydratedProfile = resolveAuthUserFromProfile(profile, fallbackEmail);
+
+  if (hydratedProfile.profilePictureUrl) {
+    return hydratedProfile;
+  }
+
+  if (hydratedProfile.id && hydratedProfile.id !== 'local-user') {
+    try {
+      const profileById = await getUserById(hydratedProfile.id);
+      const hydratedById = resolveAuthUserFromProfile(profileById, fallbackEmail);
+
+      if (hydratedById.profilePictureUrl) {
+        return hydratedById;
+      }
+
+      return hydratedById;
+    } catch {
+      // Ignore and return the profile payload we already have.
+    }
+  }
+
+  if (fallbackUserId && fallbackUserId !== 'local-user' && fallbackUserId !== hydratedProfile.id) {
+    try {
+      const profileById = await getUserById(fallbackUserId);
+      const hydratedById = resolveAuthUserFromProfile(profileById, fallbackEmail);
+
+      if (hydratedById.profilePictureUrl) {
+        return hydratedById;
+      }
+
+      return hydratedById;
+    } catch {
+      // Ignore and return the profile payload we already have.
+    }
+  }
+
+  return hydratedProfile;
+};
+
 interface AuthContextType {
   isLoading: boolean;
   user: AuthUser | null;
@@ -196,42 +306,49 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
+const shouldRestorePersistentSession = false;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const isRefreshingProfileRef = useRef(false);
+  const currentUserId = user?.id;
+  const currentUserEmail = user?.email;
+  const currentUserPhotoUrl = resolveUserPhotoUrl(user);
 
   useEffect(() => {
     async function bootstrapSession() {
       try {
         if (isDebugModeEnabled()) {
           startDebugSession();
-          const debugUser = await mockAuthService.getCurrentUser();
-          setUser(debugUser);
-          return;
         }
 
-        const token = await getSessionToken();
+        if (shouldRestorePersistentSession) {
+          const token = await getSessionToken();
 
-        if (token) {
-          const cleanToken = token.replace(/^"|"$/g, '');
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+          if (token) {
+            const cleanToken = token.replace(/^"|"$/g, '');
+            api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
 
-          const resolvedUserId = resolveUserIdFromToken(cleanToken);
+            const resolvedUserId = resolveUserIdFromToken(cleanToken);
 
-          if (resolvedUserId) {
-            try {
-              const profile = await getUserById(resolvedUserId);
-              setUser(resolveAuthUserFromProfile(profile, profile.email));
-              return;
-            } catch {
-              // Ignore profile hydration failures here and fall back to token claims.
+            if (resolvedUserId) {
+              try {
+                const profile = await getUserById(resolvedUserId);
+                setUser(resolveAuthUserFromProfile(profile, profile.email));
+                return;
+              } catch {
+                // Ignore profile hydration failures here and fall back to token claims.
+              }
             }
-          }
 
-          setUser(resolveAuthUserFromToken(token, 'user@example.com'));
-          return;
+            setUser(resolveAuthUserFromToken(cleanToken, 'user@example.com'));
+            return;
+          }
         }
+
+        await clearSessionToken();
+        delete api.defaults.headers.common['Authorization'];
       } finally {
         setIsLoading(false);
       }
@@ -239,6 +356,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     bootstrapSession();
   }, []);
+
+  useEffect(() => {
+    if (!currentUserId || currentUserPhotoUrl) {
+      isRefreshingProfileRef.current = false;
+      return;
+    }
+
+    if (isRefreshingProfileRef.current) {
+      return;
+    }
+
+    const authorization = api.defaults.headers.common.Authorization;
+
+    if (typeof authorization !== 'string' || authorization.trim().length === 0) {
+      return;
+    }
+
+    let isCancelled = false;
+    isRefreshingProfileRef.current = true;
+
+    void (async () => {
+      try {
+        const refreshedProfile = await hydrateAuthenticatedProfile(
+          authorization,
+          currentUserEmail ?? 'user@example.com'
+        );
+
+        if (!isCancelled && refreshedProfile) {
+          setUser((currentUser) => {
+            if (!currentUser || currentUser.id !== refreshedProfile.id) {
+              return currentUser;
+            }
+
+            return {
+              ...currentUser,
+              ...refreshedProfile,
+              profilePictureUrl: refreshedProfile.profilePictureUrl,
+              photoUrl: refreshedProfile.photoUrl ?? refreshedProfile.profilePictureUrl,
+            };
+          });
+        }
+      } catch {
+        // Keep the current user state if the refresh fails.
+      } finally {
+        if (!isCancelled) {
+          isRefreshingProfileRef.current = false;
+        }
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [currentUserEmail, currentUserId, currentUserPhotoUrl]);
 
   const value = useMemo(
     () => ({
@@ -309,24 +480,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           }
 
           const cleanToken = accessToken.replace(/^"|"$/g, '');
-          // Persist token immediately so the session survives even if profile hydration fails.
-          await setSessionToken(cleanToken);
+          const resolvedUserId = resolveUserIdFromToken(cleanToken);
+          if (shouldRestorePersistentSession) {
+            await setSessionToken(cleanToken);
+          }
 
-          // Keep the axios instance authenticated for the next request.
+          // Keep the axios instance authenticated for the current app session.
           api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
-          const resolvedUserId = resolveUserIdFromToken(accessToken);
+          try {
+            const hydratedProfile = await hydrateAuthenticatedProfile(
+              `Bearer ${cleanToken}`,
+              normalizedEmail,
+              resolvedUserId ?? undefined
+            );
+            setUser(hydratedProfile ?? resolveAuthUserFromToken(cleanToken, normalizedEmail));
+            return;
+          } catch {
+            // Ignore profile hydration failures here and fall back to token claims.
+          }
 
           if (resolvedUserId) {
             try {
               const profile = await getUserById(resolvedUserId);
-              setUser(resolveAuthUserFromProfile(profile, normalizedEmail));
+              const hydratedProfile = resolveAuthUserFromProfile(profile, normalizedEmail);
+              setUser(hydratedProfile);
               return;
             } catch {
               // Ignore profile hydration failures here and fall back to token claims.
             }
           }
 
-          setUser(resolveAuthUserFromToken(accessToken, normalizedEmail));
+          setUser(resolveAuthUserFromToken(cleanToken, normalizedEmail));
           return;
         } catch (error: unknown) {
           throw new Error(resolveErrorMessage(error, '*Falha no login'));
@@ -408,23 +592,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       },
       updateUserProfile: (data: Partial<AuthUser>) => {
+        console.log('[auth] updateUserProfile called with:', data);
         setUser((currentUser) => {
           if (!currentUser) {
             return null;
           }
-          const nextProfilePictureUrl =
-            typeof data.profilePictureUrl === 'string'
+          const currentPhotoUrl = resolveUserPhotoUrl(currentUser);
+          const nextRawProfilePictureUrl =
+            typeof data.profilePictureUrl === 'string' && data.profilePictureUrl.length > 0
               ? data.profilePictureUrl
-              : currentUser.profilePictureUrl;
+              : typeof data.photoUrl === 'string' && data.photoUrl.length > 0
+                ? data.photoUrl
+                : currentPhotoUrl;
+          const nextProfilePictureUrl = resolveProfileAssetUrl(nextRawProfilePictureUrl);
           const nextPhotoUrl =
             typeof data.photoUrl === 'string' ? data.photoUrl : nextProfilePictureUrl;
+          const nextUsername =
+            typeof data.username === 'string' && data.username.length > 0
+              ? data.username
+              : currentUser.username;
 
-          return {
+          const next = {
             ...currentUser,
             ...data,
+            username: nextUsername,
             profilePictureUrl: nextProfilePictureUrl,
             photoUrl: nextPhotoUrl,
           };
+          console.log('[auth] updateUserProfile result:', next);
+          return next;
         });
       },
     }),

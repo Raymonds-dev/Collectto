@@ -13,24 +13,37 @@ export const getUserById = async (userId: string): Promise<AuthUser> => {
   return data as AuthUser;
 };
 
+export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {
+  const { data } = await api.get('users/me', {
+    headers: authorization ? { Authorization: authorization } : undefined,
+  });
+  return data as AuthUser;
+};
+
 export const updateProfile = async (profileData: UpdateUserRequest): Promise<AuthUser> => {
   const { data } = await api.patch('users/update', profileData);
   return data as AuthUser;
 };
 
+export const deactivateAuthenticatedUser = async (): Promise<void> => {
+  await api.delete('users/me');
+};
+
 export const generatePresignedUploadUrls = async (
-  payload: GenerateUploadUrlsRequest
+  payload: GenerateUploadUrlsRequest,
+  authorization?: string
 ): Promise<GenerateUploadUrlsResponse> => {
-  const { data } = await api.post('uploads/presigned-urls', payload);
-  // Backend may return either an array of file items or an object with a `files` array.
+  const { data } = await api.post('uploads/presigned-urls', payload, {
+    headers: authorization ? { Authorization: authorization } : undefined,
+  });
+
   if (Array.isArray(data)) {
     return data as GenerateUploadUrlsResponse;
   }
 
-  if (data && Array.isArray(data.files)) {
-    return data.files as GenerateUploadUrlsResponse;
+  if (data && typeof data === 'object' && Array.isArray((data as { files?: unknown[] }).files)) {
+    return (data as { files: GenerateUploadUrlsResponse }).files;
   }
 
-  // Fallback: return empty array to avoid runtime crashes; caller should handle missing data.
   return [] as GenerateUploadUrlsResponse;
 };

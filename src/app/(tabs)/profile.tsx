@@ -7,6 +7,7 @@ import { ScrollView, Text, View } from 'react-native';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import {
   type CollectionGridEntry,
   CollectionsGrid,
@@ -79,7 +80,7 @@ export default function ProfileScreen() {
         <ProfileHeader isOwner={true} bannerImage={user?.profileBackgroundUrl ?? null} />
         <ProfileInfo
           isOwner={true}
-          profileImage={user?.profilePictureUrl ?? null}
+          profileImage={resolveUserPhotoUrl(user)}
           name={user?.name ?? 'Usuário'}
           username={user?.username ?? user?.email?.split('@')[0] ?? 'collectto'}
           bio={user?.bio ?? ''}

@@ -19,6 +19,7 @@ import { tokens } from '@/styles/tailwind/tokens.native';
 import { formatDate } from '@/utils/formatDate';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { getUserById } from '@/services/api/api';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { useItemService } from '@/providers/ItemContextProvider';
 
 type CollectionViewProfile = {
@@ -382,7 +383,7 @@ export default function CollectionViewScreenRoute() {
               name: authorProfile?.name || 'Usuário',
               username: authorProfile?.username || 'collectto',
               bio: authorProfile?.bio || '',
-              profileImage: authorProfile?.profilePictureUrl || null,
+              profileImage: resolveUserPhotoUrl(authorProfile) ?? null,
             },
             isFollowing: false,
           });

@@ -12,6 +12,7 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import {
   ActivityIndicator,
   FlatList,
@@ -55,7 +56,7 @@ const Header = ({
           onPress={onPressProfile}
           className="h-11 w-11 items-center justify-center rounded-full">
           <Image
-            source={{ uri: user?.profilePictureUrl ?? undefined }}
+            source={{ uri: resolveUserPhotoUrl(user) ?? undefined }}
             className="h-8 w-8 rounded-full border border-surface-border bg-surface-muted"
             accessibilityIgnoresInvertColors
           />
@@ -130,7 +131,7 @@ export default function FeedScreen() {
         author: {
           name: post.author.name,
           username: post.author.username,
-          avatarUri: post.author.profilePictureUrl || '',
+          avatarUri: resolveUserPhotoUrl(post.author) ?? '',
         },
         content: post.item.description || 'Novo item na coleção!',
         publishedLabel: 'Agora',

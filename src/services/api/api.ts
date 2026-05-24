@@ -25,6 +25,10 @@ export const updateProfile = async (profileData: UpdateUserRequest): Promise<Aut
   return data as AuthUser;
 };
 
+export const deactivateAuthenticatedUser = async (): Promise<void> => {
+  await api.delete('users/me');
+};
+
 export const generatePresignedUploadUrls = async (
   payload: GenerateUploadUrlsRequest,
   authorization?: string

@@ -4,6 +4,7 @@ import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-rout
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -57,24 +58,26 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
-        <AuthProvider>
-          <Providers>
-            <AuthGate />
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                animation: 'fade',
-                gestureEnabled: true,
-              }}>
-              <Stack.Screen name="(auth)" />
-              <Stack.Screen name="(tabs)" />
-            </Stack>
-          </Providers>
-        </AuthProvider>
-        <StatusBar style="auto" />
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
+          <AuthProvider>
+            <Providers>
+              <AuthGate />
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  animation: 'fade',
+                  gestureEnabled: true,
+                }}>
+                <Stack.Screen name="(auth)" />
+                <Stack.Screen name="(tabs)" />
+              </Stack>
+            </Providers>
+          </AuthProvider>
+          <StatusBar style="auto" />
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }

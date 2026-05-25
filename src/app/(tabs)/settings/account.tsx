@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { AxiosError } from 'axios';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
@@ -63,10 +63,11 @@ export default function AccountScreen() {
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [cropModalVisible, setCropModalVisible] = useState(false);
   const [pendingPhotoUri, setPendingPhotoUri] = useState<string | null>(null);
-  const [displayProfilePictureUrl, setDisplayProfilePictureUrl] = useState<string | undefined>(
-    resolveUserPhotoUrl(user) ?? undefined
-  );
-  const lastUserIdRef = useRef<string | undefined>(user?.id);
+  const [lastLocalPhotoUri, setLastLocalPhotoUri] = useState<string | null>(null);
+  const [useRemotePhoto, setUseRemotePhoto] = useState(true);
+  const profilePhotoUrl = resolveUserPhotoUrl(user) ?? undefined;
+  const displayPhotoUrl =
+    useRemotePhoto && profilePhotoUrl ? profilePhotoUrl : (lastLocalPhotoUri ?? profilePhotoUrl);
   const [profileData, setProfileData] = useState<ProfileFormData>({
     name: user?.name || '',
     username: user?.username || '',
@@ -75,13 +76,6 @@ export default function AccountScreen() {
   });
 
   useEffect(() => {
-    if (lastUserIdRef.current !== user?.id) {
-      lastUserIdRef.current = user?.id;
-      setDisplayProfilePictureUrl(resolveUserPhotoUrl(user) ?? undefined);
-      return;
-    }
-
-    setDisplayProfilePictureUrl((current) => current ?? resolveUserPhotoUrl(user) ?? undefined);
     setProfileData({
       name: user?.name || '',
       username: user?.username || '',
@@ -89,6 +83,30 @@ export default function AccountScreen() {
       birthdayDate: user?.birthdayDate,
     });
   }, [user]);
+
+  useEffect(() => {
+    if (profilePhotoUrl && /^https?:\/\//i.test(profilePhotoUrl)) {
+      setUseRemotePhoto(true);
+      void Image.prefetch(profilePhotoUrl).catch((error) => {
+        console.warn('[profile] image prefetch failed', profilePhotoUrl, error);
+      });
+      if (__DEV__) {
+        void fetch(profilePhotoUrl, { method: 'HEAD' })
+          .then((response) => {
+            console.log('[profile] image HEAD', {
+              url: profilePhotoUrl,
+              status: response.status,
+              contentType: response.headers.get('content-type'),
+              contentLength: response.headers.get('content-length'),
+              cacheControl: response.headers.get('cache-control'),
+            });
+          })
+          .catch((error) => {
+            console.warn('[profile] image HEAD failed', profilePhotoUrl, error);
+          });
+      }
+    }
+  }, [profilePhotoUrl]);
 
   const handleEditProfile = async (): Promise<void> => {
     try {
@@ -161,12 +179,18 @@ export default function AccountScreen() {
         }
       }
 
-      updateUserProfile({
-        ...(user.username ? { username: user.username } : {}),
-        profilePictureUrl: localPreviewUri,
-        photoUrl: localPreviewUri,
-      });
-      setDisplayProfilePictureUrl(localPreviewUri);
+      if (__DEV__) {
+        const fileInfo = await FileSystem.getInfoAsync(localPreviewUri);
+        console.log('[profile] local file info', {
+          uri: localPreviewUri,
+          size: fileInfo.exists ? fileInfo.size : undefined,
+          exists: fileInfo.exists,
+          isDirectory: fileInfo.isDirectory,
+        });
+      }
+
+      setLastLocalPhotoUri(localPreviewUri);
+      setUseRemotePhoto(false);
       const uploadedPhotoUrl = await uploadProfilePhoto(user.id, localPreviewUri, 'image/png');
       const updatedProfile = await persistProfileFilePath(uploadedPhotoUrl);
       // Logs to help diagnose backend response when photo disappears
@@ -189,9 +213,9 @@ export default function AccountScreen() {
       updateUserProfile({
         ...(user.username ? { username: user.username } : {}),
         profilePictureUrl: finalPhotoUrl,
-        photoUrl: finalPhotoUrl,
+        photoUrl: lastLocalPhotoUri ?? finalPhotoUrl,
       });
-      setDisplayProfilePictureUrl(localPreviewUri);
+      setUseRemotePhoto(true);
 
       Alert.alert('Success', 'Foto atualizada com sucesso');
       setCropModalVisible(false);
@@ -234,14 +258,20 @@ export default function AccountScreen() {
         <View className="items-center py-6">
           <Pressable onPress={handleChoosePhoto}>
             <View className="h-36 w-36 items-center justify-center rounded-full border-2 border-brand-primary bg-brand-100">
-              {resolveUserPhotoUrl({
-                photoUrl: displayProfilePictureUrl,
-                profilePictureUrl: displayProfilePictureUrl,
-              }) ? (
+              {displayPhotoUrl ? (
                 <Image
-                  source={{ uri: displayProfilePictureUrl }}
+                  source={{ uri: displayPhotoUrl }}
                   className="h-full w-full rounded-full"
                   resizeMode="cover"
+                  onError={() => {
+                    console.warn('[profile] image failed to load', displayPhotoUrl);
+                    if (lastLocalPhotoUri) {
+                      setUseRemotePhoto(false);
+                    }
+                  }}
+                  onLoad={() => {
+                    console.log('[profile] image loaded', displayPhotoUrl);
+                  }}
                 />
               ) : (
                 <Ionicons name="camera-outline" size={48} color="#FE5E00" />

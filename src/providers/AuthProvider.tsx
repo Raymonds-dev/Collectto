@@ -69,6 +69,16 @@ const resolveProfileAssetUrl = (value?: string | null): string | undefined => {
   return `${baseUrl.replace(/\/$/, '')}/${value.replace(/^\//, '')}`;
 };
 
+const isLocalAssetUrl = (value?: string): boolean => {
+  if (!value) {
+    return false;
+  }
+
+  return (
+    /^(file|content|asset|data):/i.test(value) || /^\/(data|var|storage|private)\//i.test(value)
+  );
+};
+
 const resolveRawProfilePictureUrl = (source: Record<string, unknown>): string | undefined => {
   const candidateKeys = [
     'profilePictureUrl',
@@ -598,15 +608,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return null;
           }
           const currentPhotoUrl = resolveUserPhotoUrl(currentUser);
-          const nextRawProfilePictureUrl =
+          const nextProfileCandidate =
             typeof data.profilePictureUrl === 'string' && data.profilePictureUrl.length > 0
               ? data.profilePictureUrl
-              : typeof data.photoUrl === 'string' && data.photoUrl.length > 0
-                ? data.photoUrl
-                : currentPhotoUrl;
+              : undefined;
+          const nextPhotoCandidate =
+            typeof data.photoUrl === 'string' && data.photoUrl.length > 0
+              ? data.photoUrl
+              : undefined;
+          const nextRawProfilePictureUrl =
+            (nextProfileCandidate && !isLocalAssetUrl(nextProfileCandidate)
+              ? nextProfileCandidate
+              : undefined) ??
+            (nextPhotoCandidate && !isLocalAssetUrl(nextPhotoCandidate)
+              ? nextPhotoCandidate
+              : undefined) ??
+            currentPhotoUrl;
           const nextProfilePictureUrl = resolveProfileAssetUrl(nextRawProfilePictureUrl);
           const nextPhotoUrl =
-            typeof data.photoUrl === 'string' ? data.photoUrl : nextProfilePictureUrl;
+            typeof data.photoUrl === 'string' && data.photoUrl.length > 0
+              ? data.photoUrl
+              : nextProfilePictureUrl;
           const nextUsername =
             typeof data.username === 'string' && data.username.length > 0
               ? data.username

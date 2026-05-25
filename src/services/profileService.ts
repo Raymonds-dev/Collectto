@@ -6,6 +6,7 @@ import api, {
   generatePresignedUploadUrls,
   getAuthenticatedUser,
 } from '@/services/api/api';
+import * as FileSystem from 'expo-file-system/legacy';
 import { AxiosError } from 'axios';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
@@ -19,16 +20,6 @@ const resolveFileName = (photoUri: string, contentType: string): string => {
   }
 
   return lastSegment;
-};
-
-const toBlob = async (photoUri: string): Promise<Blob> => {
-  const response = await fetch(photoUri);
-
-  if (!response.ok) {
-    throw new Error('Não foi possível ler a imagem selecionada.');
-  }
-
-  return response.blob();
 };
 
 const getCurrentAuthorizationHeader = (): string => {
@@ -176,20 +167,22 @@ export const uploadProfilePhoto = async (
     contentType,
     authorization
   );
-  const rawBlob = await toBlob(photoUri);
-
-  const uploadResponse = await fetch(uploadUrl, {
-    method: 'PUT',
+  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
+    httpMethod: 'PUT',
     headers: {
       'Content-Type': contentType,
     },
-    body: rawBlob,
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
   });
 
-  if (!uploadResponse.ok) {
-    const errorText = await uploadResponse.text().catch(() => 'Sem detalhes');
-    console.error('Erro Oracle:', uploadResponse.status, errorText);
-    throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResponse.status}`);
+  if (__DEV__) {
+    console.log('[upload] upload result', {
+      status: uploadResult.status,
+    });
+  }
+
+  if (uploadResult.status < 200 || uploadResult.status >= 300) {
+    throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResult.status}`);
   }
 
   return filePath;

@@ -1,6 +1,6 @@
 # Implementation Plan: Debug Mode
 
-**Branch**: `003-create-feature-spec` | **Date**: 2026-05-12 | **Spec**: [specs/003-debug-mode/spec.md](specs/003-debug-mode/spec.md)
+**Branch**: `feature/003-create-feature-spec` | **Date**: 2026-05-12 | **Spec**: [specs/003-debug-mode/spec.md](specs/003-debug-mode/spec.md)
 **Input**: Feature specification from `/specs/003-debug-mode/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.

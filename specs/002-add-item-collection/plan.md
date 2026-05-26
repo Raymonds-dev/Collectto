@@ -1,6 +1,6 @@
 # Implementation Plan: Item and Collection Creation Flow
 
-**Feature Branch**: `002-add-item-collection`  
+**Feature Branch**: `feature/002-add-item-collection`  
 **Status**: Planning  
 **Last Updated**: 2026-05-02
 
@@ -209,7 +209,7 @@ See `/contracts/` for service interface definitions.
 
 ## Branch Info
 
-- **Branch**: `002-add-item-collection`
+- **Branch**: `feature/002-add-item-collection`
 - **Base**: main (or development branch)
 - **Status**: Ready for task generation
 

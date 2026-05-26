@@ -1,6 +1,6 @@
 # Feature Specification: API-Aligned Item and Collection Creation
 
-**Feature Branch**: `004-api-aligned-creation`  
+**Feature Branch**: `feature/004-api-aligned-creation`  
 **Created**: 2026-05-17  
 **Status**: Draft  
 **Input**: User description: "Atualizar a tela de criação de item para os dados baterem com a da API. Atualmente o fluxo de criação de um item só precisa do nome, descrição e foto. O que é suficiente para criar, porém não contempla o todo. Assim como a criação da coleção, que atualmente só precisa do nome da coleção, descrição e foto. Meu objetivo e atualizar esse fluxo para que ele utilize intefaces reais para a integração com a API. Como estou fazendo tudo pelo modo DEBUG vamos utilizar ele para fazer os teste, mas não esqueça de manter as intefaces adaptadas para a API, mesmo que no momento não a utilizamos."

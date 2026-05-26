@@ -1,7 +1,7 @@
 # ✅ TASKS GENERATION COMPLETE
 
 **Feature**: Item and Collection Creation Flow  
-**Branch**: `002-add-item-collection`  
+**Branch**: `feature/002-add-item-collection`  
 **Status**: ✅ Ready for Implementation  
 **Date**: 2026-05-02
 
@@ -264,7 +264,7 @@ specs/002-add-item-collection/
 
 ---
 
-**Branch**: `002-add-item-collection` (Active)  
+**Branch**: `feature/002-add-item-collection` (Active)  
 **Lead**: Your team  
 **Duration**: 2-5 weeks (MVP to Full)  
 **Next Milestone**: Phase 1 Setup completion

@@ -5,6 +5,12 @@ import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view
 import { Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Checkbox } from 'expo-checkbox';
 import { AuthDatePicker } from '@/components/ui/AuthDatePicker';
+import {
+  validateBirthday,
+  validateEmail,
+  validatePassword,
+  validateUsername,
+} from '@/utils/validation';
 
 const styles = StyleSheet.create({
   input: {
@@ -39,19 +45,27 @@ export default function UserCreateScreen() {
     const normalizedName = name.trim();
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedUsername = username.trim().toLowerCase();
-    const emailIsValid = /^\S+@\S+\.\S+$/.test(normalizedEmail);
 
     if (step === 1) {
       if (!normalizedName || !normalizedEmail) {
         setError('Por favor, preencha seu nome e email.');
         return;
       }
+
+      const [emailIsValid, emailErrorMessage] = validateEmail(normalizedEmail);
       if (!emailIsValid) {
-        setError('Informe um email válido.');
+        setError(emailErrorMessage);
         return;
       }
+
       if (!date) {
         setError('Selecione sua data de nascimento completa.');
+        return;
+      }
+
+      const [birthdayIsValid, birthdayErrorMessage] = validateBirthday(date);
+      if (!birthdayIsValid) {
+        setError(birthdayErrorMessage);
         return;
       }
 
@@ -61,31 +75,35 @@ export default function UserCreateScreen() {
 
     if (step === 2) {
       const birthdayDate = date;
-      const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedUsername);
-      const birthdayDateIsValid = Boolean(birthdayDate && /^\d{4}-\d{2}-\d{2}$/.test(birthdayDate));
 
-      if (!normalizedUsername || !password) {
-        setError('Por favor, preencha seu nome de usuário e senha.');
-        return;
-      }
+      const [usernameIsValid, usernameErrorMessage] = validateUsername(normalizedUsername);
       if (!usernameIsValid) {
-        setError(
-          'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
-        );
+        setError(usernameErrorMessage);
         return;
       }
+
+      const [passwordIsValid, passwordErrorMessage] = validatePassword(password);
+      if (!passwordIsValid) {
+        setError(passwordErrorMessage);
+        return;
+      }
+
       if (!birthdayDate) {
         setError('Selecione sua data de nascimento completa.');
         return;
       }
-      if (!birthdayDateIsValid) {
-        setError('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
+
+      const [birthdayIsValid, birthdayErrorMessage] = validateBirthday(birthdayDate);
+      if (!birthdayIsValid) {
+        setError(birthdayErrorMessage);
         return;
       }
+
       if (password !== confirmPassword) {
         setError('As senhas não conferem.');
         return;
       }
+
       if (!termsAccepted) {
         setError('Você precisa aceitar os termos para continuar.');
         return;

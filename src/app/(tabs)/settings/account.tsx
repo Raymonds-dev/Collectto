@@ -17,6 +17,7 @@ import {
   uploadProfilePhoto,
 } from '@/services/profileService';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
+import { validateBirthday, validateUsername } from '@/utils/validation';
 
 interface ProfileFormData {
   name: string;
@@ -94,19 +95,19 @@ export default function AccountScreen() {
   const handleEditProfile = async (): Promise<void> => {
     try {
       const normalizedUsername = profileData.username.trim().toLowerCase();
-      const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedUsername);
 
-      if (!normalizedUsername) {
-        Alert.alert('Erro', 'Informe um nome de usuário válido.');
+      const [usernameIsValid, usernameErrorMessage] = validateUsername(normalizedUsername);
+      if (!usernameIsValid) {
+        Alert.alert('Erro', usernameErrorMessage || 'Informe um nome de usuário válido.');
         return;
       }
 
-      if (!usernameIsValid) {
-        Alert.alert(
-          'Erro',
-          'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
-        );
-        return;
+      if (profileData.birthdayDate) {
+        const [birthdayIsValid, birthdayErrorMessage] = validateBirthday(profileData.birthdayDate);
+        if (!birthdayIsValid) {
+          Alert.alert('Erro', birthdayErrorMessage || 'Data de nascimento inválida.');
+          return;
+        }
       }
 
       const updated = await updateProfile(

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { Image, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { isDebugModeEnabled } from '@/services/debug';
+import { validateEmail, validatePassword } from '@/utils/validation';
+
 const styles = StyleSheet.create({
   input: {
     lineHeight: 20,
@@ -24,9 +26,18 @@ export default function LoginScreen() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleLogin = async (): Promise<void> => {
-    if (!isDebugModeEnabled() && (!email.trim() || !password.trim())) {
-      setError('Preencha email e senha.');
-      return;
+    if (!isDebugModeEnabled()) {
+      const [emailIsValid, emailErrorMessage] = validateEmail(email);
+      if (!emailIsValid) {
+        setError(emailErrorMessage);
+        return;
+      }
+
+      const [passwordIsValid, passwordErrorMessage] = validatePassword(password);
+      if (!passwordIsValid) {
+        setError(passwordErrorMessage);
+        return;
+      }
     }
 
     try {

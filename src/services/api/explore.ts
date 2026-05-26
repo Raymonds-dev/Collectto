@@ -115,13 +115,11 @@ const getExploreSpotlightEntries = (
 };
 
 const getCollectionById = async (collectionId: string): Promise<CollectionResponse> => {
-  const { data } = await api.get<CollectionResponse>(`collections/${collectionId}`);
-  return data;
+  return api.get<CollectionResponse>(`collections/${collectionId}`);
 };
 
 const getItemsByCollection = async (collectionId: string): Promise<ItemPageResponse> => {
-  const { data } = await api.get<ItemPageResponse>(`items/by-collection/${collectionId}`);
-  return data;
+  return api.get<ItemPageResponse>(`items/by-collection/${collectionId}`);
 };
 
 const findItemInCollection = async (
@@ -131,11 +129,10 @@ const findItemInCollection = async (
   let currentPage = 0;
 
   while (true) {
-    const page = await api.get<ItemPageResponse>(`items/by-collection/${collectionId}`, {
+    const itemsPage = await api.get<ItemPageResponse>(`items/by-collection/${collectionId}`, {
       params: { page: currentPage, size: 50 },
     });
 
-    const itemsPage = page.data;
     const foundItem = itemsPage.items.find((entry) => entry.id === itemId);
 
     if (foundItem) {
@@ -220,7 +217,7 @@ export const getExploreSpotlights = async (
     return mockExploreService.getSpotlights();
   }
 
-  const { data } = await api.get<ExploreSpotlightsApiResponse>('social/explore', {
+  const data = await api.get<ExploreSpotlightsApiResponse>('social/explore', {
     params: buildExploreParams(query),
   });
 

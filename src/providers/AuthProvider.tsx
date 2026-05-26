@@ -6,7 +6,8 @@ import {
 } from '@/services/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import axios, { AxiosError } from 'axios';
+import { AxiosError } from 'axios';
+import { ApiError } from '@/services/api/types';
 import {
   clearDebugSession,
   isDebugModeEnabled,
@@ -16,6 +17,10 @@ import {
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
+  if (error instanceof ApiError) {
+    return error.message;
+  }
+
   if (error instanceof Error && error.message) {
     return error.message;
   }
@@ -430,42 +435,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         try {
-          const baseUrl = api.defaults.baseURL;
-
-          if (!baseUrl) {
-            throw new Error('Base URL da API não configurada.');
-          }
-
-          const loginResponse = await fetch(`${baseUrl}/auth/login`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              Accept: 'application/json',
-            },
-            body: JSON.stringify({
+          const responseData = await api.post<any>(
+            'auth/login',
+            {
               email: normalizedEmail,
               password: credentials.password,
-            }),
-          });
-
-          const responseText = await loginResponse.text();
-          let responseData: unknown = null;
-
-          if (responseText) {
-            try {
-              responseData = JSON.parse(responseText) as unknown;
-            } catch {
-              responseData = responseText;
+            },
+            {
+              headers: {
+                Authorization: '',
+              },
             }
-          }
-
-          if (!loginResponse.ok) {
-            throw new Error(
-              typeof responseData === 'string' && responseData.trim()
-                ? responseData
-                : 'Falha ao realizar o login'
-            );
-          }
+          );
 
           const accessToken =
             responseData &&
@@ -556,15 +537,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             return;
           }
 
-          const publicBaseUrl = api.defaults.baseURL;
-          if (!publicBaseUrl) {
-            throw new Error('Base URL da API não configurada.');
-          }
-
-          // Use a public request that does not inherit Authorization from authenticated instance.
-          await axios.post(`${publicBaseUrl}/users/create`, normalizedPayload, {
+          // Use the centralized api client with explicit empty Authorization to bypass token injection.
+          await api.post('users/create', normalizedPayload, {
             headers: {
               'Content-Type': 'application/json',
+              Authorization: '',
             },
           });
         } catch (error: unknown) {

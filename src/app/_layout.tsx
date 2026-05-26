@@ -1,4 +1,5 @@
 import { AuthProvider, useAuth } from '@/providers/AuthProvider';
+import { HttpClientProvider } from '@/providers/HttpClientProvider';
 import { useFonts } from 'expo-font';
 import { Stack, useRootNavigationState, useRouter, useSegments } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -59,25 +60,27 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
-          <AuthProvider>
-            <Providers>
-              <AuthGate />
-              <Stack
-                screenOptions={{
-                  headerShown: false,
-                  animation: 'fade',
-                  gestureEnabled: true,
-                }}>
-                <Stack.Screen name="(auth)" />
-                <Stack.Screen name="(tabs)" />
-              </Stack>
-            </Providers>
-          </AuthProvider>
-          <StatusBar style="auto" />
-        </SafeAreaView>
-      </SafeAreaProvider>
+      <HttpClientProvider>
+        <SafeAreaProvider>
+          <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
+            <AuthProvider>
+              <Providers>
+                <AuthGate />
+                <Stack
+                  screenOptions={{
+                    headerShown: false,
+                    animation: 'fade',
+                    gestureEnabled: true,
+                  }}>
+                  <Stack.Screen name="(auth)" />
+                  <Stack.Screen name="(tabs)" />
+                </Stack>
+              </Providers>
+            </AuthProvider>
+            <StatusBar style="auto" />
+          </SafeAreaView>
+        </SafeAreaProvider>
+      </HttpClientProvider>
     </GestureHandlerRootView>
   );
 }

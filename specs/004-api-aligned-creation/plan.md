@@ -1,6 +1,6 @@
 # Implementation Plan: API-Aligned Item and Collection Creation
 
-**Branch**: `004-api-aligned-creation` | **Date**: 2026-05-17 | **Spec**: [specs/004-api-aligned-creation/spec.md](spec.md)
+**Branch**: `feature/004-api-aligned-creation` | **Date**: 2026-05-17 | **Spec**: [specs/004-api-aligned-creation/spec.md](spec.md)
 **Input**: Feature specification for aligning item and collection creation with API data models.
 
 ## Summary

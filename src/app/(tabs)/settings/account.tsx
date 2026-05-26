@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { AxiosError } from 'axios';
+import { ApiError } from '@/services/api/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -215,7 +216,13 @@ export default function AccountScreen() {
         }, 2000);
       }
     } catch (error) {
-      if (error instanceof AxiosError) {
+      if (error instanceof ApiError) {
+        console.error('Erro ao atualizar foto de perfil (ApiError):', {
+          status: error.status,
+          code: error.code,
+          data: error.data,
+        });
+      } else if (error instanceof AxiosError) {
         console.error('Erro ao atualizar foto de perfil (AxiosError):', {
           status: error.response?.status,
           data: error.response?.data,

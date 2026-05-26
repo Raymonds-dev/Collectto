@@ -1,6 +1,6 @@
 # Implementation Tasks: Item and Collection Creation Flow
 
-**Feature Branch**: `002-add-item-collection`  
+**Feature Branch**: `feature/002-add-item-collection`  
 **Specification**: `specs/002-add-item-collection/spec.md`  
 **Implementation Plan**: `specs/002-add-item-collection/plan.md`  
 **Status**: Finished  
@@ -645,7 +645,7 @@ Example: `- [ ] T020 [US1] Create PermissionGate in src/components/create-item/P
 
 ## Ready for Execution
 
-Branch: `002-add-item-collection` ✓ Active  
+Branch: `feature/002-add-item-collection` ✓ Active  
 Specification: `specs/002-add-item-collection/spec.md` ✓ Complete  
 Plan: `specs/002-add-item-collection/plan.md` ✓ Complete  
 Tasks: This document ✓ Complete

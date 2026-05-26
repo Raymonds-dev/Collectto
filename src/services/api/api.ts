@@ -1,49 +1,44 @@
-import { create } from 'axios';
+import { api as client } from './client';
 import { AuthUser, UpdateUserRequest } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 
-const api = create({
-  baseURL: 'http://89.167.89.185:8080',
-});
-
+// Export the centralized client as the default export for backward compatibility
+const api = client;
 export default api;
 
 export const getUserById = async (userId: string): Promise<AuthUser> => {
-  const { data } = await api.get(`users/${userId}`);
-  return data as AuthUser;
+  return client.get<AuthUser>(`users/${userId}`);
 };
 
 export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {
-  const { data } = await api.get('users/me', {
+  return client.get<AuthUser>('users/me', {
     headers: authorization ? { Authorization: authorization } : undefined,
   });
-  return data as AuthUser;
 };
 
 export const updateProfile = async (profileData: UpdateUserRequest): Promise<AuthUser> => {
-  const { data } = await api.patch('users/update', profileData);
-  return data as AuthUser;
+  return client.patch<AuthUser>('users/update', profileData);
 };
 
 export const deactivateAuthenticatedUser = async (): Promise<void> => {
-  await api.delete('users/me');
+  return client.delete<void>('users/me');
 };
 
 export const generatePresignedUploadUrls = async (
   payload: GenerateUploadUrlsRequest,
   authorization?: string
 ): Promise<GenerateUploadUrlsResponse> => {
-  const { data } = await api.post('uploads/presigned-urls', payload, {
+  const data = await client.post<GenerateUploadUrlsResponse>('uploads/presigned-urls', payload, {
     headers: authorization ? { Authorization: authorization } : undefined,
   });
 
   if (Array.isArray(data)) {
-    return data as GenerateUploadUrlsResponse;
+    return data;
   }
 
-  if (data && typeof data === 'object' && Array.isArray((data as { files?: unknown[] }).files)) {
-    return (data as { files: GenerateUploadUrlsResponse }).files;
+  if (data && typeof data === 'object' && Array.isArray((data as any).files)) {
+    return (data as any).files;
   }
 
-  return [] as GenerateUploadUrlsResponse;
+  return [];
 };

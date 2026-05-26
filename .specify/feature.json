@@ -1,4 +1,4 @@
 {
-  "feature_directory": "specs/010-centralized-validation"
+  "feature_directory": "specs/011-auth-error-boundary"
 }
 

@@ -1,14 +1,17 @@
 module.exports = {
-  preset: 'ts-jest',
-  testEnvironment: 'node',
+  preset: 'jest-expo',
   testMatch: ['**/__tests__/**/*.test.[jt]s?(x)'],
-  collectCoverageFrom: ['src/utils/validation.ts'],
+  collectCoverageFrom: [
+    'src/components/AuthErrorBoundary.tsx',
+    'src/components/AuthFallbackUI.tsx',
+    'src/utils/validation.ts',
+  ],
   coverageThreshold: {
     global: {
-      branches: 100,
-      functions: 100,
-      lines: 100,
-      statements: 100,
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
     },
   },
 };

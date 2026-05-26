@@ -332,10 +332,15 @@ const shouldRestorePersistentSession = true;
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [bootstrapError, setBootstrapError] = useState<Error | null>(null);
   const isRefreshingProfileRef = useRef(false);
   const currentUserId = user?.id;
   const currentUserEmail = user?.email;
   const currentUserPhotoUrl = resolveUserPhotoUrl(user);
+
+  if (bootstrapError) {
+    throw bootstrapError;
+  }
 
   const signOut = async () => {
     try {
@@ -422,11 +427,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   setUser(resolveAuthUserFromProfile(profile, profile.email));
                   return;
                 } catch (error) {
-                  // Offline cached fallback: token claims
-                  console.warn(
-                    '[auth] Profile hydration failed (probably offline). Using cached claims.',
-                    error
-                  );
+                  // If it's a 401 or 403, clear session and return (don't throw)
+                  const status = (error as any)?.status || (error as any)?.response?.status;
+                  if (status === 401 || status === 403) {
+                    console.warn('[auth] Token invalid/unauthorized on bootstrap. Clearing.');
+                    await clearSessionToken();
+                    setUser(null);
+                    return;
+                  }
+                  throw error;
                 }
               }
             }
@@ -442,8 +451,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         delete api.defaults.headers.common['Authorization'];
         setUser(null);
       } catch (error) {
-        console.error('[auth] SecureStore read failed. Fallback to memory session.', error);
-        setUser(null);
+        console.error('[auth] Bootstrap failed:', error);
+        setBootstrapError(error instanceof Error ? error : new Error(String(error)));
       } finally {
         setIsLoading(false);
       }

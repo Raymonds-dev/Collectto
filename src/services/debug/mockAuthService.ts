@@ -13,7 +13,8 @@ export const mockAuthService = {
     console.log('[DEBUG] mockAuthService.login called', credentials.email);
     debugSession.initialize();
     return {
-      accessToken: 'debug-token-123',
+      accessToken:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJsb2NhbC11c2VyIiwiZW1haWwiOiJ1c2VyQGV4YW1wbGUuY29tIiwibmFtZSI6IlVzZXIiLCJleHAiOjIyMDg5ODg4MDB9.signature',
       tokenType: 'Bearer',
     };
   },

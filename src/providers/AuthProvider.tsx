@@ -142,7 +142,7 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
   };
 };
 
-interface JwtPayloadClaims {
+export interface DecodedJwtClaims {
   sub?: string;
   userId?: string;
   uid?: string;
@@ -155,7 +155,18 @@ interface JwtPayloadClaims {
   given_name?: string;
   family_name?: string;
   iat?: number;
+  exp: number;
 }
+
+export const isValidJwtFormat = (token: string): boolean => {
+  if (!token) return false;
+  const parts = token.split('.');
+  return parts.length === 3 && parts.every((part) => part.trim().length > 0);
+};
+
+export const isTokenExpired = (exp: number): boolean => {
+  return Date.now() >= exp * 1000;
+};
 
 const resolveUserIdFromToken = (token: string): string | null => {
   const claims = decodeJwtPayload(token);
@@ -199,7 +210,7 @@ const decodeBase64Url = (value: string): string | null => {
   }
 };
 
-const decodeJwtPayload = (token: string): JwtPayloadClaims | null => {
+export const decodeJwtPayload = (token: string): DecodedJwtClaims | null => {
   const parts = token.split('.');
 
   if (parts.length < 2) {
@@ -213,7 +224,11 @@ const decodeJwtPayload = (token: string): JwtPayloadClaims | null => {
   }
 
   try {
-    return JSON.parse(decodedPayload) as JwtPayloadClaims;
+    const claims = JSON.parse(decodedPayload);
+    if (!claims || typeof claims !== 'object' || typeof claims.exp !== 'number') {
+      return null;
+    }
+    return claims as DecodedJwtClaims;
   } catch {
     return null;
   }
@@ -311,7 +326,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
-const shouldRestorePersistentSession = false;
+const shouldRestorePersistentSession = true;
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -321,8 +336,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const currentUserEmail = user?.email;
   const currentUserPhotoUrl = resolveUserPhotoUrl(user);
 
+  const signOut = async () => {
+    try {
+      if (isDebugModeEnabled()) {
+        await mockAuthService.logout();
+        clearDebugSession();
+      }
+      await clearSessionToken();
+      delete api.defaults.headers.common['Authorization'];
+    } catch (error) {
+      console.warn('[auth] Error during signOut storage operation:', error);
+    } finally {
+      setUser(null);
+    }
+  };
+
   useEffect(() => {
-    async function bootstrapSession() {
+    const interceptorId = api.addResponseInterceptor({
+      onFulfilled: (response) => response,
+      onRejected: async (error: unknown) => {
+        if (error instanceof ApiError && error.status === 401) {
+          console.warn('[auth] API 401 Unauthorized detected. Logging out.');
+          await signOut();
+        }
+        return Promise.reject(error);
+      },
+    });
+
+    return () => {
+      api.axios.interceptors.response.eject(interceptorId);
+    };
+  }, []);
+
+  useEffect(() => {
+    const bootstrapSession = async () => {
       try {
         if (isDebugModeEnabled()) {
           startDebugSession();
@@ -333,31 +380,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (token) {
             const cleanToken = token.replace(/^"|"$/g, '');
+
+            // 1. Format check
+            if (!isValidJwtFormat(cleanToken)) {
+              console.warn('[auth] Persisted token has invalid JWT format. Clearing.');
+              await clearSessionToken();
+              setUser(null);
+              return;
+            }
+
+            // 2. Expiration check
+            const claims = decodeJwtPayload(cleanToken);
+            if (claims && claims.exp && isTokenExpired(claims.exp)) {
+              console.warn('[auth] Persisted token has expired. Clearing.');
+              await clearSessionToken();
+              setUser(null);
+              return;
+            }
+
+            // 3. Header setup
             api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
 
-            const resolvedUserId = resolveUserIdFromToken(cleanToken);
-
-            if (resolvedUserId) {
-              try {
-                const profile = await getUserById(resolvedUserId);
-                setUser(resolveAuthUserFromProfile(profile, profile.email));
+            // 4. Debug vs Production Hydration
+            if (isDebugModeEnabled()) {
+              const debugUser = await mockAuthService.getCurrentUser();
+              if (debugUser) {
+                setUser(debugUser);
                 return;
-              } catch {
-                // Ignore profile hydration failures here and fall back to token claims.
+              }
+            } else {
+              const resolvedUserId = resolveUserIdFromToken(cleanToken);
+              if (resolvedUserId) {
+                try {
+                  const profile = await getUserById(resolvedUserId);
+                  setUser(resolveAuthUserFromProfile(profile, profile.email));
+                  return;
+                } catch (error) {
+                  // Offline cached fallback: token claims
+                  console.warn(
+                    '[auth] Profile hydration failed (probably offline). Using cached claims.',
+                    error
+                  );
+                }
               }
             }
 
+            // Fallback decode token claims directly
             setUser(resolveAuthUserFromToken(cleanToken, 'user@example.com'));
             return;
           }
         }
 
+        // Default: no token saved or persistent session not enabled
         await clearSessionToken();
         delete api.defaults.headers.common['Authorization'];
+        setUser(null);
+      } catch (error) {
+        console.error('[auth] SecureStore read failed. Fallback to memory session.', error);
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
-    }
+    };
 
     bootstrapSession();
   }, []);
@@ -428,7 +512,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         if (isDebugModeEnabled()) {
-          await mockAuthService.login(credentials);
+          const response = await mockAuthService.login(credentials);
+          const cleanToken = response.accessToken.replace(/^"|"$/g, '');
+          try {
+            if (shouldRestorePersistentSession) {
+              await setSessionToken(cleanToken);
+            }
+          } catch (error) {
+            console.warn('[auth] Failed to persist session token in debug mode:', error);
+          }
+          api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
           const debugUser = await mockAuthService.getCurrentUser();
           setUser(debugUser);
           return;
@@ -462,8 +555,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           const cleanToken = accessToken.replace(/^"|"$/g, '');
           const resolvedUserId = resolveUserIdFromToken(cleanToken);
-          if (shouldRestorePersistentSession) {
-            await setSessionToken(cleanToken);
+          try {
+            if (shouldRestorePersistentSession) {
+              await setSessionToken(cleanToken);
+            }
+          } catch (error) {
+            console.warn('[auth] Failed to persist session token:', error);
           }
 
           // Keep the axios instance authenticated for the current app session.
@@ -549,17 +646,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       },
 
-      signOut: async () => {
-        if (isDebugModeEnabled()) {
-          await mockAuthService.logout();
-          clearDebugSession();
-          setUser(null);
-          return;
-        }
-        await clearSessionToken();
-        delete api.defaults.headers.common['Authorization'];
-        setUser(null);
-      },
+      signOut,
       updateUserPhoto: (photoUrl: string) => {
         setUser((currentUser) => {
           if (!currentUser) {

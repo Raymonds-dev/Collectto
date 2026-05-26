@@ -15,6 +15,7 @@ import {
   startDebugSession,
 } from '@/services/debug';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
+import { sessionRefreshManager } from '@/services/auth/sessionRefreshManager';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof ApiError) {
@@ -342,6 +343,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await mockAuthService.logout();
         clearDebugSession();
       }
+      sessionRefreshManager.clearSession();
       await clearSessionToken();
       delete api.defaults.headers.common['Authorization'];
     } catch (error) {
@@ -352,19 +354,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
-    const interceptorId = api.addResponseInterceptor({
-      onFulfilled: (response) => response,
-      onRejected: async (error: unknown) => {
-        if (error instanceof ApiError && error.status === 401) {
-          console.warn('[auth] API 401 Unauthorized detected. Logging out.');
-          await signOut();
-        }
-        return Promise.reject(error);
+    sessionRefreshManager.initialize(
+      async () => {
+        await signOut();
       },
-    });
+      async (newToken) => {
+        try {
+          await setSessionToken(newToken);
+          api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
+        } catch (error) {
+          console.warn('[auth] Failed to persist refreshed token:', error);
+        }
+      }
+    );
 
     return () => {
-      api.axios.interceptors.response.eject(interceptorId);
+      sessionRefreshManager.clearSession();
     };
   }, []);
 
@@ -400,6 +405,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
             // 3. Header setup
             api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+            sessionRefreshManager.startSession(cleanToken);
 
             // 4. Debug vs Production Hydration
             if (isDebugModeEnabled()) {
@@ -522,6 +528,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn('[auth] Failed to persist session token in debug mode:', error);
           }
           api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+          sessionRefreshManager.startSession(cleanToken);
           const debugUser = await mockAuthService.getCurrentUser();
           setUser(debugUser);
           return;
@@ -565,6 +572,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // Keep the axios instance authenticated for the current app session.
           api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+          sessionRefreshManager.startSession(cleanToken);
           try {
             const hydratedProfile = await hydrateAuthenticatedProfile(
               `Bearer ${cleanToken}`,
@@ -648,6 +656,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       signOut,
       updateUserPhoto: (photoUrl: string) => {
+        sessionRefreshManager.recordUserActivity();
         setUser((currentUser) => {
           if (!currentUser) {
             return null;
@@ -656,6 +665,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         });
       },
       updateUserProfile: (data: Partial<AuthUser>) => {
+        sessionRefreshManager.recordUserActivity();
         console.log('[auth] updateUserProfile called with:', data);
         setUser((currentUser) => {
           if (!currentUser) {

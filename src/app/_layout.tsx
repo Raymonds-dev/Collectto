@@ -6,6 +6,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
@@ -63,20 +64,22 @@ export default function RootLayout() {
       <HttpClientProvider>
         <SafeAreaProvider>
           <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
-            <AuthProvider>
-              <Providers>
-                <AuthGate />
-                <Stack
-                  screenOptions={{
-                    headerShown: false,
-                    animation: 'fade',
-                    gestureEnabled: true,
-                  }}>
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="(tabs)" />
-                </Stack>
-              </Providers>
-            </AuthProvider>
+            <AuthErrorBoundary>
+              <AuthProvider>
+                <Providers>
+                  <AuthGate />
+                  <Stack
+                    screenOptions={{
+                      headerShown: false,
+                      animation: 'fade',
+                      gestureEnabled: true,
+                    }}>
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(tabs)" />
+                  </Stack>
+                </Providers>
+              </AuthProvider>
+            </AuthErrorBoundary>
             <StatusBar style="auto" />
           </SafeAreaView>
         </SafeAreaProvider>

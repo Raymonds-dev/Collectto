@@ -23,8 +23,8 @@
 
 **Purpose**: Project initialization, dependency checks, and configuration validation.
 
-- [ ] T001 [P] Verify and ensure dependencies (specifically expo-secure-store, expo-router, and axios) are present in package.json
-- [ ] T002 [P] Verify that app.json supports the necessary secure store build permissions/configuration
+- [x] T001 [P] Verify and ensure dependencies (specifically expo-secure-store, expo-router, and axios) are present in package.json
+- [x] T002 [P] Verify that app.json supports the necessary secure store build permissions/configuration
 
 ---
 
@@ -34,8 +34,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete.
 
-- [ ] T003 [P] Implement try-catch wrappers around expo-secure-store calls in src/services/storage/authSession.ts to prevent platform crashes
-- [ ] T004 [P] Implement and export token format validation, payload decoding, and expiration helpers in src/providers/AuthProvider.tsx
+- [x] T003 [P] Implement try-catch wrappers around expo-secure-store calls in src/services/storage/authSession.ts to prevent platform crashes
+- [x] T004 [P] Implement and export token format validation, payload decoding, and expiration helpers in src/providers/AuthProvider.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -49,11 +49,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T005 [US1] Set shouldRestorePersistentSession = true in src/providers/AuthProvider.tsx
-- [ ] T006 [US1] Update bootstrapSession in src/providers/AuthProvider.tsx to load, format check, and validate expiration of secure storage token on startup
-- [ ] T007 [US1] Implement offline cached fallback in src/providers/AuthProvider.tsx using decoded token claims if user profile hydration fails
-- [ ] T008 [US1] Configure axios default Authorization header on successful token restoration in src/providers/AuthProvider.tsx
-- [ ] T009 [US1] Update signIn in src/providers/AuthProvider.tsx to persist the JWT token using setSessionToken upon successful user authentication
+- [x] T005 [US1] Set shouldRestorePersistentSession = true in src/providers/AuthProvider.tsx
+- [x] T006 [US1] Update bootstrapSession in src/providers/AuthProvider.tsx to load, format check, and validate expiration of secure storage token on startup
+- [x] T007 [US1] Implement offline cached fallback in src/providers/AuthProvider.tsx using decoded token claims if user profile hydration fails
+- [x] T008 [US1] Configure axios default Authorization header on successful token restoration in src/providers/AuthProvider.tsx
+- [x] T009 [US1] Update signIn in src/providers/AuthProvider.tsx to persist the JWT token using setSessionToken upon successful user authentication
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently.
 
@@ -67,8 +67,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T010 [US2] Update bootstrapSession in src/providers/AuthProvider.tsx to clear the token using clearSessionToken and set user state to null if the token is expired
-- [ ] T011 [US2] Implement automatic logout redirection on token expiration/401 API failures in src/providers/AuthProvider.tsx
+- [x] T010 [US2] Update bootstrapSession in src/providers/AuthProvider.tsx to clear the token using clearSessionToken and set user state to null if the token is expired
+- [x] T011 [US2] Implement automatic logout redirection on token expiration/401 API failures in src/providers/AuthProvider.tsx
 
 **Checkpoint**: At this point, User Stories 1 and 2 should both work independently.
 
@@ -82,7 +82,7 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] Update signOut in src/providers/AuthProvider.tsx to call clearSessionToken, delete axios Authorization header, and set user to null
+- [x] T012 [US3] Update signOut in src/providers/AuthProvider.tsx to call clearSessionToken, delete axios Authorization header, and set user to null
 
 **Checkpoint**: User Stories 1, 2, and 3 should now be fully functional.
 
@@ -96,7 +96,7 @@
 
 ### Implementation for User Story 4
 
-- [ ] T013 [US4] Update bootstrapSession and storage call catch blocks in src/providers/AuthProvider.tsx to catch storage read/write exceptions and log warnings rather than crashing
+- [x] T013 [US4] Update bootstrapSession and storage call catch blocks in src/providers/AuthProvider.tsx to catch storage read/write exceptions and log warnings rather than crashing
 
 **Checkpoint**: All user stories are now independently functional and robust.
 
@@ -106,8 +106,8 @@
 
 **Purpose**: Improvements that affect multiple user stories, code quality, and formatting.
 
-- [ ] T014 Run code linting, formatting, and type checks via npm run validate in package.json
-- [ ] T015 Run quickstart.md validation steps in specs/008-session-persistence/quickstart.md to verify all user scenarios work correctly
+- [x] T014 Run code linting, formatting, and type checks via npm run validate in package.json
+- [x] T015 Run quickstart.md validation steps in specs/008-session-persistence/quickstart.md to verify all user scenarios work correctly
 
 ---
 

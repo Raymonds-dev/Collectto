@@ -2,6 +2,7 @@ import { AxiosError, AxiosInstance, AxiosRequestConfig, isAxiosError } from 'axi
 import { ApiError, RetryConfig } from './types';
 import { DEFAULT_RETRY_CONFIG } from './config';
 import { getSessionToken } from '../storage/authSession';
+import { sessionRefreshManager } from '../auth/sessionRefreshManager';
 
 /**
  * Helper function to pause execution for a given duration.
@@ -187,8 +188,20 @@ export const setupRetryInterceptor = (
  */
 export const setupErrorInterceptor = (axiosInstance: AxiosInstance): void => {
   axiosInstance.interceptors.response.use(
-    (response) => response,
-    (error) => {
+    (response) => {
+      const newToken = response.headers?.['authorization'] || response.headers?.['new-token'];
+      if (newToken && typeof newToken === 'string') {
+        const cleanToken = newToken.replace(/^Bearer\s+/i, '');
+        void sessionRefreshManager.startSession(cleanToken);
+      }
+      return response;
+    },
+    async (error) => {
+      if (isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          await sessionRefreshManager.handleUnauthorized();
+        }
+      }
       const apiError = normalizeError(error);
       return Promise.reject(apiError);
     }

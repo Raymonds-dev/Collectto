@@ -23,7 +23,7 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create type definitions for AuthenticationSession and RefreshAttempt in src/types/auth-refresh.d.ts
+- [x] T001 Create type definitions for AuthenticationSession and RefreshAttempt in src/types/auth-refresh.d.ts
 
 ---
 
@@ -33,8 +33,8 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T002 Define ISessionRefreshManager interface and implement the manager skeleton in src/services/auth/sessionRefreshManager.ts
-- [ ] T003 [P] Update JWT decoding helper to parse exp in src/providers/AuthProvider.tsx
+- [x] T002 Define ISessionRefreshManager interface and implement the manager skeleton in src/services/auth/sessionRefreshManager.ts
+- [x] T003 [P] Update JWT decoding helper to parse exp in src/providers/AuthProvider.tsx
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
@@ -48,11 +48,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T004 [US1] Implement event-driven scheduler (setTimeout) in src/services/auth/sessionRefreshManager.ts
-- [ ] T005 [US1] Implement asynchronous token validation API request calling /users/me in src/services/auth/sessionRefreshManager.ts
-- [ ] T006 [US1] Integrate SessionRefreshManager initialization and session start in src/providers/AuthProvider.tsx
-- [ ] T007 [US1] Implement stored token expiration check and timer scheduling on app startup in src/providers/AuthProvider.tsx
-- [ ] T008 [P] [US1] Update mockAuthService to generate debug tokens with customized exp claims in src/services/debug/mockAuthService.ts
+- [x] T004 [US1] Implement event-driven scheduler (setTimeout) in src/services/auth/sessionRefreshManager.ts
+- [x] T005 [US1] Implement asynchronous token validation API request calling /users/me in src/services/auth/sessionRefreshManager.ts
+- [x] T006 [US1] Integrate SessionRefreshManager initialization and session start in src/providers/AuthProvider.tsx
+- [x] T007 [US1] Implement stored token expiration check and timer scheduling on app startup in src/providers/AuthProvider.tsx
+- [x] T008 [P] [US1] Update mockAuthService to generate debug tokens with customized exp claims in src/services/debug/mockAuthService.ts
 
 **Checkpoint**: At this point, User Story 1 should be fully functional and testable independently
 
@@ -66,9 +66,9 @@
 
 ### Implementation for User Story 2
 
-- [ ] T009 [US2] Configure centralized Axios response interceptor for 401 status in src/services/api/api.ts
-- [ ] T010 [US2] Implement silent session clearing (tokens, state) without displaying error dialogs in src/providers/AuthProvider.tsx
-- [ ] T011 [US2] Route intercepted 401 errors to trigger handleUnauthorized in src/services/auth/sessionRefreshManager.ts
+- [x] T009 [US2] Configure centralized Axios response interceptor for 401 status in src/services/api/api.ts
+- [x] T010 [US2] Implement silent session clearing (tokens, state) without displaying error dialogs in src/providers/AuthProvider.tsx
+- [x] T011 [US2] Route intercepted 401 errors to trigger handleUnauthorized in src/services/auth/sessionRefreshManager.ts
 
 **Checkpoint**: At this point, User Stories 1 AND 2 should both work independently
 
@@ -82,8 +82,8 @@
 
 ### Implementation for User Story 3
 
-- [ ] T012 [US3] Implement timer rescheduling on user actions in src/services/auth/sessionRefreshManager.ts
-- [ ] T013 [US3] Reschedule refresh timer after user actions (signIn, profile update) in src/providers/AuthProvider.tsx
+- [x] T012 [US3] Implement timer rescheduling on user actions in src/services/auth/sessionRefreshManager.ts
+- [x] T013 [US3] Reschedule refresh timer after user actions (signIn, profile update) in src/providers/AuthProvider.tsx
 
 **Checkpoint**: User Stories 1, 2, and 3 should now be independently functional
 
@@ -97,9 +97,9 @@
 
 ### Implementation for User Story 4
 
-- [ ] T014 [US4] Implement log recording for refresh attempts with failure reasons in src/services/auth/sessionRefreshManager.ts
-- [ ] T015 [US4] Defer background refresh requests when offline and log as failed without clearing session in src/services/auth/sessionRefreshManager.ts
-- [ ] T016 [US4] Implement single-trigger guard for handleUnauthorized to prevent duplicate logouts on concurrent 401s in src/services/auth/sessionRefreshManager.ts
+- [x] T014 [US4] Implement log recording for refresh attempts with failure reasons in src/services/auth/sessionRefreshManager.ts
+- [x] T015 [US4] Defer background refresh requests when offline and log as failed without clearing session in src/services/auth/sessionRefreshManager.ts
+- [x] T016 [US4] Implement single-trigger guard for handleUnauthorized to prevent duplicate logouts on concurrent 401s in src/services/auth/sessionRefreshManager.ts
 
 **Checkpoint**: All user stories should now be independently functional
 
@@ -109,10 +109,10 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T017 Implement AppState change listeners to reconcile session state upon app foreground transitions in src/services/auth/sessionRefreshManager.ts
-- [ ] T018 Implement log array cap of 50 entries to prevent memory growth in src/services/auth/sessionRefreshManager.ts
-- [ ] T019 Ensure cancellation of scheduled timers on logout and unmount in src/providers/AuthProvider.tsx
-- [ ] T020 Run quickstart.md validation scenarios to verify silent refresh and logout behaviors in src/services/auth/sessionRefreshManager.ts
+- [x] T017 Implement AppState change listeners to reconcile session state upon app foreground transitions in src/services/auth/sessionRefreshManager.ts
+- [x] T018 Implement log array cap of 50 entries to prevent memory growth in src/services/auth/sessionRefreshManager.ts
+- [x] T019 Ensure cancellation of scheduled timers on logout and unmount in src/providers/AuthProvider.tsx
+- [x] T020 Run quickstart.md validation scenarios to verify silent refresh and logout behaviors in src/services/auth/sessionRefreshManager.ts
 
 ---
 
@@ -190,3 +190,4 @@ With multiple developers:
    - Developer B: User Story 2
    - Developer C: User Story 3 & 4
 3. Stories complete and integrate independently
+

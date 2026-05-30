@@ -1,6 +1,7 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
 import { api } from '../api/client';
+import { authLogger } from '@/utils/authLogging';
 
 const decodeBase64Url = (value: string): string | null => {
   try {
@@ -163,84 +164,103 @@ export class SessionRefreshManager {
 
     this.isRefreshing = true;
 
-    try {
-      console.log('[SessionRefreshManager] Proactively refreshing token...');
+    await authLogger
+      .track({ module: 'SessionRefreshManager', action: 'tokenRefresh' }, async () => {
+        try {
+          console.log('[SessionRefreshManager] Proactively refreshing token...');
 
-      const response = await api.axios.get('/users/me');
-      const headers = response.headers;
-      const newTokenHeader = headers?.['authorization'] || headers?.['new-token'];
-      let newToken: string | null = null;
+          const response = await api.axios.get('/users/me');
+          const headers = response.headers;
+          const newTokenHeader = headers?.['authorization'] || headers?.['new-token'];
+          let newToken: string | null = null;
 
-      if (newTokenHeader && typeof newTokenHeader === 'string') {
-        newToken = newTokenHeader.replace(/^Bearer\s+/i, '');
-      }
+          if (newTokenHeader && typeof newTokenHeader === 'string') {
+            newToken = newTokenHeader.replace(/^Bearer\s+/i, '');
+          }
 
-      if (newToken) {
-        const newClaims = decodeJwtPayload(newToken);
-        const nextExpirationTime = newClaims?.exp ?? null;
+          if (newToken) {
+            const newClaims = decodeJwtPayload(newToken);
+            const nextExpirationTime = newClaims?.exp ?? null;
 
-        this.logAttempt({
-          status: 'success',
-          nextExpirationTime,
-          errorReason: null,
-        });
+            this.logAttempt({
+              status: 'success',
+              nextExpirationTime,
+              errorReason: null,
+            });
 
-        if (this.onTokenRefreshedCallback) {
-          await this.onTokenRefreshedCallback(newToken);
+            if (this.onTokenRefreshedCallback) {
+              await this.onTokenRefreshedCallback(newToken);
+            }
+          } else {
+            const errMsg = 'Response headers did not contain a new authorization token';
+            this.logAttempt({
+              status: 'failed',
+              nextExpirationTime: null,
+              errorReason: errMsg,
+            });
+            throw new Error(errMsg);
+          }
+        } catch (error: any) {
+          console.warn('[SessionRefreshManager] Proactive refresh request failed:', error);
+
+          const isUnauthorized = error?.status === 401 || error?.code === 'UNAUTHORIZED';
+
+          this.logAttempt({
+            status: 'failed',
+            nextExpirationTime: null,
+            errorReason: error?.message || 'Network or Server Error',
+          });
+
+          if (isUnauthorized) {
+            await this.handleUnauthorized();
+          }
+          throw error;
+        } finally {
+          this.isRefreshing = false;
         }
-      } else {
-        this.logAttempt({
-          status: 'failed',
-          nextExpirationTime: null,
-          errorReason: 'Response headers did not contain a new authorization token',
-        });
-      }
-    } catch (error: any) {
-      console.warn('[SessionRefreshManager] Proactive refresh request failed:', error);
-
-      const isUnauthorized = error?.status === 401 || error?.code === 'UNAUTHORIZED';
-
-      this.logAttempt({
-        status: 'failed',
-        nextExpirationTime: null,
-        errorReason: error?.message || 'Network or Server Error',
+      })
+      .catch(() => {
+        // Catch to prevent error propagation from performRefresh
       });
-
-      if (isUnauthorized) {
-        await this.handleUnauthorized();
-      }
-    } finally {
-      this.isRefreshing = false;
-    }
   }
 
   public async handleUnauthorized(): Promise<void> {
     if (this.isHandlingUnauthorized) return;
     this.isHandlingUnauthorized = true;
 
-    console.warn('[SessionRefreshManager] Unauthorized detected. Logging out silently.');
-    this.clearSession();
+    await authLogger
+      .track({ module: 'SessionRefreshManager', action: 'silentLogout' }, async () => {
+        console.warn('[SessionRefreshManager] Unauthorized detected. Logging out silently.');
+        this.clearSession();
 
-    if (this.onUnauthorizedCallback) {
-      await this.onUnauthorizedCallback();
-    }
+        if (this.onUnauthorizedCallback) {
+          await this.onUnauthorizedCallback();
+        }
+      })
+      .catch(() => {});
   }
 
   public async reconcileSessionState(): Promise<void> {
     if (!this.activeToken) return;
 
-    const claims = decodeJwtPayload(this.activeToken);
-    if (!claims || !claims.exp) return;
+    await authLogger
+      .track({ module: 'SessionRefreshManager', action: 'sessionCheck' }, async () => {
+        const claims = decodeJwtPayload(this.activeToken!);
+        if (!claims || !claims.exp) {
+          throw new Error('Invalid token session: exp claim missing');
+        }
 
-    const expTimeMs = claims.exp * 1000;
-    const now = Date.now();
+        const expTimeMs = claims.exp * 1000;
+        const now = Date.now();
 
-    if (now >= expTimeMs) {
-      console.log('[SessionRefreshManager] Session has expired. Invalidation required.');
-      await this.handleUnauthorized();
-    } else {
-      this.scheduleRefresh();
-    }
+        if (now >= expTimeMs) {
+          console.log('[SessionRefreshManager] Session has expired. Invalidation required.');
+          await this.handleUnauthorized();
+        } else {
+          this.scheduleRefresh();
+        }
+      })
+      .catch(() => {});
   }
 
   private handleAppStateChange(status: AppStateStatus): void {

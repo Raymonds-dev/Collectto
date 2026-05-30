@@ -16,6 +16,7 @@ import {
 } from '@/services/debug';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { sessionRefreshManager } from '@/services/auth/sessionRefreshManager';
+import { authLogger } from '@/utils/authLogging';
 
 const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (error instanceof ApiError) {
@@ -343,19 +344,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const signOut = async () => {
-    try {
-      if (isDebugModeEnabled()) {
-        await mockAuthService.logout();
-        clearDebugSession();
+    return authLogger.track({ module: 'AuthProvider', action: 'signOut' }, async () => {
+      try {
+        if (isDebugModeEnabled()) {
+          await mockAuthService.logout();
+          clearDebugSession();
+        }
+        sessionRefreshManager.clearSession();
+        await clearSessionToken();
+        delete api.defaults.headers.common['Authorization'];
+      } catch (error) {
+        console.warn('[auth] Error during signOut storage operation:', error);
+        throw error;
+      } finally {
+        setUser(null);
       }
-      sessionRefreshManager.clearSession();
-      await clearSessionToken();
-      delete api.defaults.headers.common['Authorization'];
-    } catch (error) {
-      console.warn('[auth] Error during signOut storage operation:', error);
-    } finally {
-      setUser(null);
-    }
+    });
   };
 
   useEffect(() => {
@@ -380,85 +384,95 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const bootstrapSession = async () => {
-      try {
-        if (isDebugModeEnabled()) {
-          startDebugSession();
-        }
+      return authLogger.track({ module: 'AuthProvider', action: 'bootstrapSession' }, async () => {
+        try {
+          if (isDebugModeEnabled()) {
+            startDebugSession();
+          }
 
-        if (shouldRestorePersistentSession) {
-          const token = await getSessionToken();
+          if (shouldRestorePersistentSession) {
+            const token = await getSessionToken();
 
-          if (token) {
-            const cleanToken = token.replace(/^"|"$/g, '');
+            if (token) {
+              const cleanToken = token.replace(/^"|"$/g, '');
 
-            // 1. Format check
-            if (!isValidJwtFormat(cleanToken)) {
-              console.warn('[auth] Persisted token has invalid JWT format. Clearing.');
-              await clearSessionToken();
-              setUser(null);
-              return;
-            }
+              // Log explicit token validation
+              let validationError: Error | null = null;
+              const claims = decodeJwtPayload(cleanToken);
 
-            // 2. Expiration check
-            const claims = decodeJwtPayload(cleanToken);
-            if (claims && claims.exp && isTokenExpired(claims.exp)) {
-              console.warn('[auth] Persisted token has expired. Clearing.');
-              await clearSessionToken();
-              setUser(null);
-              return;
-            }
+              await authLogger
+                .track({ module: 'AuthProvider', action: 'tokenValidation' }, async () => {
+                  if (!isValidJwtFormat(cleanToken)) {
+                    validationError = new Error('Persisted token has invalid JWT format.');
+                    throw validationError;
+                  }
+                  if (claims && claims.exp && isTokenExpired(claims.exp)) {
+                    validationError = new Error('Persisted token has expired.');
+                    throw validationError;
+                  }
+                })
+                .catch(() => {});
 
-            // 3. Header setup
-            api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
-            sessionRefreshManager.startSession(cleanToken);
-
-            // 4. Debug vs Production Hydration
-            if (isDebugModeEnabled()) {
-              const debugUser = await mockAuthService.getCurrentUser();
-              if (debugUser) {
-                setUser(debugUser);
+              if (validationError) {
+                console.warn(`[auth] ${(validationError as Error).message} Clearing.`);
+                await clearSessionToken();
+                setUser(null);
                 return;
               }
-            } else {
-              const resolvedUserId = resolveUserIdFromToken(cleanToken);
-              if (resolvedUserId) {
-                try {
-                  const profile = await getUserById(resolvedUserId);
-                  setUser(resolveAuthUserFromProfile(profile, profile.email));
+
+              // 3. Header setup
+              api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+              sessionRefreshManager.startSession(cleanToken);
+
+              // 4. Debug vs Production Hydration
+              if (isDebugModeEnabled()) {
+                const debugUser = await mockAuthService.getCurrentUser();
+                if (debugUser) {
+                  setUser(debugUser);
                   return;
-                } catch (error) {
-                  // If it's a 401 or 403, clear session and return (don't throw)
-                  const status = (error as any)?.status || (error as any)?.response?.status;
-                  if (status === 401 || status === 403) {
-                    console.warn('[auth] Token invalid/unauthorized on bootstrap. Clearing.');
-                    await clearSessionToken();
-                    setUser(null);
+                }
+              } else {
+                const resolvedUserId = resolveUserIdFromToken(cleanToken);
+                if (resolvedUserId) {
+                  try {
+                    const profile = await getUserById(resolvedUserId);
+                    setUser(resolveAuthUserFromProfile(profile, profile.email));
                     return;
+                  } catch (error) {
+                    // If it's a 401 or 403, clear session and return (don't throw)
+                    const status = (error as any)?.status || (error as any)?.response?.status;
+                    if (status === 401 || status === 403) {
+                      console.warn('[auth] Token invalid/unauthorized on bootstrap. Clearing.');
+                      await clearSessionToken();
+                      setUser(null);
+                      return;
+                    }
+                    throw error;
                   }
-                  throw error;
                 }
               }
+
+              // Fallback decode token claims directly
+              setUser(resolveAuthUserFromToken(cleanToken, 'user@example.com'));
+              return;
             }
-
-            // Fallback decode token claims directly
-            setUser(resolveAuthUserFromToken(cleanToken, 'user@example.com'));
-            return;
           }
-        }
 
-        // Default: no token saved or persistent session not enabled
-        await clearSessionToken();
-        delete api.defaults.headers.common['Authorization'];
-        setUser(null);
-      } catch (error) {
-        console.error('[auth] Bootstrap failed:', error);
-        setBootstrapError(error instanceof Error ? error : new Error(String(error)));
-      } finally {
-        setIsLoading(false);
-      }
+          // Default: no token saved or persistent session not enabled
+          await clearSessionToken();
+          delete api.defaults.headers.common['Authorization'];
+          setUser(null);
+        } catch (error) {
+          console.error('[auth] Bootstrap failed:', error);
+          setBootstrapError(error instanceof Error ? error : new Error(String(error)));
+          throw error;
+        } finally {
+          setIsLoading(false);
+        }
+      });
     };
 
-    bootstrapSession();
+    bootstrapSession().catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -520,147 +534,151 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isLoading,
       user,
       signIn: async (credentials: Credentials) => {
-        const normalizedEmail = credentials.email.trim().toLowerCase();
+        return authLogger.track({ module: 'AuthProvider', action: 'signIn' }, async () => {
+          const normalizedEmail = credentials.email.trim().toLowerCase();
 
-        if (!normalizedEmail || !credentials.password) {
-          throw new Error('Preencha email e senha.');
-        }
-
-        if (isDebugModeEnabled()) {
-          const response = await mockAuthService.login(credentials);
-          const cleanToken = response.accessToken.replace(/^"|"$/g, '');
-          try {
-            if (shouldRestorePersistentSession) {
-              await setSessionToken(cleanToken);
-            }
-          } catch (error) {
-            console.warn('[auth] Failed to persist session token in debug mode:', error);
-          }
-          api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
-          sessionRefreshManager.startSession(cleanToken);
-          const debugUser = await mockAuthService.getCurrentUser();
-          setUser(debugUser);
-          return;
-        }
-
-        try {
-          const responseData = await api.post<any>(
-            'auth/login',
-            {
-              email: normalizedEmail,
-              password: credentials.password,
-            },
-            {
-              headers: {
-                Authorization: '',
-              },
-            }
-          );
-
-          const accessToken =
-            responseData &&
-            typeof responseData === 'object' &&
-            typeof (responseData as { accessToken?: unknown }).accessToken === 'string' &&
-            (responseData as { accessToken: string }).accessToken.length > 0
-              ? (responseData as { accessToken: string }).accessToken
-              : null;
-
-          if (!accessToken) {
-            throw new Error('Token de acesso não retornado pelo backend.');
+          if (!normalizedEmail || !credentials.password) {
+            throw new Error('Preencha email e senha.');
           }
 
-          const cleanToken = accessToken.replace(/^"|"$/g, '');
-          const resolvedUserId = resolveUserIdFromToken(cleanToken);
-          try {
-            if (shouldRestorePersistentSession) {
-              await setSessionToken(cleanToken);
-            }
-          } catch (error) {
-            console.warn('[auth] Failed to persist session token:', error);
-          }
-
-          // Keep the axios instance authenticated for the current app session.
-          api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
-          sessionRefreshManager.startSession(cleanToken);
-          try {
-            const hydratedProfile = await hydrateAuthenticatedProfile(
-              `Bearer ${cleanToken}`,
-              normalizedEmail,
-              resolvedUserId ?? undefined
-            );
-            setUser(hydratedProfile ?? resolveAuthUserFromToken(cleanToken, normalizedEmail));
-            return;
-          } catch {
-            // Ignore profile hydration failures here and fall back to token claims.
-          }
-
-          if (resolvedUserId) {
+          if (isDebugModeEnabled()) {
+            const response = await mockAuthService.login(credentials);
+            const cleanToken = response.accessToken.replace(/^"|"$/g, '');
             try {
-              const profile = await getUserById(resolvedUserId);
-              const hydratedProfile = resolveAuthUserFromProfile(profile, normalizedEmail);
-              setUser(hydratedProfile);
+              if (shouldRestorePersistentSession) {
+                await setSessionToken(cleanToken);
+              }
+            } catch (error) {
+              console.warn('[auth] Failed to persist session token in debug mode:', error);
+            }
+            api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+            sessionRefreshManager.startSession(cleanToken);
+            const debugUser = await mockAuthService.getCurrentUser();
+            setUser(debugUser);
+            return;
+          }
+
+          try {
+            const responseData = await api.post<any>(
+              'auth/login',
+              {
+                email: normalizedEmail,
+                password: credentials.password,
+              },
+              {
+                headers: {
+                  Authorization: '',
+                },
+              }
+            );
+
+            const accessToken =
+              responseData &&
+              typeof responseData === 'object' &&
+              typeof (responseData as { accessToken?: unknown }).accessToken === 'string' &&
+              (responseData as { accessToken: string }).accessToken.length > 0
+                ? (responseData as { accessToken: string }).accessToken
+                : null;
+
+            if (!accessToken) {
+              throw new Error('Token de acesso não retornado pelo backend.');
+            }
+
+            const cleanToken = accessToken.replace(/^"|"$/g, '');
+            const resolvedUserId = resolveUserIdFromToken(cleanToken);
+            try {
+              if (shouldRestorePersistentSession) {
+                await setSessionToken(cleanToken);
+              }
+            } catch (error) {
+              console.warn('[auth] Failed to persist session token:', error);
+            }
+
+            // Keep the axios instance authenticated for the current app session.
+            api.defaults.headers.common['Authorization'] = `Bearer ${cleanToken}`;
+            sessionRefreshManager.startSession(cleanToken);
+            try {
+              const hydratedProfile = await hydrateAuthenticatedProfile(
+                `Bearer ${cleanToken}`,
+                normalizedEmail,
+                resolvedUserId ?? undefined
+              );
+              setUser(hydratedProfile ?? resolveAuthUserFromToken(cleanToken, normalizedEmail));
               return;
             } catch {
               // Ignore profile hydration failures here and fall back to token claims.
             }
-          }
 
-          setUser(resolveAuthUserFromToken(cleanToken, normalizedEmail));
-          return;
-        } catch (error: unknown) {
-          throw new Error(resolveErrorMessage(error, '*Falha no login'));
-        }
+            if (resolvedUserId) {
+              try {
+                const profile = await getUserById(resolvedUserId);
+                const hydratedProfile = resolveAuthUserFromProfile(profile, normalizedEmail);
+                setUser(hydratedProfile);
+                return;
+              } catch {
+                // Ignore profile hydration failures here and fall back to token claims.
+              }
+            }
+
+            setUser(resolveAuthUserFromToken(cleanToken, normalizedEmail));
+            return;
+          } catch (error: unknown) {
+            throw new Error(resolveErrorMessage(error, '*Falha no login'));
+          }
+        });
       },
 
       signUp: async (registerData: RegisterData) => {
-        try {
-          const normalizedBirthdayDate = registerData.birthdayDate.trim().split('T')[0];
-          const normalizedPayload: RegisterData = {
-            name: registerData.name.trim(),
-            username: registerData.username.trim().toLowerCase(),
-            email: registerData.email.trim().toLowerCase(),
-            password: registerData.password,
-            birthdayDate: normalizedBirthdayDate,
-          };
+        return authLogger.track({ module: 'AuthProvider', action: 'signUp' }, async () => {
+          try {
+            const normalizedBirthdayDate = registerData.birthdayDate.trim().split('T')[0];
+            const normalizedPayload: RegisterData = {
+              name: registerData.name.trim(),
+              username: registerData.username.trim().toLowerCase(),
+              email: registerData.email.trim().toLowerCase(),
+              password: registerData.password,
+              birthdayDate: normalizedBirthdayDate,
+            };
 
-          const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedPayload.username);
-          const birthdayDateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(normalizedPayload.birthdayDate);
+            const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedPayload.username);
+            const birthdayDateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(normalizedPayload.birthdayDate);
 
-          if (
-            !normalizedPayload.email ||
-            !normalizedPayload.password ||
-            !normalizedPayload.name ||
-            !normalizedPayload.username ||
-            !normalizedPayload.birthdayDate
-          ) {
-            throw new Error('Preencha todos os campos');
+            if (
+              !normalizedPayload.email ||
+              !normalizedPayload.password ||
+              !normalizedPayload.name ||
+              !normalizedPayload.username ||
+              !normalizedPayload.birthdayDate
+            ) {
+              throw new Error('Preencha todos os campos');
+            }
+
+            if (!usernameIsValid) {
+              throw new Error(
+                'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+              );
+            }
+
+            if (!birthdayDateIsValid) {
+              throw new Error('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
+            }
+
+            if (isDebugModeEnabled()) {
+              await mockAuthService.register(normalizedPayload);
+              return;
+            }
+
+            // Use the centralized api client with explicit empty Authorization to bypass token injection.
+            await api.post('users/create', normalizedPayload, {
+              headers: {
+                'Content-Type': 'application/json',
+                Authorization: '',
+              },
+            });
+          } catch (error: unknown) {
+            throw new Error(resolveErrorMessage(error, 'Falha ao realizar o cadastro'));
           }
-
-          if (!usernameIsValid) {
-            throw new Error(
-              'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
-            );
-          }
-
-          if (!birthdayDateIsValid) {
-            throw new Error('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
-          }
-
-          if (isDebugModeEnabled()) {
-            await mockAuthService.register(normalizedPayload);
-            return;
-          }
-
-          // Use the centralized api client with explicit empty Authorization to bypass token injection.
-          await api.post('users/create', normalizedPayload, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: '',
-            },
-          });
-        } catch (error: unknown) {
-          throw new Error(resolveErrorMessage(error, 'Falha ao realizar o cadastro'));
-        }
+        });
       },
 
       signOut,

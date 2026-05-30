@@ -9,6 +9,7 @@ import api, {
 import { ApiError } from '@/services/api/types';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
+import { mapErrorToMessage } from '@/utils/errorMapping';
 
 const resolveFileName = (photoUri: string, contentType: string): string => {
   const lastSegment = photoUri.split('/').pop();
@@ -223,8 +224,12 @@ export const updateProfile = async (data: UpdateUserRequest): Promise<UserRespon
     return mockAuthService.updateProfile(data);
   }
 
-  const updated = await apiUpdateProfile(data);
-  return updated as unknown as UserResponse;
+  try {
+    const updated = await apiUpdateProfile(data);
+    return updated as unknown as UserResponse;
+  } catch (error) {
+    throw mapErrorToMessage(error, 'profile_update');
+  }
 };
 
 export const getProfileById = async (userId: string): Promise<UserResponse> => {

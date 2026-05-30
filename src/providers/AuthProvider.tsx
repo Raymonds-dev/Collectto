@@ -6,8 +6,6 @@ import {
 } from '@/services/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AxiosError } from 'axios';
-import { ApiError } from '@/services/api/types';
 import {
   clearDebugSession,
   isDebugModeEnabled,
@@ -17,39 +15,7 @@ import {
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { sessionRefreshManager } from '@/services/auth/sessionRefreshManager';
 import { authLogger } from '@/utils/authLogging';
-
-const resolveErrorMessage = (error: unknown, fallbackMessage: string): string => {
-  if (error instanceof ApiError) {
-    return error.message;
-  }
-
-  if (error instanceof Error && error.message) {
-    return error.message;
-  }
-
-  if (error instanceof AxiosError && error.response) {
-    const responseData = error.response.data as
-      | { message?: string; error?: string }
-      | string
-      | undefined;
-
-    if (typeof responseData === 'string' && responseData.trim()) {
-      return responseData;
-    }
-
-    if (responseData && typeof responseData === 'object') {
-      return responseData.message || responseData.error || fallbackMessage;
-    }
-
-    if (error.response.status === 403) {
-      return 'A requisição foi recusada pelo servidor';
-    }
-
-    return fallbackMessage;
-  }
-
-  return fallbackMessage;
-};
+import { mapErrorToMessage } from '@/utils/errorMapping';
 
 const resolveProfileAssetUrl = (value?: string | null): string | undefined => {
   if (!value) {
@@ -623,7 +589,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setUser(resolveAuthUserFromToken(cleanToken, normalizedEmail));
             return;
           } catch (error: unknown) {
-            throw new Error(resolveErrorMessage(error, '*Falha no login'));
+            throw mapErrorToMessage(error, 'login');
           }
         });
       },
@@ -676,7 +642,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               },
             });
           } catch (error: unknown) {
-            throw new Error(resolveErrorMessage(error, 'Falha ao realizar o cadastro'));
+            throw mapErrorToMessage(error, 'signup');
           }
         });
       },

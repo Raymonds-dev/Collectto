@@ -1,6 +1,6 @@
 import { RetryConfig } from './types';
 
-export const DEFAULT_TIMEOUT_MS = 15000;
+export const DEFAULT_TIMEOUT_MS = 30000;
 
 export const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
   maxRetries: 3,

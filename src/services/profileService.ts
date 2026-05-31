@@ -99,13 +99,14 @@ const requestPresignedUpload = async (
   userId: string,
   photoUri: string,
   contentType: string,
+  context: 'PROFILE_PICTURE' | 'PROFILE_BACKGROUND',
   authorization: string
 ): Promise<GenerateUploadUrlsResponse[number]> => {
   const fileName = resolveFileName(photoUri, contentType);
   const resourceId = await ensureUuidResourceId(userId, authorization);
   const payload: GenerateUploadUrlsRequest = {
     resourceId,
-    context: 'PROFILE_PICTURE',
+    context,
     files: [{ fileName, contentType }],
   };
 
@@ -166,6 +167,7 @@ export const uploadProfilePhoto = async (
     userId,
     photoUri,
     contentType,
+    'PROFILE_PICTURE',
     authorization
   );
   const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
@@ -184,6 +186,46 @@ export const uploadProfilePhoto = async (
 
   if (uploadResult.status < 200 || uploadResult.status >= 300) {
     throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResult.status}`);
+  }
+
+  return filePath;
+};
+
+export const uploadProfileBackground = async (
+  userId: string,
+  photoUri: string,
+  contentType: string
+): Promise<string> => {
+  if (isDebugModeEnabled()) {
+    return photoUri;
+  }
+
+  const authorization = getCurrentAuthorizationHeader();
+  const { filePath, uploadUrl } = await requestPresignedUpload(
+    userId,
+    photoUri,
+    contentType,
+    'PROFILE_BACKGROUND',
+    authorization
+  );
+  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
+    httpMethod: 'PUT',
+    headers: {
+      'Content-Type': contentType,
+    },
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  });
+
+  if (__DEV__) {
+    console.log('[upload] background upload result', {
+      status: uploadResult.status,
+    });
+  }
+
+  if (uploadResult.status < 200 || uploadResult.status >= 300) {
+    throw new Error(
+      `Falha ao enviar a imagem de capa para armazenamento. Status: ${uploadResult.status}`
+    );
   }
 
   return filePath;

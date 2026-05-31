@@ -89,8 +89,9 @@ const resolveAuthUserFromProfile = (payload: unknown, fallbackEmail: string): Au
 
   const rawProfilePictureUrl = resolveRawProfilePictureUrl(source);
   const profilePictureUrl = resolveProfileAssetUrl(rawProfilePictureUrl);
-  const profileBackgroundUrl =
+  const rawProfileBackgroundUrl =
     typeof source.profileBackgroundUrl === 'string' ? source.profileBackgroundUrl : undefined;
+  const profileBackgroundUrl = resolveProfileAssetUrl(rawProfileBackgroundUrl);
   const username =
     typeof source.username === 'string' && source.username.length > 0
       ? source.username

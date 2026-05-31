@@ -18,14 +18,14 @@ export type ValidatorFunction = (value: string) => ValidationResult;
 export function validateEmail(email: string): ValidationResult {
   const trimmed = (email || '').trim();
   if (!trimmed) {
-    return [false, 'Invalid email format'];
+    return [false, 'Formato de e-mail inválido'];
   }
 
   // Regex supporting Unicode letters in domain and international formats
   const emailRegex =
     /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[\p{L}0-9](?:[\p{L}0-9-]{0,61}[\p{L}0-9])?(?:\.[\p{L}0-9](?:[\p{L}0-9-]{0,61}[\p{L}0-9])?)+$/u;
   if (!emailRegex.test(trimmed)) {
-    return [false, 'Invalid email format'];
+    return [false, 'Formato de e-mail inválido'];
   }
 
   return [true, null];
@@ -41,12 +41,12 @@ export function validateEmail(email: string): ValidationResult {
 export function validateUsername(username: string): ValidationResult {
   const name = username || '';
   if (name.length < 3 || name.length > 20) {
-    return [false, 'Username must be 3-20 characters'];
+    return [false, 'Nome de usuário deve conter de 3-20 caracteres'];
   }
 
   const allowedRegex = /^[a-z0-9_]+$/;
   if (!allowedRegex.test(name)) {
-    return [false, 'Username must be lowercase letters, numbers, and underscores only'];
+    return [false, 'O nome de usuário deve conter apenas letras minúsculas, números e sublinhados'];
   }
 
   return [true, null];
@@ -64,16 +64,13 @@ export function validatePassword(password: string): ValidationResult {
 
   // Must be at least 8 characters (actual characters, excluding spaces-only)
   if (trimmed.length < 8 || pass.length < 8) {
-    return [false, 'Password must be at least 8 characters'];
+    return [false, 'Senha deve conter pelo menos 8 caracteres'];
   }
 
   // Must contain at least one uppercase letter
   const hasUppercase = /[A-Z]/.test(pass);
   if (!hasUppercase) {
-    return [
-      false,
-      'Password must be at least 8 characters and contain at least one uppercase letter',
-    ];
+    return [false, 'Senha deve conter pelo menos 8 caracteres e uma letra maiuscula'];
   }
 
   return [true, null];
@@ -95,7 +92,7 @@ function isLeapYear(year: number): boolean {
 export function validateDate(dateStr: string): ValidationResult {
   const datePattern = /^\d{4}-\d{2}-\d{2}$/;
   if (!datePattern.test(dateStr)) {
-    return [false, 'Invalid date format. Use yyyy-MM-dd'];
+    return [false, 'Formato Inválido. Use yyyy-MM-dd'];
   }
 
   const [yearStr, monthStr, dayStr] = dateStr.split('-');
@@ -104,14 +101,14 @@ export function validateDate(dateStr: string): ValidationResult {
   const day = parseInt(dayStr, 10);
 
   if (month < 1 || month > 12) {
-    return [false, 'Invalid date format. Use yyyy-MM-dd'];
+    return [false, 'Formato Inválido. Use yyyy-MM-dd'];
   }
 
   const daysInMonth = [31, isLeapYear(year) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
   const maxDays = daysInMonth[month - 1];
   if (day < 1 || day > maxDays) {
-    return [false, 'Invalid date format. Use yyyy-MM-dd'];
+    return [false, 'Formato Inválido. Use yyyy-MM-dd'];
   }
 
   return [true, null];
@@ -150,7 +147,7 @@ export function validateBirthday(birthdayStr: string): ValidationResult {
   }
 
   if (age < 13) {
-    return [false, 'You must be at least 13 years old'];
+    return [false, 'Você deve ter pelo menos 13 anos de idade'];
   }
 
   return [true, null];

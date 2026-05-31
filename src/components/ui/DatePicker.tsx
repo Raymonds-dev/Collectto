@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Picker } from '@react-native-picker/picker';
 import { Calendar, type DateData } from 'react-native-calendars';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { tokens } from '@/styles/tailwind/tokens.native';
@@ -48,6 +49,8 @@ const MONTH_NAMES = [
   'Dezembro',
 ];
 
+const MIN_YEAR = 1900;
+
 /**
  * Formats a date for compact display on the trigger.
  * Example: "2023-06-15" → "15 Jun 2023"
@@ -66,6 +69,30 @@ const formatFullDate = (dateString: string): string => {
   const [y, m, d] = dateString.split('-');
   const monthIndex = parseInt(m, 10) - 1;
   return `${parseInt(d, 10)} de ${MONTH_NAMES[monthIndex] ?? m} de ${y}`;
+};
+
+const pad2 = (value: number): string => String(value).padStart(2, '0');
+
+const getYearFromDate = (dateString?: string | null): number => {
+  if (!dateString) {
+    return new Date().getFullYear();
+  }
+
+  const year = parseInt(dateString.split('-')[0], 10);
+  return Number.isNaN(year) ? new Date().getFullYear() : year;
+};
+
+const clampDayForMonth = (year: number, month: number, day: number): number => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return Math.min(day, daysInMonth);
+};
+
+const updateDateYear = (dateString: string, year: number): string => {
+  const [, m, d] = dateString.split('-');
+  const month = parseInt(m, 10);
+  const day = parseInt(d, 10);
+  const safeDay = clampDayForMonth(year, month, day);
+  return `${year}-${pad2(month)}-${pad2(safeDay)}`;
 };
 
 /**
@@ -88,7 +115,15 @@ export function DatePicker({
   placeholder = 'Selecionar data',
 }: DatePickerProps) {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+  const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
   const [draftDate, setDraftDate] = useState<string | null>(value ?? null);
+  const [calendarMonth, setCalendarMonth] = useState<string | null>(value ?? null);
+  const [yearDraft, setYearDraft] = useState<number>(getYearFromDate(value));
+
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: currentYear - MIN_YEAR + 1 }, (_, index) => currentYear - index);
+  }, []);
 
   const handleDayPress = (date: DateData): void => {
     setDraftDate(date.dateString);
@@ -103,18 +138,40 @@ export function DatePicker({
 
   const handleCancel = (): void => {
     setDraftDate(value ?? null);
+    setCalendarMonth(value ?? null);
     setIsCalendarVisible(false);
   };
 
   const handleClear = (): void => {
     setDraftDate(null);
     onDateChange('');
+    setCalendarMonth(null);
     setIsCalendarVisible(false);
+  };
+
+  const handleYearConfirm = (): void => {
+    const nextYear = yearDraft;
+    const nextDraftDate = draftDate ? updateDateYear(draftDate, nextYear) : null;
+    const baseMonth = nextDraftDate
+      ? nextDraftDate
+      : `${nextYear}-${pad2(new Date().getMonth() + 1)}-01`;
+
+    setDraftDate(nextDraftDate);
+    setCalendarMonth(baseMonth);
+    setIsYearPickerVisible(false);
+    setIsCalendarVisible(true);
+  };
+
+  const handleYearCancel = (): void => {
+    setYearDraft(getYearFromDate(value));
+    setIsYearPickerVisible(false);
   };
 
   const openCalendar = (): void => {
     setDraftDate(value ?? null);
-    setIsCalendarVisible(true);
+    setCalendarMonth(value ?? null);
+    setYearDraft(getYearFromDate(value));
+    setIsYearPickerVisible(true);
   };
 
   const hasValue = Boolean(value);
@@ -172,6 +229,56 @@ export function DatePicker({
 
       {error && <Text className="mt-1 text-xs text-feedback-error">{error}</Text>}
 
+      {/* Year Picker Modal */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={isYearPickerVisible}
+        onRequestClose={handleYearCancel}>
+        <Pressable
+          style={styles.overlay}
+          onPress={handleYearCancel}
+          accessibilityRole="button"
+          accessibilityLabel="Fechar seletor de ano">
+          <View style={styles.centeredContainer}>
+            <Pressable style={styles.modalCard} onPress={() => {}}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalLabel}>Selecionar Ano</Text>
+              </View>
+
+              <Picker
+                selectedValue={yearDraft}
+                onValueChange={(value) => setYearDraft(Number(value))}
+                style={styles.yearPicker}
+                itemStyle={styles.yearPickerItem}
+                accessibilityLabel="Selecionar ano">
+                {yearOptions.map((year) => (
+                  <Picker.Item key={year} label={String(year)} value={year} />
+                ))}
+              </Picker>
+
+              <View style={styles.actionsRow}>
+                <Pressable
+                  onPress={handleYearCancel}
+                  style={styles.cancelButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Cancelar seleção de ano">
+                  <Text style={styles.cancelText}>Cancelar</Text>
+                </Pressable>
+                <View style={styles.actionsSpacer} />
+                <Pressable
+                  onPress={handleYearConfirm}
+                  style={styles.confirmButton}
+                  accessibilityRole="button"
+                  accessibilityLabel="Confirmar ano selecionado">
+                  <Text style={styles.confirmText}>Continuar</Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
+
       {/* Calendar Modal */}
       <Modal
         transparent
@@ -201,7 +308,7 @@ export function DatePicker({
               </View>
 
               <Calendar
-                current={draftDate ?? undefined}
+                current={calendarMonth ?? draftDate ?? undefined}
                 maxDate={new Date().toISOString().split('T')[0]}
                 onDayPress={handleDayPress}
                 markedDates={
@@ -249,7 +356,6 @@ export function DatePicker({
                     <Text style={styles.clearText}>Limpar</Text>
                   </Pressable>
                 )}
-                <View style={styles.actionsSpacer} />
                 <Pressable
                   onPress={handleCancel}
                   style={styles.cancelButton}
@@ -257,6 +363,7 @@ export function DatePicker({
                   accessibilityLabel="Cancelar seleção de data">
                   <Text style={styles.cancelText}>Cancelar</Text>
                 </Pressable>
+                <View style={styles.actionsSpacer} />
                 <Pressable
                   onPress={handleConfirm}
                   style={[styles.confirmButton, !draftDate && styles.confirmButtonDisabled]}
@@ -397,6 +504,15 @@ const styles = StyleSheet.create({
   },
   triggerSelected: {
     borderColor: tokens.colors.brand[200],
+  },
+  yearPicker: {
+    height: 180,
+    width: '100%',
+  },
+  yearPickerItem: {
+    color: tokens.colors.text.base,
+    fontSize: 16,
+    fontWeight: '600',
   },
   triggerText: {
     color: tokens.colors.text.subtle,

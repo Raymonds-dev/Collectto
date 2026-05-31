@@ -1,6 +1,6 @@
 # Feature Specification: Item and Collection Creation Flow
 
-**Feature Branch**: `002-add-item-collection`  
+**Feature Branch**: `feature/002-add-item-collection`  
 **Created**: 2026-05-02  
 **Status**: Draft  
 **Input**: User description: "Create a feature para criar um item e coleção. O usuário irá clicar no botão de "mais" na @src\app\(tabs)\_layout.tsx e seguirá um fluxo de adicionar as fotos do item, descrição e nome e escolherá a coleção ao qual ele pertence, caso não exista uma coleção ou não se encaixe em nenhuma ele terá a opção de seguir um fluxo de criar coleção. O fluxo de coleção será simples, ele colocará o nome, descrição (opcional) e a imagem cover (opcional)."

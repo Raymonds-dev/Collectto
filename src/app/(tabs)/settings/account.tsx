@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert, Image, Modal, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { AxiosError } from 'axios';
+import { ApiError } from '@/services/api/types';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system/legacy';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -16,6 +17,9 @@ import {
   uploadProfilePhoto,
 } from '@/services/profileService';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
+import { validateBirthday, validateUsername } from '@/utils/validation';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { MappedError } from '@/types/error';
 
 interface ProfileFormData {
   name: string;
@@ -58,7 +62,7 @@ const resolveProfilePhotoUrl = (value?: string): string | undefined => {
 };
 
 export default function AccountScreen() {
-  const { user, updateUserProfile } = useAuth();
+  const { user, updateUserProfile, signOut } = useAuth();
   const { requestGallery, galleryGranted } = usePhotoPermissionsFlow();
   const [editProfileVisible, setEditProfileVisible] = useState(false);
   const [cropModalVisible, setCropModalVisible] = useState(false);
@@ -75,6 +79,8 @@ export default function AccountScreen() {
     birthdayDate: user?.birthdayDate,
   });
 
+  const [error, setError] = useState<MappedError | null>(null);
+
   useEffect(() => {
     setProfileData({
       name: user?.name || '',
@@ -84,46 +90,84 @@ export default function AccountScreen() {
     });
   }, [user]);
 
-  useEffect(() => {
-    if (profilePhotoUrl && /^https?:\/\//i.test(profilePhotoUrl)) {
-      setUseRemotePhoto(true);
-      void Image.prefetch(profilePhotoUrl).catch((error) => {
-        console.warn('[profile] image prefetch failed', profilePhotoUrl, error);
-      });
-      if (__DEV__) {
-        void fetch(profilePhotoUrl, { method: 'HEAD' })
-          .then((response) => {
-            console.log('[profile] image HEAD', {
-              url: profilePhotoUrl,
-              status: response.status,
-              contentType: response.headers.get('content-type'),
-              contentLength: response.headers.get('content-length'),
-              cacheControl: response.headers.get('cache-control'),
-            });
-          })
-          .catch((error) => {
-            console.warn('[profile] image HEAD failed', profilePhotoUrl, error);
-          });
+  // Clean error state on input changes
+  const handleNameChange = (text: string) => {
+    setProfileData({ ...profileData, name: text });
+    if (error) {
+      if (error.fieldErrors?.name) {
+        const updated = { ...error.fieldErrors };
+        delete updated.name;
+        setError({
+          ...error,
+          fieldErrors: Object.keys(updated).length > 0 ? updated : undefined,
+        });
+      } else {
+        setError(null);
       }
     }
-  }, [profilePhotoUrl]);
+  };
+
+  const handleUsernameChange = (text: string) => {
+    setProfileData({ ...profileData, username: text });
+    if (error) {
+      if (error.fieldErrors?.username) {
+        const updated = { ...error.fieldErrors };
+        delete updated.username;
+        setError({
+          ...error,
+          fieldErrors: Object.keys(updated).length > 0 ? updated : undefined,
+        });
+      } else {
+        setError(null);
+      }
+    }
+  };
+
+  const handleBirthdayChange = (date: string) => {
+    setProfileData({ ...profileData, birthdayDate: date });
+    if (error) {
+      if (error.fieldErrors?.birthdayDate) {
+        const updated = { ...error.fieldErrors };
+        delete updated.birthdayDate;
+        setError({
+          ...error,
+          fieldErrors: Object.keys(updated).length > 0 ? updated : undefined,
+        });
+      } else {
+        setError(null);
+      }
+    }
+  };
 
   const handleEditProfile = async (): Promise<void> => {
+    setError(null);
     try {
       const normalizedUsername = profileData.username.trim().toLowerCase();
-      const usernameIsValid = /^[a-z0-9_]+$/.test(normalizedUsername);
 
-      if (!normalizedUsername) {
-        Alert.alert('Erro', 'Informe um nome de usuário válido.');
+      const [usernameIsValid, usernameErrorMessage] = validateUsername(normalizedUsername);
+      if (!usernameIsValid) {
+        setError({
+          message: usernameErrorMessage || 'Informe um nome de usuário válido.',
+          category: 'VALIDATION',
+          fieldErrors: { username: usernameErrorMessage || 'Informe um nome de usuário válido.' },
+          retryable: false,
+          code: 'VALIDATION_USERNAME_INVALID',
+        });
         return;
       }
 
-      if (!usernameIsValid) {
-        Alert.alert(
-          'Erro',
-          'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
-        );
-        return;
+      if (profileData.birthdayDate) {
+        const [birthdayIsValid, birthdayErrorMessage] = validateBirthday(profileData.birthdayDate);
+        if (!birthdayIsValid) {
+          setError({
+            message: birthdayErrorMessage || 'Data de nascimento inválida.',
+            category: 'VALIDATION',
+            fieldErrors: { birthdayDate: birthdayErrorMessage || 'Data de nascimento inválida.' },
+            retryable: false,
+            code: 'VALIDATION_BIRTHDAY_INVALID',
+          });
+          return;
+        }
       }
 
       const updated = await updateProfile(
@@ -131,8 +175,26 @@ export default function AccountScreen() {
       );
       updateUserProfile(updated);
       setEditProfileVisible(false);
-    } catch (error) {
-      console.error('Erro ao atualizar perfil:', error);
+    } catch (err: any) {
+      setError(err);
+
+      // Handle session expiration: detect 401 and redirect to login after alert
+      if (err && err.code === 'AUTH_SESSION_EXPIRED') {
+        Alert.alert(
+          'Sessão Expirada',
+          'Sua sessão expirou. Faça login novamente.',
+          [
+            {
+              text: 'OK',
+              onPress: async () => {
+                setEditProfileVisible(false);
+                await signOut();
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      }
     }
   };
 
@@ -193,7 +255,7 @@ export default function AccountScreen() {
       setUseRemotePhoto(false);
       const uploadedPhotoUrl = await uploadProfilePhoto(user.id, localPreviewUri, 'image/png');
       const updatedProfile = await persistProfileFilePath(uploadedPhotoUrl);
-      // Logs to help diagnose backend response when photo disappears
+
       console.log('[profile] persistProfileFilePath response:', updatedProfile);
       const backendPhotoUrl = updatedProfile.profilePictureUrl;
       console.log('[profile] persistProfileFilePath.profilePictureUrl:', backendPhotoUrl);
@@ -217,12 +279,10 @@ export default function AccountScreen() {
       });
       setUseRemotePhoto(true);
 
-      Alert.alert('Success', 'Foto atualizada com sucesso');
+      Alert.alert('Sucesso', 'Foto atualizada com sucesso');
       setCropModalVisible(false);
       setPendingPhotoUri(null);
 
-      // Fallback: if backend didn't return a usable URL, re-fetch the user after a short delay
-      // This handles cases where the server generates the final URL asynchronously or returns a relative/empty value.
       if (!backendPhotoUrl || !resolvedPhotoUrl) {
         setTimeout(async () => {
           try {
@@ -238,16 +298,22 @@ export default function AccountScreen() {
           }
         }, 2000);
       }
-    } catch (error) {
-      if (error instanceof AxiosError) {
-        console.error('Erro ao atualizar foto de perfil (AxiosError):', {
-          status: error.response?.status,
-          data: error.response?.data,
+    } catch (uploadError: any) {
+      if (uploadError instanceof ApiError) {
+        console.error('Erro ao atualizar foto de perfil (ApiError):', {
+          status: uploadError.status,
+          code: uploadError.code,
+          data: uploadError.data,
         });
-      } else if (error instanceof Error) {
-        console.error('Erro ao atualizar foto de perfil:', error.message);
+      } else if (uploadError instanceof AxiosError) {
+        console.error('Erro ao atualizar foto de perfil (AxiosError):', {
+          status: uploadError.response?.status,
+          data: uploadError.response?.data,
+        });
+      } else if (uploadError instanceof Error) {
+        console.error('Erro ao atualizar foto de perfil:', uploadError.message);
       } else {
-        console.error('Erro ao atualizar foto de perfil:', error);
+        console.error('Erro ao atualizar foto de perfil:', uploadError);
       }
     }
   };
@@ -310,7 +376,6 @@ export default function AccountScreen() {
               <Text className="mt-1 text-lg text-text-base">
                 {user?.birthdayDate
                   ? (() => {
-                      // Backend retorna YYYY-MM-DD, converter para DD/MM/YYYY
                       const [year, month, day] = user.birthdayDate.split('-');
                       return day && month && year ? `${day}/${month}/${year}` : 'Não informada';
                     })()
@@ -338,6 +403,13 @@ export default function AccountScreen() {
           <View className="flex-1 px-4 py-6">
             <Text className="mt-10 text-2xl font-bold text-text-base">Editar Perfil</Text>
 
+            {/* General errors in the modal */}
+            {error && !error.fieldErrors && (
+              <View className="mt-4">
+                <ErrorAlert error={error} onRetry={handleEditProfile} />
+              </View>
+            )}
+
             <View className="mt-4 space-y-4">
               <View>
                 <Text className="text-lg font-medium text-text-subtle">Nome Completo</Text>
@@ -345,8 +417,13 @@ export default function AccountScreen() {
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="Seu nome"
                   value={profileData.name}
-                  onChangeText={(text) => setProfileData({ ...profileData, name: text })}
+                  onChangeText={handleNameChange}
                 />
+                {error?.fieldErrors?.name && (
+                  <Text className="ml-1 mt-1 text-xs font-semibold text-red-500">
+                    {error.fieldErrors.name}
+                  </Text>
+                )}
               </View>
 
               <View>
@@ -355,30 +432,26 @@ export default function AccountScreen() {
                   className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
                   placeholder="seu_usuario"
                   value={profileData.username}
-                  onChangeText={(text) => setProfileData({ ...profileData, username: text })}
+                  onChangeText={handleUsernameChange}
                   autoCapitalize="none"
                 />
+                {error?.fieldErrors?.username && (
+                  <Text className="ml-1 mt-1 text-xs font-semibold text-red-500">
+                    {error.fieldErrors.username}
+                  </Text>
+                )}
               </View>
 
-              {/* <View>
-                <Text className="mt-4 text-lg font-medium text-text-subtle">E-mail</Text>
-                <TextInput
-                  className="mt-2 rounded-lg border border-surface-border bg-surface-card px-4 py-3 text-text-base"
-                  placeholder="seu@email.com"
-                  value={profileData.email}
-                  onChangeText={(text) => setProfileData({ ...profileData, email: text })}
-                  editable={false}
-                />
-              </View>
-              */}
               <View>
                 <Text className="mb-4 mt-4 text-lg font-medium text-text-subtle">
                   Data de Nascimento
                 </Text>
-                <DatePicker
-                  value={profileData.birthdayDate}
-                  onDateChange={(date) => setProfileData({ ...profileData, birthdayDate: date })}
-                />
+                <DatePicker value={profileData.birthdayDate} onDateChange={handleBirthdayChange} />
+                {error?.fieldErrors?.birthdayDate && (
+                  <Text className="ml-1 mt-1 text-xs font-semibold text-red-500">
+                    {error.fieldErrors.birthdayDate}
+                  </Text>
+                )}
               </View>
             </View>
 
@@ -388,7 +461,10 @@ export default function AccountScreen() {
                 variant="ghost"
                 size="md"
                 className="flex-1"
-                onPress={() => setEditProfileVisible(false)}
+                onPress={() => {
+                  setError(null);
+                  setEditProfileVisible(false);
+                }}
               />
               <Button
                 label="Salvar"

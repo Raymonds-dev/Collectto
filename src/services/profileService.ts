@@ -6,10 +6,11 @@ import api, {
   generatePresignedUploadUrls,
   getAuthenticatedUser,
 } from '@/services/api/api';
+import { ApiError } from '@/services/api/types';
 import * as FileSystem from 'expo-file-system/legacy';
-import { AxiosError } from 'axios';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
+import { mapErrorToMessage } from '@/utils/errorMapping';
 
 const resolveFileName = (photoUri: string, contentType: string): string => {
   const lastSegment = photoUri.split('/').pop();
@@ -127,8 +128,8 @@ const requestPresignedUpload = async (
     });
     response = await generatePresignedUploadUrls(payload, authorization);
   } catch (error) {
-    if (error instanceof AxiosError) {
-      const responseData = error.response?.data;
+    if (error instanceof ApiError) {
+      const responseData = error.data;
       const responseBody =
         typeof responseData === 'string'
           ? responseData
@@ -136,7 +137,7 @@ const requestPresignedUpload = async (
             ? JSON.stringify(responseData)
             : 'Sem detalhes';
       throw new Error(
-        `Falha ao gerar URL pre-signed. Status: ${error.response?.status ?? 'desconhecido'}. ` +
+        `Falha ao gerar URL pre-signed. Status: ${error.status ?? 'desconhecido'}. ` +
           `Resposta: ${responseBody}`
       );
     }
@@ -192,34 +193,23 @@ export const persistProfileFilePath = async (filePath: string) => {
     return mockAuthService.updateProfile({ profilePictureUrl: filePath } as UpdateUserRequest);
   }
 
-  const baseUrl = api.defaults.baseURL;
-
-  if (!baseUrl) {
-    throw new Error('Base URL da API não configurada.');
-  }
-
   const authorization = getCurrentAuthorizationHeader();
-  const response = await fetch(`${baseUrl}/users/update`, {
-    method: 'PATCH',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: authorization,
-    },
-    body: JSON.stringify({ profilePictureUrl: filePath } satisfies UpdateUserRequest),
-  });
-
-  const responseText = await response.text();
-
-  if (!response.ok) {
-    throw new Error(
-      responseText.trim()
-        ? responseText
-        : `Falha ao atualizar a foto de perfil. Status: ${response.status}`
+  try {
+    return await api.patch<UserResponse>(
+      'users/update',
+      { profilePictureUrl: filePath } satisfies UpdateUserRequest,
+      {
+        headers: {
+          Authorization: authorization,
+        },
+      }
     );
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw new Error(error.message);
+    }
+    throw error;
   }
-
-  return responseText ? (JSON.parse(responseText) as UserResponse) : ({} as UserResponse);
 };
 
 export const updateProfile = async (data: UpdateUserRequest): Promise<UserResponse> => {
@@ -227,8 +217,12 @@ export const updateProfile = async (data: UpdateUserRequest): Promise<UserRespon
     return mockAuthService.updateProfile(data);
   }
 
-  const updated = await apiUpdateProfile(data);
-  return updated as unknown as UserResponse;
+  try {
+    const updated = await apiUpdateProfile(data);
+    return updated as unknown as UserResponse;
+  } catch (error) {
+    throw mapErrorToMessage(error, 'profile_update');
+  }
 };
 
 export const getProfileById = async (userId: string): Promise<UserResponse> => {

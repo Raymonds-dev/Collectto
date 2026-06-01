@@ -63,16 +63,16 @@ export const ErrorAlert = ({ error, onRetry }: ErrorAlertProps) => {
 
       {/* Message and actions */}
       <View className="flex-1">
-        <Text className="font-body text-sm font-medium leading-5 text-text-base dark:text-dark-text-base">
+        <Text className="font-body text-lg font-medium text-text-base dark:text-dark-text-base">
           {error.message}
         </Text>
 
-        {/* Diagnostic Code */}
+        {/* Diagnostic Code}
         {error.code && (
           <Text className="mt-1 font-mono text-[10px] uppercase tracking-wider text-text-subtle dark:text-dark-text-subtle">
             [CÓDIGO: {error.code}]
           </Text>
-        )}
+        )}*/}
 
         {/* Retry Action */}
         {error.retryable && onRetry && (

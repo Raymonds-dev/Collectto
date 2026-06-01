@@ -1,5 +1,5 @@
 import { api as client } from './client';
-import { AuthUser, UpdateUserRequest } from '@/types/auth';
+import { AuthUser, ChangePasswordRequest, UpdateUserRequest } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 
 // Export the centralized client as the default export for backward compatibility
@@ -22,6 +22,10 @@ export const updateProfile = async (profileData: UpdateUserRequest): Promise<Aut
 
 export const deactivateAuthenticatedUser = async (): Promise<void> => {
   return client.delete<void>('users/me');
+};
+
+export const changePassword = async (payload: ChangePasswordRequest): Promise<void> => {
+  return client.patch<void>('users/password', payload);
 };
 
 export const generatePresignedUploadUrls = async (

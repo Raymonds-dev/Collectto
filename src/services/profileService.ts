@@ -7,6 +7,7 @@ import api, {
   getAuthenticatedUser,
 } from '@/services/api/api';
 import { ApiError } from '@/services/api/types';
+import * as FileSystem from 'expo-file-system/legacy';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 import { mapErrorToMessage } from '@/utils/errorMapping';
@@ -20,16 +21,6 @@ const resolveFileName = (photoUri: string, contentType: string): string => {
   }
 
   return lastSegment;
-};
-
-const toBlob = async (photoUri: string): Promise<Blob> => {
-  const response = await fetch(photoUri);
-
-  if (!response.ok) {
-    throw new Error('Não foi possível ler a imagem selecionada.');
-  }
-
-  return response.blob();
 };
 
 const getCurrentAuthorizationHeader = (): string => {
@@ -108,13 +99,14 @@ const requestPresignedUpload = async (
   userId: string,
   photoUri: string,
   contentType: string,
+  context: 'PROFILE_PICTURE' | 'PROFILE_BACKGROUND',
   authorization: string
 ): Promise<GenerateUploadUrlsResponse[number]> => {
   const fileName = resolveFileName(photoUri, contentType);
   const resourceId = await ensureUuidResourceId(userId, authorization);
   const payload: GenerateUploadUrlsRequest = {
     resourceId,
-    context: 'PROFILE_PICTURE',
+    context,
     files: [{ fileName, contentType }],
   };
 
@@ -175,22 +167,65 @@ export const uploadProfilePhoto = async (
     userId,
     photoUri,
     contentType,
+    'PROFILE_PICTURE',
     authorization
   );
-  const rawBlob = await toBlob(photoUri);
-
-  const uploadResponse = await fetch(uploadUrl, {
-    method: 'PUT',
+  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
+    httpMethod: 'PUT',
     headers: {
       'Content-Type': contentType,
     },
-    body: rawBlob,
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
   });
 
-  if (!uploadResponse.ok) {
-    const errorText = await uploadResponse.text().catch(() => 'Sem detalhes');
-    console.error('Erro Oracle:', uploadResponse.status, errorText);
-    throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResponse.status}`);
+  if (__DEV__) {
+    console.log('[upload] upload result', {
+      status: uploadResult.status,
+    });
+  }
+
+  if (uploadResult.status < 200 || uploadResult.status >= 300) {
+    throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResult.status}`);
+  }
+
+  return filePath;
+};
+
+export const uploadProfileBackground = async (
+  userId: string,
+  photoUri: string,
+  contentType: string
+): Promise<string> => {
+  if (isDebugModeEnabled()) {
+    return photoUri;
+  }
+
+  const authorization = getCurrentAuthorizationHeader();
+  const { filePath, uploadUrl } = await requestPresignedUpload(
+    userId,
+    photoUri,
+    contentType,
+    'PROFILE_BACKGROUND',
+    authorization
+  );
+  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
+    httpMethod: 'PUT',
+    headers: {
+      'Content-Type': contentType,
+    },
+    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  });
+
+  if (__DEV__) {
+    console.log('[upload] background upload result', {
+      status: uploadResult.status,
+    });
+  }
+
+  if (uploadResult.status < 200 || uploadResult.status >= 300) {
+    throw new Error(
+      `Falha ao enviar a imagem de capa para armazenamento. Status: ${uploadResult.status}`
+    );
   }
 
   return filePath;

@@ -33,6 +33,11 @@ export interface UpdateUserRequest {
   birthdayDate?: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface UserResponse {
   id: string;
   name: string;

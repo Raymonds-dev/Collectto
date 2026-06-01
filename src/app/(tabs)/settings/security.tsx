@@ -2,7 +2,11 @@ import { useState } from 'react';
 import { Modal, ScrollView, Text, TextInput, View } from 'react-native';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
-import { deactivateAuthenticatedUser } from '@/services/api/api';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { changePassword, deactivateAuthenticatedUser } from '@/services/api/api';
+import { mapErrorToMessage } from '@/utils/errorMapping';
+import { validatePassword } from '@/utils/validation';
+import { MappedError } from '@/types/error';
 
 interface PasswordFormData {
   currentPassword: string;
@@ -15,12 +19,22 @@ export default function SecurityScreen() {
   const [signOutModalVisible, setSignOutModalVisible] = useState(false);
   const [deleteAccountModalVisible, setDeleteAccountModalVisible] = useState(false);
   const [changePasswordVisible, setChangePasswordVisible] = useState(false);
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [error, setError] = useState<MappedError | null>(null);
   const [passwordData, setPasswordData] = useState<PasswordFormData>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: '',
   });
+
+  const handlePasswordFieldChange = (field: keyof PasswordFormData, value: string) => {
+    setPasswordData({ ...passwordData, [field]: value });
+    if (error) {
+      setError(null);
+    }
+  };
 
   const handleConfirmSignOut = async (): Promise<void> => {
     setSignOutModalVisible(false);
@@ -40,15 +54,54 @@ export default function SecurityScreen() {
     }
   };
 
-  const handleChangePassword = (): void => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      console.error('Passwords do not match');
+  const handleChangePassword = async (): Promise<void> => {
+    setError(null);
+
+    if (!passwordData.currentPassword.trim() || !passwordData.newPassword.trim()) {
+      setError({
+        message: 'Preencha sua senha atual e a nova senha.',
+        category: 'VALIDATION',
+        retryable: false,
+        code: 'VALIDATION_REQUIRED_FIELDS',
+      });
       return;
     }
-    // TODO: API call to change password
-    console.log('Password changed');
-    setChangePasswordVisible(false);
-    setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setError({
+        message: 'As senhas não conferem.',
+        category: 'VALIDATION',
+        retryable: false,
+        code: 'VALIDATION_PASSWORD_MISMATCH',
+      });
+      return;
+    }
+
+    const [passwordIsValid, passwordErrorMessage] = validatePassword(passwordData.newPassword);
+    if (!passwordIsValid) {
+      setError({
+        message: passwordErrorMessage || 'A senha deve ter pelo menos 8 caracteres.',
+        category: 'VALIDATION',
+        retryable: false,
+        code: 'VALIDATION_PASSWORD_INVALID',
+      });
+      return;
+    }
+
+    try {
+      setIsChangingPassword(true);
+      await changePassword({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+      });
+      setChangePasswordVisible(false);
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      setSuccessModalVisible(true);
+    } catch (changeError: unknown) {
+      setError(mapErrorToMessage(changeError, 'generic'));
+    } finally {
+      setIsChangingPassword(false);
+    }
   };
 
   return (
@@ -143,6 +196,12 @@ export default function SecurityScreen() {
           <View className="flex-1 px-4 py-6">
             <Text className="mt-10 text-2xl font-bold text-text-base">Alterar Senha</Text>
 
+            {error && (
+              <View className="mt-4">
+                <ErrorAlert error={error} />
+              </View>
+            )}
+
             <View className="mt-6 space-y-4">
               <View>
                 <Text className="text-lg font-medium text-text-subtle">Senha Atual</Text>
@@ -152,9 +211,7 @@ export default function SecurityScreen() {
                   placeholderTextColor="#4B4B4B"
                   secureTextEntry
                   value={passwordData.currentPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, currentPassword: text })
-                  }
+                  onChangeText={(text) => handlePasswordFieldChange('currentPassword', text)}
                 />
               </View>
 
@@ -166,7 +223,7 @@ export default function SecurityScreen() {
                   placeholderTextColor="#4B4B4B"
                   secureTextEntry
                   value={passwordData.newPassword}
-                  onChangeText={(text) => setPasswordData({ ...passwordData, newPassword: text })}
+                  onChangeText={(text) => handlePasswordFieldChange('newPassword', text)}
                 />
               </View>
 
@@ -178,9 +235,7 @@ export default function SecurityScreen() {
                   placeholderTextColor="#4B4B4B"
                   secureTextEntry
                   value={passwordData.confirmPassword}
-                  onChangeText={(text) =>
-                    setPasswordData({ ...passwordData, confirmPassword: text })
-                  }
+                  onChangeText={(text) => handlePasswordFieldChange('confirmPassword', text)}
                 />
               </View>
             </View>
@@ -199,6 +254,34 @@ export default function SecurityScreen() {
                 size="md"
                 className="flex-1"
                 onPress={handleChangePassword}
+                loading={isChangingPassword}
+                disabled={isChangingPassword}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Change Password Success Modal */}
+      <Modal
+        visible={successModalVisible}
+        animationType="fade"
+        transparent
+        onRequestClose={() => setSuccessModalVisible(false)}>
+        <View className="flex-1 items-center justify-center bg-overlay-scrim">
+          <View className="mx-4 w-full max-w-sm rounded-2xl bg-surface-card p-6">
+            <Text className="font-poetsenone text-xl text-text-base">Senha atualizada</Text>
+            <Text className="mt-3 text-base text-text-muted">
+              Sua senha foi alterada com sucesso.
+            </Text>
+
+            <View className="mt-6">
+              <Button
+                label="Ok"
+                variant="primary"
+                size="md"
+                className="w-full"
+                onPress={() => setSuccessModalVisible(false)}
               />
             </View>
           </View>

@@ -7,12 +7,14 @@ export const resolveUserPhotoUrl = (user: UserPhotoSource): string | null => {
     return null;
   }
 
-  const candidatePhotoUrl =
-    typeof user.photoUrl === 'string' && user.photoUrl.trim().length > 0
-      ? user.photoUrl
-      : typeof user.profilePictureUrl === 'string' && user.profilePictureUrl.trim().length > 0
-        ? user.profilePictureUrl
-        : null;
+  const rawPhotoUrl =
+    typeof user.photoUrl === 'string' && user.photoUrl.trim().length > 0 ? user.photoUrl : null;
+  const rawProfilePictureUrl =
+    typeof user.profilePictureUrl === 'string' && user.profilePictureUrl.trim().length > 0
+      ? user.profilePictureUrl
+      : null;
+
+  const candidatePhotoUrl = rawPhotoUrl ?? rawProfilePictureUrl ?? null;
 
   return candidatePhotoUrl;
 };

@@ -3,7 +3,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { OptionsBar, OptionsBarOption } from '@/components/ui/OptionsBar';
 import { useAuth } from '@/hooks/useAuth';
-import { Alert, Modal, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
@@ -21,7 +21,7 @@ import * as FileSystem from 'expo-file-system/legacy';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { updateProfile, uploadProfileBackground } from '@/services/profileService';
-import api from '@/services/api/api';
+import api, { getAuthenticatedUser } from '@/services/api/api';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { mapErrorToMessage } from '@/utils/errorMapping';
 import { MappedError } from '@/types/error';
@@ -96,9 +96,37 @@ export default function ProfileScreen() {
   useFocusEffect(
     useCallback(() => {
       let isMounted = true;
-      collectionService.getMe().then((data) => {
-        if (isMounted) {
-          setCollections(data);
+      collectionService.getMe().then(async (data) => {
+        if (!isMounted) return;
+        setCollections(data);
+
+        // Busca o detalhe completo de cada coleção por ID em background para pegar a capa real
+        try {
+          const updatedCols = await Promise.all(
+            data.map(async (col) => {
+              try {
+                if (col.coverImageURL) {
+                  return col;
+                }
+                const fullCol = await collectionService.getById(col.id);
+                if (fullCol && fullCol.coverImageURL) {
+                  return {
+                    ...col,
+                    coverImageURL: fullCol.coverImageURL,
+                    coverImageUrls: fullCol.coverImageUrls || [fullCol.coverImageURL],
+                  };
+                }
+                return col;
+              } catch {
+                return col;
+              }
+            })
+          );
+          if (isMounted) {
+            setCollections(updatedCols);
+          }
+        } catch {
+          // ignore
         }
       });
       return () => {
@@ -106,6 +134,47 @@ export default function ProfileScreen() {
       };
     }, [collectionService])
   );
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const [collectionsData, userData] = await Promise.all([
+        collectionService.getMe(),
+        getAuthenticatedUser(),
+      ]);
+      setCollections(collectionsData);
+      updateUserProfile(userData);
+
+      // Busca o detalhe completo de cada coleção por ID em background para obter a capa real
+      const updatedCols = await Promise.all(
+        collectionsData.map(async (col) => {
+          try {
+            if (col.coverImageURL) {
+              return col;
+            }
+            const fullCol = await collectionService.getById(col.id);
+            if (fullCol && fullCol.coverImageURL) {
+              return {
+                ...col,
+                coverImageURL: fullCol.coverImageURL,
+                coverImageUrls: fullCol.coverImageUrls || [fullCol.coverImageURL],
+              };
+            }
+            return col;
+          } catch {
+            return col;
+          }
+        })
+      );
+      setCollections(updatedCols);
+    } catch (error) {
+      console.error('[ProfileScreen] Failed to refresh profile or collections:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [collectionService, updateUserProfile]);
 
   const filteredCollections = useMemo(() => {
     if (!searchQuery.trim()) return collections;
@@ -208,7 +277,10 @@ export default function ProfileScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-surface-base" contentContainerClassName="pb-8">
+    <ScrollView
+      className="flex-1 bg-surface-base"
+      contentContainerClassName="pb-8"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
       <View className="flex-1 bg-surface-base">
         {backgroundError && (
           <View className="px-4 pt-4">

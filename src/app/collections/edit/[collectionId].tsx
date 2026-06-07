@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -10,12 +10,14 @@ import {
   CollectionEditForm,
 } from '@/components/collection/CollectionEditForm';
 import { CollectionItemsBulkList } from '@/components/collection/CollectionItemsBulkList';
+import { CollectionSelector } from '@/components/create-item/CollectionSelector';
 import { Modal } from '@/components/ui/Modal';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { useItemService } from '@/providers/ItemContextProvider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { CollectionResponse, DeleteCollectionItemsStrategy } from '@/types/collections';
 import type { ItemResponse } from '@/types/items';
+import { uploadCollectionCover } from '@/services/api/uploadService';
 
 type EditTab = 'details' | 'items';
 
@@ -48,6 +50,7 @@ export default function EditCollectionScreen() {
   const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
   const [deleteStrategy, setDeleteStrategy] =
     useState<DeleteCollectionItemsStrategy>('MOVE_TO_UNCATEGORIZED');
+  const [selectedTargetCollectionId, setSelectedTargetCollectionId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [focusKey, setFocusKey] = useState(0);
 
@@ -92,19 +95,52 @@ export default function EditCollectionScreen() {
       setIsSaving(true);
       setSaveError(null);
       try {
+        let coverImageUrl: string | undefined = undefined;
+        if (data.coverPhoto?.localUri) {
+          coverImageUrl = await uploadCollectionCover(data.coverPhoto.localUri, collectionId);
+        } else if (!data.keepExistingCover) {
+          coverImageUrl = '';
+        }
+
         const updated = await collectionService.update(collectionId, {
           id: collectionId,
           name: data.name,
           description: data.description,
           visibility: data.visibility,
-          coverImageUrl: data.coverPhoto?.localUri ?? (data.keepExistingCover ? undefined : ''),
+          coverImageUrl,
           tags: data.tags,
         });
         if (isMountedRef.current) {
           setCollection(updated);
           router.back();
         }
-      } catch (err) {
+      } catch (err: any) {
+        console.error('[EditCollectionScreen] Error updating collection.');
+        console.error(
+          '[EditCollectionScreen] Attempted input data:',
+          JSON.stringify(data, null, 2)
+        );
+        if (err && typeof err === 'object') {
+          console.error(
+            '[EditCollectionScreen] Error details:',
+            JSON.stringify(
+              {
+                message: err.message,
+                code: err.code,
+                status: err.status,
+                data: err.data,
+              },
+              null,
+              2
+            )
+          );
+          if (err.stack) {
+            console.error('[EditCollectionScreen] Stack trace:', err.stack);
+          }
+        } else {
+          console.error('[EditCollectionScreen] Error:', err);
+        }
+
         const message = err instanceof Error ? err.message : 'Falha ao salvar coleção';
         if (isMountedRef.current) {
           setSaveError(message);
@@ -121,11 +157,18 @@ export default function EditCollectionScreen() {
   const handleDeleteCollection = useCallback(async (): Promise<void> => {
     setIsDeleting(true);
     try {
-      const uncategorized = await collectionService.getUncategorized();
+      let targetCollectionId = selectedTargetCollectionId;
+
+      // Fallback para Uncategorized se nenhuma outra coleção for selecionada
+      if (deleteStrategy === 'MOVE_TO_UNCATEGORIZED' && !targetCollectionId) {
+        const uncategorized = await collectionService.getUncategorized();
+        targetCollectionId = uncategorized.id;
+      }
+
       await collectionService.deleteWithStrategy({
         collectionId,
         strategy: deleteStrategy,
-        uncategorizedCollectionId: uncategorized.id,
+        uncategorizedCollectionId: targetCollectionId || undefined,
       });
       if (isMountedRef.current) {
         setIsDeleteModalVisible(false);
@@ -133,7 +176,33 @@ export default function EditCollectionScreen() {
         // Navigate to profile since the collection no longer exists
         router.replace('/(tabs)/profile');
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[EditCollectionScreen] Error deleting collection.');
+      console.error(
+        '[EditCollectionScreen] Attempted delete parameters:',
+        JSON.stringify({ collectionId, deleteStrategy, selectedTargetCollectionId }, null, 2)
+      );
+      if (err && typeof err === 'object') {
+        console.error(
+          '[EditCollectionScreen] Error details:',
+          JSON.stringify(
+            {
+              message: err.message,
+              code: err.code,
+              status: err.status,
+              data: err.data,
+            },
+            null,
+            2
+          )
+        );
+        if (err.stack) {
+          console.error('[EditCollectionScreen] Stack trace:', err.stack);
+        }
+      } else {
+        console.error('[EditCollectionScreen] Error:', err);
+      }
+
       const message = err instanceof Error ? err.message : 'Falha ao excluir coleção';
       if (isMountedRef.current) {
         setSaveError(message);
@@ -144,7 +213,7 @@ export default function EditCollectionScreen() {
         setIsDeleting(false);
       }
     }
-  }, [collectionId, collectionService, deleteStrategy, router]);
+  }, [collectionId, collectionService, deleteStrategy, selectedTargetCollectionId, router]);
 
   const handleBulkDelete = useCallback(
     async (itemIds: string[]): Promise<void> => {
@@ -295,7 +364,7 @@ export default function EditCollectionScreen() {
               }`}
               accessibilityRole="radio"
               accessibilityState={{ checked: deleteStrategy === 'MOVE_TO_UNCATEGORIZED' }}
-              accessibilityLabel="Mover itens para Sem categoria">
+              accessibilityLabel="Mover itens para outra coleção">
               <Ionicons
                 name={
                   deleteStrategy === 'MOVE_TO_UNCATEGORIZED'
@@ -311,13 +380,27 @@ export default function EditCollectionScreen() {
               />
               <View className="flex-1">
                 <Text className="font-body text-sm font-semibold text-text-base">
-                  Mover para &quot;Sem categoria&quot;
+                  Mover para outra coleção
                 </Text>
                 <Text className="font-body text-xs text-text-muted">
-                  Os itens serão preservados e ficam acessíveis.
+                  Os itens serão preservados e movidos para a coleção escolhida.
                 </Text>
               </View>
             </Pressable>
+
+            {deleteStrategy === 'MOVE_TO_UNCATEGORIZED' && (
+              <View className="mt-1 max-h-[160px] rounded-xl border border-surface-border bg-surface-card p-2">
+                <ScrollView nestedScrollEnabled={true} showsVerticalScrollIndicator={true}>
+                  <CollectionSelector
+                    selectedCollectionId={selectedTargetCollectionId}
+                    onSelectCollection={setSelectedTargetCollectionId}
+                    onCreateNew={() => {}}
+                    collections={collections.filter((c) => c.id !== collectionId)}
+                    allowSkip={false}
+                  />
+                </ScrollView>
+              </View>
+            )}
 
             <Pressable
               onPress={() => setDeleteStrategy('DELETE_ALL_ITEMS')}

@@ -51,11 +51,13 @@ export function CollectionViewScreen({
   isSystem,
 }: CollectionViewScreenProps) {
   const router = useRouter();
+  const itemService = useItemService();
   const [following, setFollowing] = useState(isFollowing);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [isNotificationCardVisible, setIsNotificationCardVisible] = useState(false);
   const [notificationCardMessage, setNotificationCardMessage] = useState('');
   const [selectedItem, setSelectedItem] = useState<CollectionGridItem | null>(null);
+  const [selectedItemFull, setSelectedItemFull] = useState<any | null>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isSystemModalVisible, setIsSystemModalVisible] = useState(false);
   const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -83,17 +85,47 @@ export function CollectionViewScreen({
       return null;
     }
 
+    if (selectedItemFull && selectedItemFull.id === selectedItem.id) {
+      const characteristics = Object.entries(selectedItemFull.attributes ?? {}).map(
+        ([key, value]) => ({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          value: String(value),
+        })
+      );
+
+      if (characteristics.length === 0) {
+        characteristics.push({
+          label: 'Status',
+          value: selectedItemFull.isActive ? 'Ativo' : 'Inativo',
+        });
+      }
+
+      return {
+        title: selectedItemFull.name ?? selectedItem.title ?? collectionTitle,
+        images:
+          selectedItemFull.imageFilesUrls && selectedItemFull.imageFilesUrls.length > 0
+            ? selectedItemFull.imageFilesUrls
+            : selectedItem.images,
+        acquiredDate:
+          formatDate(selectedItemFull.acquisitionDate) ?? selectedItem.acquiredDate ?? '--/--/----',
+        lastUsedDate:
+          formatDate(selectedItemFull.lastUsedDate) ?? selectedItem.lastUsedDate ?? '--/--/----',
+        description: selectedItemFull.description ?? 'Sem descrição para este item.',
+        characteristics,
+      };
+    }
+
     return {
       title: selectedItem.title ?? collectionTitle,
       images: selectedItem.images,
       acquiredDate: selectedItem.acquiredDate ?? '--/--/----',
       lastUsedDate: selectedItem.lastUsedDate ?? '--/--/----',
-      description: selectedItem.description ?? 'Sem descricao para este item.',
+      description: selectedItem.description ?? 'Carregando detalhes...',
       characteristics: selectedItem.characteristics ?? [
-        { label: 'Status', value: 'Sem informacoes' },
+        { label: 'Status', value: 'Carregando...' },
       ],
     };
-  }, [collectionTitle, selectedItem]);
+  }, [collectionTitle, selectedItem, selectedItemFull]);
 
   const handleShareCollection = useCallback(async () => {
     await Share.share({
@@ -109,12 +141,28 @@ export function CollectionViewScreen({
     });
   }, [router, collectionId]);
 
-  const handleOpenItem = useCallback((item: CollectionGridItem) => {
-    setSelectedItem(item);
-  }, []);
+  const handleOpenItem = useCallback(
+    (item: CollectionGridItem) => {
+      setSelectedItem(item);
+      if (item.id) {
+        itemService
+          .getById(item.id)
+          .then((fullItem) => {
+            if (fullItem) {
+              setSelectedItemFull(fullItem);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to load item details:', err);
+          });
+      }
+    },
+    [itemService]
+  );
 
   const handleCloseItem = useCallback(() => {
     setSelectedItem(null);
+    setSelectedItemFull(null);
   }, []);
 
   const handleNotificationPress = useCallback(() => {
@@ -165,10 +213,12 @@ export function CollectionViewScreen({
   useFocusEffect(
     useCallback(() => {
       setSelectedItem(null);
+      setSelectedItemFull(null);
       clearNotificationTimer();
 
       return () => {
         setSelectedItem(null);
+        setSelectedItemFull(null);
         setIsNotificationCardVisible(false);
         setNotificationCardMessage('');
         clearNotificationTimer();

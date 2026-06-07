@@ -1,13 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useItemService } from '@/providers/ItemContextProvider';
-import { createPhotoStorageProvider } from '@/services/photo-storage';
-import { uploadItemPhoto, uuidv4 } from '@/services/api/uploadService';
+import { uploadItemPhoto } from '@/services/api/uploadService';
 
 interface ItemSaveInput {
   name: string;
   description?: string;
   collectionId: string | null;
-  photoUris: string[];
+  imageFilesUrls: string[];
   acquisitionDate?: string | null;
   lastUsedDate?: string | null;
   tags?: string[];
@@ -37,6 +36,8 @@ export const useItemSave = () => {
       setIsLoading(true);
       setError(null);
 
+      let createPayload: any = null;
+
       try {
         if (!input.name.trim()) {
           return {
@@ -45,37 +46,38 @@ export const useItemSave = () => {
           };
         }
 
-        if (input.photoUris.length === 0) {
+        if (input.imageFilesUrls.length === 0) {
           return {
             success: false,
             error: 'Pelo menos uma foto é obrigatória',
           };
         }
 
-        const storageProvider = createPhotoStorageProvider();
+        createPayload = {
+          name: input.name,
+          description: input.description || null,
+          collectionId: input.collectionId || '',
+          imageFilesUrls: [],
+          acquisitionDate: input.acquisitionDate || null,
+          lastUsedDate: input.lastUsedDate || null,
+          tags: input.tags || [],
+          attributes: input.attributes || {},
+        };
 
-        const itemUuid = uuidv4();
+        let item = await itemService.create(createPayload);
+
         const uploadedPhotoPaths: string[] = [];
-        for (const photoUri of input.photoUris) {
-          const permanentRef = await storageProvider.moveToPermament(photoUri, 'items');
-          const filePath = await uploadItemPhoto(
-            permanentRef.permanentUri,
-            input.collectionId || '',
-            itemUuid
-          );
+        for (const photoUri of input.imageFilesUrls) {
+          const filePath = await uploadItemPhoto(photoUri, input.collectionId || '', item.id);
           uploadedPhotoPaths.push(filePath);
         }
 
-        const item = await itemService.create({
-          name: input.name,
-          description: input.description || '',
-          collectionId: input.collectionId || '',
-          imageFilesUrls: uploadedPhotoPaths,
-          acquisitionDate: input.acquisitionDate || undefined,
-          lastUsedDate: input.lastUsedDate || undefined,
-          tags: input.tags,
-          attributes: input.attributes,
-        });
+        if (uploadedPhotoPaths.length > 0) {
+          item = await itemService.update(item.id, {
+            id: item.id,
+            imageFilesUrls: uploadedPhotoPaths,
+          });
+        }
 
         return {
           success: true,
@@ -83,6 +85,34 @@ export const useItemSave = () => {
         };
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Falha ao salvar item';
+
+        console.error('[useItemSave] Error saving item.');
+        console.error('[useItemSave] Attempted Hook Input:', JSON.stringify(input, null, 2));
+        if (createPayload) {
+          console.error(
+            '[useItemSave] Exact POST Payload:',
+            JSON.stringify(createPayload, null, 2)
+          );
+        }
+
+        if (err && typeof err === 'object') {
+          const apiErr = err as any;
+          console.error(
+            '[useItemSave] Error details:',
+            JSON.stringify({
+              message: apiErr.message,
+              code: apiErr.code,
+              status: apiErr.status,
+              data: apiErr.data,
+            })
+          );
+          if (apiErr.stack) {
+            console.error('[useItemSave] Stack trace:', apiErr.stack);
+          }
+        } else {
+          console.error('[useItemSave] Error:', err);
+        }
+
         setError(errorMessage);
         return {
           success: false,

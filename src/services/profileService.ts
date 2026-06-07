@@ -3,25 +3,15 @@ import { mockAuthService } from '@/services/debug/mockAuthService';
 import api, {
   getUserById as apiGetUserById,
   updateProfile as apiUpdateProfile,
-  generatePresignedUploadUrls,
-  getAuthenticatedUser,
 } from '@/services/api/api';
 import { ApiError } from '@/services/api/types';
-import * as FileSystem from 'expo-file-system/legacy';
 import type { UpdateUserRequest, UserResponse } from '@/types/auth';
-import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 import { mapErrorToMessage } from '@/utils/errorMapping';
 
-const resolveFileName = (photoUri: string, contentType: string): string => {
-  const lastSegment = photoUri.split('/').pop();
-
-  if (!lastSegment || !lastSegment.includes('.')) {
-    const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
-    return `profile-picture.${ext}`;
-  }
-
-  return lastSegment;
-};
+import {
+  uploadProfileBackground as uploadProfileBackgroundInternal,
+  uploadProfilePhoto as uploadProfilePhotoInternal,
+} from '@/services/api/uploadService';
 
 const getCurrentAuthorizationHeader = (): string => {
   const headerValue = api.defaults.headers.common.Authorization;
@@ -33,162 +23,12 @@ const getCurrentAuthorizationHeader = (): string => {
   return headerValue.replace(/^"|"$/g, '');
 };
 
-type JwtClaims = {
-  sub?: string;
-  userId?: string;
-  uid?: string;
-  id?: string;
-};
-
-const isUuid = (value: string): boolean => {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
-};
-
-const decodeJwtClaims = (token: string): JwtClaims | null => {
-  const parts = token.split('.');
-
-  if (parts.length < 2 || typeof globalThis.atob !== 'function') {
-    return null;
-  }
-
-  try {
-    const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
-    const paddingLength = (4 - (normalized.length % 4)) % 4;
-    const padded = normalized + '='.repeat(paddingLength);
-    const decoded = globalThis.atob(padded);
-    return JSON.parse(decoded) as JwtClaims;
-  } catch {
-    return null;
-  }
-};
-
-const resolveUploadResourceId = (fallbackUserId: string, authorization: string): string => {
-  const token = authorization.replace(/^Bearer\s+/i, '').trim();
-  const claims = decodeJwtClaims(token);
-  const candidates = [claims?.userId, claims?.uid, claims?.id, claims?.sub].filter(
-    (value): value is string => typeof value === 'string' && value.length > 0
-  );
-  const resolved = candidates.find((value) => isUuid(value));
-
-  return resolved ?? fallbackUserId;
-};
-
-const ensureUuidResourceId = async (
-  fallbackUserId: string,
-  authorization: string
-): Promise<string> => {
-  const resolved = resolveUploadResourceId(fallbackUserId, authorization);
-
-  if (isUuid(resolved)) {
-    return resolved;
-  }
-
-  try {
-    const currentUser = await getAuthenticatedUser(authorization);
-    if (currentUser?.id && isUuid(currentUser.id)) {
-      return currentUser.id;
-    }
-  } catch (error) {
-    console.warn('[upload] failed to resolve user id from /users/me', error);
-  }
-
-  return resolved;
-};
-
-const requestPresignedUpload = async (
-  userId: string,
-  photoUri: string,
-  contentType: string,
-  context: 'PROFILE_PICTURE' | 'PROFILE_BACKGROUND',
-  authorization: string
-): Promise<GenerateUploadUrlsResponse[number]> => {
-  const fileName = resolveFileName(photoUri, contentType);
-  const resourceId = await ensureUuidResourceId(userId, authorization);
-  const payload: GenerateUploadUrlsRequest = {
-    resourceId,
-    context,
-    files: [{ fileName, contentType }],
-  };
-
-  let response: GenerateUploadUrlsResponse = [] as GenerateUploadUrlsResponse;
-
-  try {
-    console.info('[upload] presigned request payload', {
-      resourceId: payload.resourceId,
-      context: payload.context,
-      fileName,
-      contentType,
-    });
-    if (payload.resourceId !== userId) {
-      console.info('[upload] resolved resourceId from token claims');
-    }
-    console.info('[upload] presigned auth header', {
-      hasAuth: Boolean(authorization),
-      prefix: authorization.split(' ')[0] || 'missing',
-      length: authorization.length,
-    });
-    response = await generatePresignedUploadUrls(payload, authorization);
-  } catch (error) {
-    if (error instanceof ApiError) {
-      const responseData = error.data;
-      const responseBody =
-        typeof responseData === 'string'
-          ? responseData
-          : responseData
-            ? JSON.stringify(responseData)
-            : 'Sem detalhes';
-      throw new Error(
-        `Falha ao gerar URL pre-signed. Status: ${error.status ?? 'desconhecido'}. ` +
-          `Resposta: ${responseBody}`
-      );
-    }
-
-    throw error;
-  }
-
-  if (response.length === 0) {
-    throw new Error('O backend não retornou dados para upload da foto.');
-  }
-
-  return response[0];
-};
-
 export const uploadProfilePhoto = async (
   userId: string,
   photoUri: string,
   contentType: string
 ): Promise<string> => {
-  if (isDebugModeEnabled()) {
-    return photoUri;
-  }
-
-  const authorization = getCurrentAuthorizationHeader();
-  const { filePath, uploadUrl } = await requestPresignedUpload(
-    userId,
-    photoUri,
-    contentType,
-    'PROFILE_PICTURE',
-    authorization
-  );
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-  });
-
-  if (__DEV__) {
-    console.log('[upload] upload result', {
-      status: uploadResult.status,
-    });
-  }
-
-  if (uploadResult.status < 200 || uploadResult.status >= 300) {
-    throw new Error(`Falha ao enviar a foto para armazenamento. Status: ${uploadResult.status}`);
-  }
-
-  return filePath;
+  return uploadProfilePhotoInternal(userId, photoUri, contentType);
 };
 
 export const uploadProfileBackground = async (
@@ -196,39 +36,7 @@ export const uploadProfileBackground = async (
   photoUri: string,
   contentType: string
 ): Promise<string> => {
-  if (isDebugModeEnabled()) {
-    return photoUri;
-  }
-
-  const authorization = getCurrentAuthorizationHeader();
-  const { filePath, uploadUrl } = await requestPresignedUpload(
-    userId,
-    photoUri,
-    contentType,
-    'PROFILE_BACKGROUND',
-    authorization
-  );
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
-  });
-
-  if (__DEV__) {
-    console.log('[upload] background upload result', {
-      status: uploadResult.status,
-    });
-  }
-
-  if (uploadResult.status < 200 || uploadResult.status >= 300) {
-    throw new Error(
-      `Falha ao enviar a imagem de capa para armazenamento. Status: ${uploadResult.status}`
-    );
-  }
-
-  return filePath;
+  return uploadProfileBackgroundInternal(userId, photoUri, contentType);
 };
 export const persistProfileFilePath = async (filePath: string) => {
   if (isDebugModeEnabled()) {

@@ -20,7 +20,7 @@ export const mockCollectionService: CollectionService = {
       coverImageURL: input.coverImageUrl || undefined,
       visibility: 'PUBLIC',
       followersCount: 0,
-      tags: input.tags,
+      tags: input.tags || undefined,
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),

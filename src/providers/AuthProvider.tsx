@@ -696,7 +696,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       updateUserProfile: (data: Partial<AuthUser>) => {
         sessionRefreshManager.recordUserActivity();
-        console.log('[auth] updateUserProfile called with:', data);
         setUser((currentUser) => {
           if (!currentUser) {
             return null;
@@ -735,7 +734,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             profilePictureUrl: nextProfilePictureUrl,
             photoUrl: nextPhotoUrl,
           };
-          console.log('[auth] updateUserProfile result:', next);
           return next;
         });
       },

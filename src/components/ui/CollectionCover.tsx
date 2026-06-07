@@ -22,6 +22,8 @@ const FALLBACK_COLORS = [
  * It automatically handles up to 3 images and displays them with a dynamic stacked rotation effect.
  */
 export const CollectionCover = ({ images = [], size, className = '' }: CollectionCoverProps) => {
+  const layerImages = [images[0], images[1] || images[0], images[2] || images[1] || images[0]];
+
   return (
     <View
       className={`relative items-center justify-center ${!size ? 'aspect-square w-full' : ''} ${className}`}
@@ -34,9 +36,9 @@ export const CollectionCover = ({ images = [], size, className = '' }: Collectio
           zIndex: 1,
           transform: [{ translateX: 6 }, { rotate: '6deg' }],
         }}>
-        {images[2] ? (
+        {layerImages[2] ? (
           <Image
-            source={{ uri: images[2] }}
+            source={{ uri: layerImages[2] }}
             className="absolute inset-0 h-full w-full"
             resizeMode="cover"
           />
@@ -51,9 +53,9 @@ export const CollectionCover = ({ images = [], size, className = '' }: Collectio
           zIndex: 2,
           transform: [{ translateX: 0 }, { rotate: '-2deg' }],
         }}>
-        {images[1] ? (
+        {layerImages[1] ? (
           <Image
-            source={{ uri: images[1] }}
+            source={{ uri: layerImages[1] }}
             className="absolute inset-0 h-full w-full"
             resizeMode="cover"
           />
@@ -68,9 +70,9 @@ export const CollectionCover = ({ images = [], size, className = '' }: Collectio
           zIndex: 3,
           transform: [{ translateX: -6 }, { rotate: '-8deg' }],
         }}>
-        {images[0] ? (
+        {layerImages[0] ? (
           <Image
-            source={{ uri: images[0] }}
+            source={{ uri: layerImages[0] }}
             className="absolute inset-0 h-full w-full"
             resizeMode="cover"
           />

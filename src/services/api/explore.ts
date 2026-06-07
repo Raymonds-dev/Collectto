@@ -133,7 +133,8 @@ const findItemInCollection = async (
       params: { page: currentPage, size: 50 },
     });
 
-    const foundItem = itemsPage.items.find((entry) => entry.id === itemId);
+    const itemsList = itemsPage.items || itemsPage.content || [];
+    const foundItem = itemsList.find((entry) => entry.id === itemId);
 
     if (foundItem) {
       return foundItem;
@@ -153,11 +154,13 @@ const mapCollectionToSpotlight = async (
   const author = await getUserById(collection.userId);
   const itemsPage = await getItemsByCollection(collection.id).catch(() => null);
 
+  const itemsList = itemsPage?.items || itemsPage?.content || [];
+
   const imageUrls = collection.coverImageUrls?.length
     ? collection.coverImageUrls
     : collection.coverImageURL
       ? [collection.coverImageURL]
-      : itemsPage?.items?.flatMap((item) => item.imageFilesUrls || []) || [];
+      : itemsList.flatMap((item) => item.imageFilesUrls || []) || [];
 
   return {
     id: collection.id,

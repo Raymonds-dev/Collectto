@@ -27,15 +27,15 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
   return {
     async saveToLocal(photoData: PhotoData): Promise<LocalPhotoReference> {
       try {
-        // Use the app's document directory for storing temporary photos
+        // Use the app's cache directory for storing temporary photos
         const tempId = generateTempId();
         const fileName = `${tempId}.jpg`;
 
         // Store in app's temporary location
-        const tempPath = `${FileSystem.documentDirectory}photos/temp/${fileName}`;
+        const tempPath = `${FileSystem.cacheDirectory}photos/temp/${fileName}`;
 
         // Ensure directory exists
-        await FileSystem.makeDirectoryAsync(`${FileSystem.documentDirectory}photos/temp/`, {
+        await FileSystem.makeDirectoryAsync(`${FileSystem.cacheDirectory}photos/temp/`, {
           intermediates: true,
         });
 
@@ -92,7 +92,7 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
 
     async cleanupLocal(maxAgeMs: number): Promise<number> {
       try {
-        const tempDir = `${FileSystem.documentDirectory}photos/temp/`;
+        const tempDir = `${FileSystem.cacheDirectory}photos/temp/`;
 
         try {
           const files = await FileSystem.readDirectoryAsync(tempDir);

@@ -1,10 +1,29 @@
 import { api as client } from './client';
 import { AuthUser, ChangePasswordRequest, UpdateUserRequest } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
+import type {
+  CollectionResponse,
+  CreateCollectionRequest,
+  UpdateCollectionRequest,
+} from '@/types/collections';
+import type { CreateItemRequest, ItemResponse, UpdateItemRequest } from '@/types/items';
 
 // Export the centralized client as the default export for backward compatibility
 const api = client;
 export default api;
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalPages?: number;
+  totalElements?: number;
+  size?: number;
+  number?: number;
+  pageable?: {
+    pageNumber: number;
+    pageSize: number;
+    totalElements: number;
+  };
+}
 
 export const getUserById = async (userId: string): Promise<AuthUser> => {
   return client.get<AuthUser>(`users/${userId}`);
@@ -45,4 +64,65 @@ export const generatePresignedUploadUrls = async (
   }
 
   return [];
+};
+
+// --- Collection Endpoints ---
+
+export const createCollection = async (
+  req: CreateCollectionRequest
+): Promise<CollectionResponse> => {
+  return client.post<CollectionResponse>('collections/create', req);
+};
+
+export const updateCollection = async (
+  id: string,
+  req: UpdateCollectionRequest
+): Promise<CollectionResponse> => {
+  return client.patch<CollectionResponse>(`collections/update/${id}`, req);
+};
+
+export const getCollection = async (id: string): Promise<CollectionResponse> => {
+  return client.get<CollectionResponse>(`collections/${id}`);
+};
+
+export const getCollectionsByUser = async (
+  userId: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<PaginatedResponse<CollectionResponse>> => {
+  return client.get<PaginatedResponse<CollectionResponse>>(`collections/by-user/${userId}`, {
+    params: { page, pageSize },
+  });
+};
+
+export const deleteCollection = async (id: string): Promise<void> => {
+  return client.delete<void>(`collections/${id}`);
+};
+
+// --- Item Endpoints ---
+
+export const createItem = async (req: CreateItemRequest): Promise<ItemResponse> => {
+  return client.post<ItemResponse>('items/create', req);
+};
+
+export const updateItem = async (id: string, req: UpdateItemRequest): Promise<ItemResponse> => {
+  return client.patch<ItemResponse>(`items/update/${id}`, req);
+};
+
+export const getItem = async (collectionId: string, itemId: string): Promise<ItemResponse> => {
+  return client.get<ItemResponse>(`items/${collectionId}/${itemId}`);
+};
+
+export const getItemsByCollection = async (
+  collectionId: string,
+  page: number = 1,
+  pageSize: number = 20
+): Promise<PaginatedResponse<ItemResponse>> => {
+  return client.get<PaginatedResponse<ItemResponse>>(`items/by-collection/${collectionId}`, {
+    params: { page, pageSize },
+  });
+};
+
+export const deleteItem = async (id: string): Promise<void> => {
+  return client.delete<void>(`items/${id}`);
 };

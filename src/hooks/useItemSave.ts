@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useItemService } from '@/providers/ItemContextProvider';
 import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { uploadItemPhoto, uuidv4 } from '@/services/api/uploadService';
 
 interface ItemSaveInput {
   name: string;
@@ -53,17 +54,23 @@ export const useItemSave = () => {
 
         const storageProvider = createPhotoStorageProvider();
 
-        const permanentPhotoUris: string[] = [];
+        const itemUuid = uuidv4();
+        const uploadedPhotoPaths: string[] = [];
         for (const photoUri of input.photoUris) {
           const permanentRef = await storageProvider.moveToPermament(photoUri, 'items');
-          permanentPhotoUris.push(permanentRef.permanentUri);
+          const filePath = await uploadItemPhoto(
+            permanentRef.permanentUri,
+            input.collectionId || '',
+            itemUuid
+          );
+          uploadedPhotoPaths.push(filePath);
         }
 
         const item = await itemService.create({
           name: input.name,
           description: input.description || '',
           collectionId: input.collectionId || '',
-          imageFilesUrls: permanentPhotoUris,
+          imageFilesUrls: uploadedPhotoPaths,
           acquisitionDate: input.acquisitionDate || undefined,
           lastUsedDate: input.lastUsedDate || undefined,
           tags: input.tags,

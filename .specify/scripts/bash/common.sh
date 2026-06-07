@@ -335,8 +335,8 @@ json_escape() {
     done
 }
 
-check_file() { [[ -f "$1" ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
-check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  ✓ $2" || echo "  ✗ $2"; }
+check_file() { [[ -f "$1" ]] && echo "  âœ“ $2" || echo "  âœ— $2"; }
+check_dir() { [[ -d "$1" && -n $(ls -A "$1" 2>/dev/null) ]] && echo "  âœ“ $2" || echo "  âœ— $2"; }
 
 # Resolve a template name to a file path using the priority stack:
 #   1. .specify/templates/overrides/
@@ -374,15 +374,15 @@ except Exception:
     sys.exit(1)
 " 2>/dev/null); then
                 if [ -n "$sorted_presets" ]; then
-                    # python3 succeeded and returned preset IDs — search in priority order
+                    # python3 succeeded and returned preset IDs â€” search in priority order
                     while IFS= read -r preset_id; do
                         local candidate="$presets_dir/$preset_id/templates/${template_name}.md"
                         [ -f "$candidate" ] && echo "$candidate" && return 0
                     done <<< "$sorted_presets"
                 fi
-                # python3 succeeded but registry has no presets — nothing to search
+                # python3 succeeded but registry has no presets â€” nothing to search
             else
-                # python3 failed (missing, or registry parse error) — fall back to unordered directory scan
+                # python3 failed (missing, or registry parse error) â€” fall back to unordered directory scan
                 for preset in "$presets_dir"/*/; do
                     [ -d "$preset" ] || continue
                     local candidate="$preset/templates/${template_name}.md"
@@ -526,7 +526,7 @@ except Exception:
                     done <<< "$sorted_presets"
                 fi
             else
-                # python3 failed — fall back to unordered directory scan (replace only)
+                # python3 failed â€” fall back to unordered directory scan (replace only)
                 for preset in "$presets_dir"/*/; do
                     [ -d "$preset" ] || continue
                     local candidate="$preset/templates/${template_name}.md"
@@ -537,7 +537,7 @@ except Exception:
                 done
             fi
         else
-            # No python3 or registry — fall back to unordered directory scan (replace only)
+            # No python3 or registry â€” fall back to unordered directory scan (replace only)
             for preset in "$presets_dir"/*/; do
                 [ -d "$preset" ] || continue
                 local candidate="$preset/templates/${template_name}.md"
@@ -579,7 +579,7 @@ except Exception:
         [ "$s" != "replace" ] && has_composition=true && break
     done
 
-    # If the top (highest-priority) layer is replace, it wins entirely —
+    # If the top (highest-priority) layer is replace, it wins entirely â€”
     # lower layers are irrelevant regardless of their strategies.
     if [ "${layer_strategies[0]}" = "replace" ]; then
         cat "${layer_paths[0]}"

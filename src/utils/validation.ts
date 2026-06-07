@@ -68,10 +68,10 @@ export function validatePassword(password: string): ValidationResult {
   }
 
   // Must contain at least one uppercase letter
-  const hasUppercase = /[A-Z]/.test(pass);
-  if (!hasUppercase) {
-    return [false, 'Senha deve conter pelo menos 8 caracteres e uma letra maiuscula'];
-  }
+  // const hasUppercase = /[A-Z]/.test(pass);
+  // if (!hasUppercase) {
+  //   return [false, 'Senha deve conter pelo menos 8 caracteres e uma letra maiuscula'];
+  // }
 
   return [true, null];
 }

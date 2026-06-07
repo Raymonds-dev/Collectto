@@ -1,4 +1,4 @@
-export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
+export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
 
 export type DeleteCollectionItemsStrategy = 'MOVE_TO_UNCATEGORIZED' | 'DELETE_ALL_ITEMS';
 

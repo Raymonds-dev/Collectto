@@ -121,7 +121,7 @@ export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
       name: itemName,
       description: itemDescription,
       collectionId: targetCollectionId,
-      photoUris: photos.map((photo) => photo.localUri),
+      imageFilesUrls: photos.map((photo) => photo.localUri),
       acquisitionDate,
       lastUsedDate,
       tags,

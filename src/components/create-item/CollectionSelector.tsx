@@ -75,6 +75,31 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         if (isMounted) {
           setServiceCollections(data);
         }
+
+        // Busca o detalhe completo de cada coleção por ID em background para pegar a capa real
+        const updatedCols = await Promise.all(
+          data.map(async (col) => {
+            try {
+              if (col.coverImageURL) {
+                return col;
+              }
+              const fullCol = await collectionService.getById(col.id);
+              if (fullCol && fullCol.coverImageURL) {
+                return {
+                  ...col,
+                  coverImageURL: fullCol.coverImageURL,
+                  coverImageUrls: fullCol.coverImageUrls || [fullCol.coverImageURL],
+                };
+              }
+              return col;
+            } catch {
+              return col;
+            }
+          })
+        );
+        if (isMounted) {
+          setServiceCollections(updatedCols);
+        }
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Falha ao carregar coleções';
         if (isMounted) {
@@ -117,7 +142,12 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         .map((collection) => ({
           id: collection.id,
           name: collection.name,
-          images: collection.coverImageURL ? [collection.coverImageURL] : [],
+          images:
+            collection.coverImageUrls && collection.coverImageUrls.length > 0
+              ? collection.coverImageUrls
+              : collection.coverImageURL
+                ? [collection.coverImageURL]
+                : [],
         })),
     [filteredCollections]
   );
@@ -129,7 +159,12 @@ export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
         .map((collection) => ({
           id: collection.id,
           name: collection.name,
-          images: collection.coverImageURL ? [collection.coverImageURL] : [],
+          images:
+            collection.coverImageUrls && collection.coverImageUrls.length > 0
+              ? collection.coverImageUrls
+              : collection.coverImageURL
+                ? [collection.coverImageURL]
+                : [],
         })),
     [resolvedCollections]
   );

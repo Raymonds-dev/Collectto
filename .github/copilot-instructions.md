@@ -101,5 +101,5 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan
+shell commands, and other important information, read the current plan at [specs/015-centralize-uploads/plan.md](file:///C:/Users/garam/.projetos/Collectto/frontend/specs/015-centralize-uploads/plan.md)
 <!-- SPECKIT END -->

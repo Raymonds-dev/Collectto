@@ -12,6 +12,8 @@ import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createItemCollectionProviders as Providers } from '@/providers';
 
+import { createPhotoStorageProvider } from '@/services/photo-storage';
+
 void SplashScreen.preventAutoHideAsync();
 
 function AuthGate() {
@@ -44,6 +46,14 @@ export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     'PoetsenOne-Regular': require('../assets/fonts/PoetsenOne-Regular.ttf'),
   });
+
+  useEffect(() => {
+    // Run local cache cleanup task at startup (stale temp files > 24 hours)
+    const storage = createPhotoStorageProvider();
+    storage.cleanupLocal(86400000).catch((err) => {
+      console.warn('[App] Local cache cleanup failed:', err);
+    });
+  }, []);
 
   useEffect(() => {
     if (fontError) {

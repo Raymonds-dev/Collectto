@@ -1,12 +1,12 @@
 export interface CreateItemRequest {
   collectionId: string;
   name: string;
-  description?: string;
-  acquisitionDate?: string;
-  lastUsedDate?: string;
-  imageFilesUrls?: string[];
-  attributes?: Record<string, unknown>;
-  tags?: string[];
+  description?: string | null;
+  acquisitionDate?: string | null;
+  lastUsedDate?: string | null;
+  imageFilesUrls?: string[] | null;
+  attributes?: Record<string, unknown> | null;
+  tags?: string[] | null;
 }
 
 export interface UpdateItemRequest {
@@ -68,7 +68,8 @@ export interface ItemSummaryResponse {
 }
 
 export interface ItemPageResponse {
-  items: ItemSummaryResponse[];
+  items?: ItemSummaryResponse[];
+  content?: ItemSummaryResponse[];
   totalPages: number;
   totalElements: number;
   currentPage: number;

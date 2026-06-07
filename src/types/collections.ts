@@ -6,7 +6,7 @@ export interface CreateCollectionRequest {
   name: string;
   description: string;
   coverImageUrl?: string | null;
-  tags?: string[];
+  tags?: string[] | null;
 }
 
 export interface UpdateCollectionRequest {
@@ -57,7 +57,8 @@ export interface CollectionSummaryResponse {
 }
 
 export interface CollectionPageResponse {
-  collections: CollectionSummaryResponse[];
+  collections?: CollectionSummaryResponse[];
+  content?: CollectionSummaryResponse[];
   totalPages: number;
   totalElements: number;
   currentPage: number;

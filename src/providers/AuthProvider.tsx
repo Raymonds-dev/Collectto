@@ -154,19 +154,22 @@ const resolveUserIdFromToken = (token: string): string | null => {
     return null;
   }
 
-  if (typeof claims.userId === 'string' && claims.userId.length > 0) {
+  const isUuid = (val: string): boolean =>
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(val);
+
+  if (typeof claims.userId === 'string' && claims.userId.length > 0 && isUuid(claims.userId)) {
     return claims.userId;
   }
 
-  if (typeof claims.uid === 'string' && claims.uid.length > 0) {
+  if (typeof claims.uid === 'string' && claims.uid.length > 0 && isUuid(claims.uid)) {
     return claims.uid;
   }
 
-  if (typeof claims.id === 'string' && claims.id.length > 0) {
+  if (typeof claims.id === 'string' && claims.id.length > 0 && isUuid(claims.id)) {
     return claims.id;
   }
 
-  if (typeof claims.sub === 'string' && claims.sub.length > 0) {
+  if (typeof claims.sub === 'string' && claims.sub.length > 0 && isUuid(claims.sub)) {
     return claims.sub;
   }
 
@@ -409,12 +412,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   return;
                 }
               } else {
+                let profile: AuthUser | null = null;
                 const resolvedUserId = resolveUserIdFromToken(cleanToken);
+
                 if (resolvedUserId) {
                   try {
-                    const profile = await getUserById(resolvedUserId);
-                    setUser(resolveAuthUserFromProfile(profile, profile.email));
-                    return;
+                    profile = await getUserById(resolvedUserId);
                   } catch (error) {
                     // If it's a 401 or 403, clear session and return (don't throw)
                     const status = (error as any)?.status || (error as any)?.response?.status;
@@ -426,6 +429,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     }
                     throw error;
                   }
+                }
+
+                // If resolvedUserId was not a UUID, or getUserById failed, fetch from users/me
+                if (!profile) {
+                  try {
+                    profile = await getAuthenticatedUser();
+                  } catch (error) {
+                    const status = (error as any)?.status || (error as any)?.response?.status;
+                    if (status === 401 || status === 403) {
+                      console.warn(
+                        '[auth] Token invalid/unauthorized on bootstrap fallback. Clearing.'
+                      );
+                      await clearSessionToken();
+                      setUser(null);
+                      return;
+                    }
+                    throw error;
+                  }
+                }
+
+                if (profile) {
+                  setUser(resolveAuthUserFromProfile(profile, profile.email));
+                  return;
                 }
               }
 

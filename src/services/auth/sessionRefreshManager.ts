@@ -1,6 +1,5 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
-import { api } from '../api/client';
 import { authLogger } from '@/utils/authLogging';
 
 const decodeBase64Url = (value: string): string | null => {
@@ -85,24 +84,8 @@ export class SessionRefreshManager {
   }
 
   public recordUserActivity(): void {
-    if (!this.activeToken) return;
-    const claims = decodeJwtPayload(this.activeToken);
-    if (!claims || !claims.exp) return;
-
-    const expTimeMs = claims.exp * 1000;
-    const now = Date.now();
-    const remainingTimeMs = expTimeMs - now;
-
-    // Proactively refresh early (e.g. if token expires in less than 30 minutes)
-    if (remainingTimeMs < 30 * 60 * 1000 && !this.isRefreshing) {
-      console.log(
-        '[SessionRefreshManager] User activity recorded near expiration, triggering early refresh.'
-      );
-      void this.performRefresh();
-    } else {
-      // Just reschedule based on current time
-      this.scheduleRefresh();
-    }
+    // Proactive token refresh is temporarily disabled until implemented on backend
+    return;
   }
 
   private logAttempt(attempt: Omit<RefreshAttempt, 'timestamp'>): void {
@@ -121,107 +104,13 @@ export class SessionRefreshManager {
   }
 
   private scheduleRefresh(): void {
-    if (this.refreshTimer) {
-      clearTimeout(this.refreshTimer);
-      this.refreshTimer = null;
-    }
-
-    if (!this.activeToken) return;
-
-    const claims = decodeJwtPayload(this.activeToken);
-    if (!claims || !claims.exp) {
-      this.logAttempt({
-        status: 'failed',
-        nextExpirationTime: null,
-        errorReason: 'Invalid token: exp claim missing or malformed',
-      });
-      return;
-    }
-
-    const expTimeMs = claims.exp * 1000;
-    // Clock skew cushion of 10 seconds
-    const safetyCushionMs = 10000;
-    const now = Date.now();
-
-    // Trigger refresh 5 minutes before expiration
-    const refreshThresholdMs = 5 * 60 * 1000;
-    let delay = expTimeMs - now - refreshThresholdMs - safetyCushionMs;
-
-    if (delay <= 0) {
-      // If token expiration is <= 5 minutes at startup, trigger validation immediately
-      delay = 0;
-    }
-
-    console.log(`[SessionRefreshManager] Scheduling token refresh in ${delay}ms`);
-
-    this.refreshTimer = setTimeout(() => {
-      void this.performRefresh();
-    }, delay);
+    // Proactive token refresh is temporarily disabled until implemented on backend
+    return;
   }
 
   private async performRefresh(): Promise<void> {
-    if (this.isRefreshing || !this.activeToken) return;
-
-    this.isRefreshing = true;
-
-    await authLogger
-      .track({ module: 'SessionRefreshManager', action: 'tokenRefresh' }, async () => {
-        try {
-          console.log('[SessionRefreshManager] Proactively refreshing token...');
-
-          const response = await api.axios.get('/users/me');
-          const headers = response.headers;
-          const newTokenHeader = headers?.['authorization'] || headers?.['new-token'];
-          let newToken: string | null = null;
-
-          if (newTokenHeader && typeof newTokenHeader === 'string') {
-            newToken = newTokenHeader.replace(/^Bearer\s+/i, '');
-          }
-
-          if (newToken) {
-            const newClaims = decodeJwtPayload(newToken);
-            const nextExpirationTime = newClaims?.exp ?? null;
-
-            this.logAttempt({
-              status: 'success',
-              nextExpirationTime,
-              errorReason: null,
-            });
-
-            if (this.onTokenRefreshedCallback) {
-              await this.onTokenRefreshedCallback(newToken);
-            }
-          } else {
-            const errMsg = 'Response headers did not contain a new authorization token';
-            this.logAttempt({
-              status: 'failed',
-              nextExpirationTime: null,
-              errorReason: errMsg,
-            });
-            throw new Error(errMsg);
-          }
-        } catch (error: any) {
-          console.warn('[SessionRefreshManager] Proactive refresh request failed:', error);
-
-          const isUnauthorized = error?.status === 401 || error?.code === 'UNAUTHORIZED';
-
-          this.logAttempt({
-            status: 'failed',
-            nextExpirationTime: null,
-            errorReason: error?.message || 'Network or Server Error',
-          });
-
-          if (isUnauthorized) {
-            await this.handleUnauthorized();
-          }
-          throw error;
-        } finally {
-          this.isRefreshing = false;
-        }
-      })
-      .catch(() => {
-        // Catch to prevent error propagation from performRefresh
-      });
+    // Proactive token refresh is temporarily disabled until implemented on backend
+    return;
   }
 
   public async handleUnauthorized(): Promise<void> {
@@ -256,8 +145,6 @@ export class SessionRefreshManager {
         if (now >= expTimeMs) {
           console.log('[SessionRefreshManager] Session has expired. Invalidation required.');
           await this.handleUnauthorized();
-        } else {
-          this.scheduleRefresh();
         }
       })
       .catch(() => {});

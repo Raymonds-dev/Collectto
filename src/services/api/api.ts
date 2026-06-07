@@ -2,11 +2,17 @@ import { api as client } from './client';
 import { AuthUser, ChangePasswordRequest, UpdateUserRequest } from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 import type {
+  CollectionPageResponse,
   CollectionResponse,
   CreateCollectionRequest,
   UpdateCollectionRequest,
 } from '@/types/collections';
-import type { CreateItemRequest, ItemResponse, UpdateItemRequest } from '@/types/items';
+import type {
+  CreateItemRequest,
+  ItemPageResponse,
+  ItemResponse,
+  UpdateItemRequest,
+} from '@/types/items';
 
 // Export the centralized client as the default export for backward compatibility
 const api = client;
@@ -87,10 +93,10 @@ export const getCollection = async (id: string): Promise<CollectionResponse> => 
 
 export const getCollectionsByUser = async (
   userId: string,
-  page: number = 1,
+  page: number = 0,
   pageSize: number = 20
-): Promise<PaginatedResponse<CollectionResponse>> => {
-  return client.get<PaginatedResponse<CollectionResponse>>(`collections/by-user/${userId}`, {
+): Promise<CollectionPageResponse> => {
+  return client.get<CollectionPageResponse>(`collections/by-user/${userId}`, {
     params: { page, pageSize },
   });
 };
@@ -115,10 +121,10 @@ export const getItem = async (collectionId: string, itemId: string): Promise<Ite
 
 export const getItemsByCollection = async (
   collectionId: string,
-  page: number = 1,
+  page: number = 0,
   pageSize: number = 20
-): Promise<PaginatedResponse<ItemResponse>> => {
-  return client.get<PaginatedResponse<ItemResponse>>(`items/by-collection/${collectionId}`, {
+): Promise<ItemPageResponse> => {
+  return client.get<ItemPageResponse>(`items/by-collection/${collectionId}`, {
     params: { page, pageSize },
   });
 };

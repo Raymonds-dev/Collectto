@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import type { Collection, CollectionVisibility } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { uploadCollectionCover } from '@/services/api/uploadService';
 
 export interface CollectionCreationInput {
   name: string;
@@ -35,20 +36,20 @@ export const useCollectionCreation = () => {
           return { success: false, error: validationError };
         }
 
-        let coverImageUrl: string | null = null;
+        let coverImageUrl: string | undefined = undefined;
         if (input.coverLocalUri) {
           const storageProvider = createPhotoStorageProvider();
           const permanentReference = await storageProvider.moveToPermament(
             input.coverLocalUri,
             'collections'
           );
-          coverImageUrl = permanentReference.permanentUri;
+          coverImageUrl = await uploadCollectionCover(permanentReference.permanentUri);
         }
 
         const collection = await collectionService.create({
           name,
           description: input.description?.trim() || '',
-          coverImageUrl: coverImageUrl || undefined,
+          coverImageUrl,
           tags: input.tags,
         });
 

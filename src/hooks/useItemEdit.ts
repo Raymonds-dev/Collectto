@@ -108,6 +108,7 @@ export const useItemEdit = ({ item }: UseItemEditOptions) => {
       imageFilesUrls: finalImageUrls.length > 0 ? finalImageUrls : null,
       attributes: Object.keys(formData.attributes).length > 0 ? formData.attributes : undefined,
       tags: formData.tags.length > 0 ? formData.tags : undefined,
+      collectionId: formData.collectionId,
     };
   }, [existingPhotoUrls, formData, item?.id, localPhotos]);
 

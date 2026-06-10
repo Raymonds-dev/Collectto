@@ -18,7 +18,7 @@ export const mockCollectionService: CollectionService = {
       name: input.name,
       description: input.description,
       coverImageURL: input.coverImageUrl || undefined,
-      visibility: 'PUBLIC',
+      visibility: input.visibility || 'PRIVATE',
       followersCount: 0,
       tags: input.tags || undefined,
       isActive: true,

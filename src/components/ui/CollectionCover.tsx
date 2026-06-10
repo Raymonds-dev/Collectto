@@ -22,7 +22,7 @@ const FALLBACK_COLORS = [
  * It automatically handles up to 3 images and displays them with a dynamic stacked rotation effect.
  */
 export const CollectionCover = ({ images = [], size, className = '' }: CollectionCoverProps) => {
-  const layerImages = [images[0], images[1] || images[0], images[2] || images[1] || images[0]];
+  const layerImages = [images[0], images[1], images[2]];
 
   return (
     <View

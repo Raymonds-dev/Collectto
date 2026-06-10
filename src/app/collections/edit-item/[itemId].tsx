@@ -132,6 +132,7 @@ export default function EditItemScreen() {
         imageFilesUrls: finalImageUrls.length > 0 ? finalImageUrls : null,
         attributes: Object.keys(formData.attributes).length > 0 ? formData.attributes : undefined,
         tags: formData.tags.length > 0 ? formData.tags : undefined,
+        collectionId: formData.collectionId,
       });
 
       if (isMountedRef.current) {

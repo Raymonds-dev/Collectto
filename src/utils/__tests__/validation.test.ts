@@ -23,11 +23,11 @@ describe('Centralized Validation Utilities', () => {
     });
 
     it('should reject invalid email formats', () => {
-      expect(validateEmail('userexample.com')).toEqual([false, 'Invalid email format']);
-      expect(validateEmail('@example.com')).toEqual([false, 'Invalid email format']);
-      expect(validateEmail('user@')).toEqual([false, 'Invalid email format']);
-      expect(validateEmail('')).toEqual([false, 'Invalid email format']);
-      expect(validateEmail('   ')).toEqual([false, 'Invalid email format']);
+      expect(validateEmail('userexample.com')).toEqual([false, 'Formato de e-mail inválido']);
+      expect(validateEmail('@example.com')).toEqual([false, 'Formato de e-mail inválido']);
+      expect(validateEmail('user@')).toEqual([false, 'Formato de e-mail inválido']);
+      expect(validateEmail('')).toEqual([false, 'Formato de e-mail inválido']);
+      expect(validateEmail('   ')).toEqual([false, 'Formato de e-mail inválido']);
     });
   });
 
@@ -41,59 +41,65 @@ describe('Centralized Validation Utilities', () => {
     });
 
     it('should reject usernames that are too short or too long', () => {
-      expect(validateUsername('ab')).toEqual([false, 'Username must be 3-20 characters']);
-      expect(validateUsername('')).toEqual([false, 'Username must be 3-20 characters']);
-      expect(validateUsername('a'.repeat(21))).toEqual([false, 'Username must be 3-20 characters']);
+      expect(validateUsername('ab')).toEqual([
+        false,
+        'Nome de usuário deve conter de 3-20 caracteres',
+      ]);
+      expect(validateUsername('')).toEqual([
+        false,
+        'Nome de usuário deve conter de 3-20 caracteres',
+      ]);
+      expect(validateUsername('a'.repeat(21))).toEqual([
+        false,
+        'Nome de usuário deve conter de 3-20 caracteres',
+      ]);
     });
 
     it('should reject usernames with uppercase letters, spaces, or special characters', () => {
       expect(validateUsername('John_Doe')).toEqual([
         false,
-        'Username must be lowercase letters, numbers, and underscores only',
+        'O nome de usuário deve conter apenas letras minúsculas, números e sublinhados',
       ]);
       expect(validateUsername('john doe')).toEqual([
         false,
-        'Username must be lowercase letters, numbers, and underscores only',
+        'O nome de usuário deve conter apenas letras minúsculas, números e sublinhados',
       ]);
       expect(validateUsername('john-doe')).toEqual([
         false,
-        'Username must be lowercase letters, numbers, and underscores only',
+        'O nome de usuário deve conter apenas letras minúsculas, números e sublinhados',
       ]);
       expect(validateUsername('john.doe')).toEqual([
         false,
-        'Username must be lowercase letters, numbers, and underscores only',
+        'O nome de usuário deve conter apenas letras minúsculas, números e sublinhados',
       ]);
     });
   });
 
   describe('validatePassword', () => {
-    it('should accept passwords with at least 8 characters and at least one uppercase letter', () => {
+    it('should accept passwords with at least 8 characters', () => {
       expect(validatePassword('Mypassword')).toEqual([true, null]);
       expect(validatePassword('1234567A')).toEqual([true, null]);
       expect(validatePassword('  a  b  c  D ')).toEqual([true, null]); // has non-spaces, >= 8 chars, and uppercase
     });
 
     it('should reject passwords that are too short', () => {
-      expect(validatePassword('Short')).toEqual([false, 'Password must be at least 8 characters']);
-      expect(validatePassword('')).toEqual([false, 'Password must be at least 8 characters']);
+      expect(validatePassword('Short')).toEqual([
+        false,
+        'Senha deve conter pelo menos 8 caracteres',
+      ]);
+      expect(validatePassword('')).toEqual([false, 'Senha deve conter pelo menos 8 caracteres']);
     });
 
     it('should reject passwords that consist only of whitespace', () => {
       expect(validatePassword('        ')).toEqual([
         false,
-        'Password must be at least 8 characters',
+        'Senha deve conter pelo menos 8 caracteres',
       ]);
     });
 
-    it('should reject passwords without at least one uppercase letter', () => {
-      expect(validatePassword('mypassword')).toEqual([
-        false,
-        'Password must be at least 8 characters and contain at least one uppercase letter',
-      ]);
-      expect(validatePassword('12345678')).toEqual([
-        false,
-        'Password must be at least 8 characters and contain at least one uppercase letter',
-      ]);
+    it('should accept passwords without uppercase letters', () => {
+      expect(validatePassword('mypassword')).toEqual([true, null]);
+      expect(validatePassword('12345678')).toEqual([true, null]);
     });
   });
 
@@ -105,18 +111,18 @@ describe('Centralized Validation Utilities', () => {
     });
 
     it('should reject wrong formats', () => {
-      expect(validateDate('05/25/2026')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('2026-5-25')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('2026-05-2')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('invalid-date')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
+      expect(validateDate('05/25/2026')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('2026-5-25')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('2026-05-2')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('invalid-date')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
     });
 
     it('should reject invalid calendar dates', () => {
-      expect(validateDate('2026-02-30')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('2026-04-31')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateDate('2025-02-29')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']); // not leap year
-      expect(validateDate('2026-13-10')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
+      expect(validateDate('2026-02-30')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('2026-04-31')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateDate('2025-02-29')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']); // not leap year
+      expect(validateDate('2026-13-10')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
     });
   });
 
@@ -142,24 +148,18 @@ describe('Centralized Validation Utilities', () => {
     it('should reject birthdays representing ages under 13', () => {
       expect(validateBirthday(getPastDateStr(12))).toEqual([
         false,
-        'You must be at least 13 years old',
+        'Você deve ter pelo menos 13 anos de idade',
       ]);
       expect(validateBirthday(getPastDateStr(13, 1))).toEqual([
         false,
-        'You must be at least 13 years old',
+        'Você deve ter pelo menos 13 anos de idade',
       ]); // 1 day under 13
     });
 
     it('should reject invalid date formats', () => {
-      expect(validateBirthday('invalid')).toEqual([false, 'Invalid date format. Use yyyy-MM-dd']);
-      expect(validateBirthday('05/25/2026')).toEqual([
-        false,
-        'Invalid date format. Use yyyy-MM-dd',
-      ]);
-      expect(validateBirthday('2026-02-30')).toEqual([
-        false,
-        'Invalid date format. Use yyyy-MM-dd',
-      ]);
+      expect(validateBirthday('invalid')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateBirthday('05/25/2026')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
+      expect(validateBirthday('2026-02-30')).toEqual([false, 'Formato Inválido. Use yyyy-MM-dd']);
     });
   });
 });

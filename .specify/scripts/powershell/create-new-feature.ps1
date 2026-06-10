@@ -242,7 +242,7 @@ if ($Timestamp -and $Number -ne 0) {
 # Determine branch prefix
 if ($Timestamp) {
     $featureNum = Get-Date -Format 'yyyyMMdd-HHmmss'
-    $branchName = "$featureNum-$branchSuffix"
+    $branchName = "feature/$featureNum-$branchSuffix"
 } else {
     # Determine branch number
     if ($Number -eq 0) {
@@ -262,7 +262,7 @@ if ($Timestamp) {
     }
 
     $featureNum = ('{0:000}' -f $Number)
-    $branchName = "$featureNum-$branchSuffix"
+    $branchName = "feature/$featureNum-$branchSuffix"
 }
 
 # GitHub enforces a 244-byte limit on branch names
@@ -270,8 +270,8 @@ if ($Timestamp) {
 $maxBranchLength = 244
 if ($branchName.Length -gt $maxBranchLength) {
     # Calculate how much we need to trim from suffix
-    # Account for prefix length: timestamp (15) + hyphen (1) = 16, or sequential (3) + hyphen (1) = 4
-    $prefixLength = $featureNum.Length + 1
+    # Account for prefix length: "feature/" (8) + FEATURE_NUM + hyphen (1) = ${#FEATURE_NUM} + 9
+    $prefixLength = $featureNum.Length + 9
     $maxSuffixLength = $maxBranchLength - $prefixLength
 
     # Truncate suffix
@@ -280,7 +280,7 @@ if ($branchName.Length -gt $maxBranchLength) {
     $truncatedSuffix = $truncatedSuffix -replace '-$', ''
 
     $originalBranchName = $branchName
-    $branchName = "$featureNum-$truncatedSuffix"
+    $branchName = "feature/$featureNum-$truncatedSuffix"
 
     Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
     Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"

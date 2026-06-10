@@ -40,6 +40,7 @@ export const useCollectionCreation = () => {
           description: input.description?.trim() || '',
           coverImageUrl: null,
           tags: input.tags || [],
+          visibility: input.visibility,
         };
 
         let collection = await collectionService.create(payload);

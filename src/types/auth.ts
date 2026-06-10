@@ -6,6 +6,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string;
   tokenType: 'Bearer';
+  refreshToken: string;
 }
 
 export interface CreateUserRequest {
@@ -58,3 +59,13 @@ export interface UserResponse {
 export type AuthUser = UserResponse;
 export type Credentials = LoginRequest;
 export type RegisterData = CreateUserRequest;
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface TokenRefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+}

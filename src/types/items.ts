@@ -17,6 +17,7 @@ export interface UpdateItemRequest {
   imageFilesUrls?: string[] | null;
   attributes?: Record<string, unknown>;
   tags?: string[];
+  collectionId?: string;
 }
 
 export interface MoveItemCommand {

@@ -274,7 +274,7 @@ fi
 # Determine branch prefix
 if [ "$USE_TIMESTAMP" = true ]; then
     FEATURE_NUM=$(date +%Y%m%d-%H%M%S)
-    BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+    BRANCH_NAME="feature/${FEATURE_NUM}-${BRANCH_SUFFIX}"
 else
     # Determine branch number
     if [ -z "$BRANCH_NUMBER" ]; then
@@ -297,7 +297,7 @@ else
 
     # Force base-10 interpretation to prevent octal conversion (e.g., 010 â†’ 8 in octal, but should be 10 in decimal)
     FEATURE_NUM=$(printf "%03d" "$((10#$BRANCH_NUMBER))")
-    BRANCH_NAME="${FEATURE_NUM}-${BRANCH_SUFFIX}"
+    BRANCH_NAME="feature/${FEATURE_NUM}-${BRANCH_SUFFIX}"
 fi
 
 # GitHub enforces a 244-byte limit on branch names
@@ -305,8 +305,8 @@ fi
 MAX_BRANCH_LENGTH=244
 if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     # Calculate how much we need to trim from suffix
-    # Account for prefix length: timestamp (15) + hyphen (1) = 16, or sequential (3) + hyphen (1) = 4
-    PREFIX_LENGTH=$(( ${#FEATURE_NUM} + 1 ))
+    # Account for prefix length: "feature/" (8) + FEATURE_NUM + hyphen (1) = ${#FEATURE_NUM} + 9
+    PREFIX_LENGTH=$(( ${#FEATURE_NUM} + 9 ))
     MAX_SUFFIX_LENGTH=$((MAX_BRANCH_LENGTH - PREFIX_LENGTH))
     
     # Truncate suffix at word boundary if possible
@@ -315,7 +315,7 @@ if [ ${#BRANCH_NAME} -gt $MAX_BRANCH_LENGTH ]; then
     TRUNCATED_SUFFIX=$(echo "$TRUNCATED_SUFFIX" | sed 's/-$//')
     
     ORIGINAL_BRANCH_NAME="$BRANCH_NAME"
-    BRANCH_NAME="${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
+    BRANCH_NAME="feature/${FEATURE_NUM}-${TRUNCATED_SUFFIX}"
     
     >&2 echo "[specify] Warning: Branch name exceeded GitHub's 244-byte limit"
     >&2 echo "[specify] Original: $ORIGINAL_BRANCH_NAME (${#ORIGINAL_BRANCH_NAME} bytes)"

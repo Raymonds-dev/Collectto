@@ -2,6 +2,7 @@ import api, { getAuthenticatedUser, getUserById } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
+  setSessionRefreshToken,
   setSessionToken,
 } from '@/services/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
@@ -583,6 +584,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 ? (responseData as { accessToken: string }).accessToken
                 : null;
 
+            const refreshToken =
+              responseData &&
+              typeof responseData === 'object' &&
+              typeof (responseData as { refreshToken?: unknown }).refreshToken === 'string' &&
+              (responseData as { refreshToken: string }).refreshToken.length > 0
+                ? (responseData as { refreshToken: string }).refreshToken
+                : null;
+
             if (!accessToken) {
               throw new Error('Token de acesso não retornado pelo backend.');
             }
@@ -592,6 +601,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             try {
               if (shouldRestorePersistentSession) {
                 await setSessionToken(cleanToken);
+                if (refreshToken) {
+                  await setSessionRefreshToken(refreshToken);
+                }
               }
             } catch (error) {
               console.warn('[auth] Failed to persist session token:', error);

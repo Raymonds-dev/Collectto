@@ -1,6 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
 import { authLogger } from '@/utils/authLogging';
+import { refreshSession } from '@/services/api/api';
+import { getSessionRefreshToken, setSessionRefreshToken } from '@/services/storage/authSession';
 
 const decodeBase64Url = (value: string): string | null => {
   try {
@@ -108,9 +110,60 @@ export class SessionRefreshManager {
     return;
   }
 
-  private async performRefresh(): Promise<void> {
-    // Proactive token refresh is temporarily disabled until implemented on backend
-    return;
+  public async performRefresh(): Promise<string | null> {
+    if (this.isRefreshing) return null;
+    this.isRefreshing = true;
+
+    this.logAttempt({
+      status: 'failed',
+      nextExpirationTime: null,
+      errorReason: 'Iniciando refresh silencioso...',
+    });
+
+    try {
+      const refreshToken = await getSessionRefreshToken();
+      if (!refreshToken) {
+        throw new Error('Nenhum refresh token disponível no SecureStore.');
+      }
+
+      const response = await refreshSession({ refreshToken });
+
+      if (!response || !response.accessToken) {
+        throw new Error('Resposta do refresh inválida.');
+      }
+
+      this.activeToken = response.accessToken;
+
+      // Update session callbacks
+      if (this.onTokenRefreshedCallback) {
+        await this.onTokenRefreshedCallback(response.accessToken);
+      }
+
+      // Save new rotated refresh token
+      await setSessionRefreshToken(response.refreshToken);
+
+      const claims = decodeJwtPayload(response.accessToken);
+      const exp = claims && claims.exp ? claims.exp : null;
+
+      this.logAttempt({
+        status: 'success',
+        nextExpirationTime: exp,
+        errorReason: null,
+      });
+
+      this.isRefreshing = false;
+      return response.accessToken;
+    } catch (error: any) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      this.logAttempt({
+        status: 'failed',
+        nextExpirationTime: null,
+        errorReason: errorMsg,
+      });
+      this.isRefreshing = false;
+      await this.handleUnauthorized();
+      return null;
+    }
   }
 
   public async handleUnauthorized(): Promise<void> {

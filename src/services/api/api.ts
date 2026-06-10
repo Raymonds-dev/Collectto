@@ -1,5 +1,11 @@
 import { api as client } from './client';
-import { AuthUser, ChangePasswordRequest, UpdateUserRequest } from '@/types/auth';
+import {
+  AuthUser,
+  ChangePasswordRequest,
+  RefreshTokenRequest,
+  TokenRefreshResponse,
+  UpdateUserRequest,
+} from '@/types/auth';
 import type { GenerateUploadUrlsRequest, GenerateUploadUrlsResponse } from '@/types/uploads';
 import type {
   CollectionPageResponse,
@@ -17,19 +23,6 @@ import type {
 // Export the centralized client as the default export for backward compatibility
 const api = client;
 export default api;
-
-export interface PaginatedResponse<T> {
-  content: T[];
-  totalPages?: number;
-  totalElements?: number;
-  size?: number;
-  number?: number;
-  pageable?: {
-    pageNumber: number;
-    pageSize: number;
-    totalElements: number;
-  };
-}
 
 export const getUserById = async (userId: string): Promise<AuthUser> => {
   return client.get<AuthUser>(`users/${userId}`);
@@ -131,4 +124,15 @@ export const getItemsByCollection = async (
 
 export const deleteItem = async (id: string): Promise<void> => {
   return client.delete<void>(`items/${id}`);
+};
+
+// --- Auth Endpoints ---
+
+export const refreshSession = async (
+  req: RefreshTokenRequest,
+  authorization?: string
+): Promise<TokenRefreshResponse> => {
+  return client.post<TokenRefreshResponse>('auth/refresh', req, {
+    headers: authorization ? { Authorization: authorization } : undefined,
+  });
 };

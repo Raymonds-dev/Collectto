@@ -60,7 +60,7 @@ const ExploreScreen = () => {
       setCards(response.content);
       setPage(0);
       setHasNext(response.hasNext);
-    } catch (error) {
+    } catch {
       setCategories(FALLBACK_CATEGORIES);
       setCards([]);
       setLoadError('Não foi possível carregar as informações.');
@@ -79,7 +79,7 @@ const ExploreScreen = () => {
       setCards((prev) => [...prev, ...response.content]);
       setPage(nextPage);
       setHasNext(response.hasNext);
-    } catch (error) {
+    } catch {
       // Don't break the screen, handle silently or display toast
     } finally {
       setLoadingMore(false);

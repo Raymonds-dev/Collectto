@@ -19,7 +19,8 @@ import {
 import { AnimatedPressable, MotionView } from '@/components/ui/animated';
 import { MOCK_EXPLORE_CATEGORIES as FALLBACK_CATEGORIES } from '@/mocks/explore';
 import type { ExploreCategory, ExploreSpotlight } from '@/types/explore';
-import { getExploreCategories, getExploreSpotlights } from '@/services/api/explore';
+import { getExploreCategories } from '@/services/api/explore';
+import { ExploreCard, socialService } from '@/services/api/social.service';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 type ExploreColumnProps = {
@@ -39,47 +40,85 @@ const ExploreScreen = () => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>('all');
   const [selectedSpotlight, setSelectedSpotlight] = useState<ExploreSpotlight | null>(null);
   const [categories, setCategories] = useState<ExploreCategory[]>(FALLBACK_CATEGORIES);
-  const [spotlights, setSpotlights] = useState<ExploreSpotlight[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Load categories + spotlights from the API, with debug fallback handled in the service.
+  const [cards, setCards] = useState<ExploreCard[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
+
+  const loadInitialExplore = async () => {
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const [cats, response] = await Promise.all([
+        getExploreCategories(),
+        socialService.getExplore(0, 10),
+      ]);
+      setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
+      setCards(response.content);
+      setPage(0);
+      setHasNext(response.hasNext);
+    } catch (error) {
+      setCategories(FALLBACK_CATEGORIES);
+      setCards([]);
+      setLoadError('Não foi possível carregar as informações.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadMoreExplore = async () => {
+    if (loadingMore || !hasNext || loading) return;
+
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const response = await socialService.getExplore(nextPage, 10);
+      setCards((prev) => [...prev, ...response.content]);
+      setPage(nextPage);
+      setHasNext(response.hasNext);
+    } catch (error) {
+      // Don't break the screen, handle silently or display toast
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        const [cats, sp] = await Promise.all([
-          getExploreCategories(),
-          getExploreSpotlights({ page: 0, size: 24 }),
-        ]);
-
-        if (cancelled) return;
-
-        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
-
-        setSpotlights(sp);
-      } catch {
-        if (cancelled) return;
-
-        setCategories(FALLBACK_CATEGORIES);
-        setSpotlights([]);
-        setLoadError('Não foi possível carregar as informações.');
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
+    loadInitialExplore();
   }, []);
+
+  const spotlights = useMemo(() => {
+    return cards.map((card): ExploreSpotlight => {
+      let postType: 'collection' | 'item' = 'collection';
+      switch (card.context) {
+        case 'USER':
+          postType = 'collection';
+          break;
+        case 'ITEM':
+          postType = 'item';
+          break;
+        case 'COLLECTION':
+          postType = 'collection';
+          break;
+      }
+      return {
+        id: card.id,
+        postType,
+        title: 'Destaques',
+        subtitle: '',
+        caption: '',
+        postedBy: 'collectto',
+        postedAt: 'agora',
+        images: (card.imageUrls || []).map((uri) => ({ uri })),
+        tags: card.tags || [],
+        categoryId: postType === 'item' ? 'items' : 'collections',
+        height: 214,
+      };
+    });
+  }, [cards]);
 
   const filteredCards = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -116,28 +155,7 @@ const ExploreScreen = () => {
   };
 
   const handleRetry = () => {
-    const reload = async () => {
-      setIsLoading(true);
-      setLoadError(null);
-
-      try {
-        const [cats, sp] = await Promise.all([
-          getExploreCategories(),
-          getExploreSpotlights({ page: 0, size: 24 }),
-        ]);
-
-        setCategories(cats && cats.length ? cats : FALLBACK_CATEGORIES);
-        setSpotlights(sp);
-      } catch {
-        setCategories(FALLBACK_CATEGORIES);
-        setSpotlights([]);
-        setLoadError('Não foi possível carregar as informações no momento.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    void reload();
+    loadInitialExplore();
   };
 
   const handleOpenCollection = (collectionId: string, ownerId?: string) => {
@@ -148,9 +166,21 @@ const ExploreScreen = () => {
     handleCloseSheet();
   };
 
+  const handleScroll = ({ nativeEvent }: { nativeEvent: any }) => {
+    const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+    const paddingToBottom = 50;
+    if (layoutMeasurement.height + contentOffset.y >= contentSize.height - paddingToBottom) {
+      loadMoreExplore();
+    }
+  };
+
   return (
     <View className="flex-1 bg-surface-base">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        onScroll={handleScroll}
+        scrollEventThrottle={400}>
         <MotionView className="mb-4" visible presets={['slideDown', 'fade']} duration={260}>
           <View className="mb-3">
             <Text className="mt-4 self-center text-center font-poetsenone text-3xl text-text-base">
@@ -192,7 +222,7 @@ const ExploreScreen = () => {
         </View>
 
         <View style={styles.scrollContent}>
-          {isLoading ? (
+          {loading ? (
             <View className="items-center px-5 py-10">
               <ActivityIndicator color={tokens.colors.brand.primary} size="large" />
               <Text className="mt-3 text-center text-base font-medium text-text-base">
@@ -233,6 +263,12 @@ const ExploreScreen = () => {
               <Text className="mt-2 text-center text-sm leading-5 text-text-muted">
                 Ajuste o filtro ou tente outra palavra-chave para encontrar coleções parecidas.
               </Text>
+            </View>
+          )}
+
+          {loadingMore && (
+            <View className="mt-4 items-center justify-center py-4">
+              <ActivityIndicator color={tokens.colors.brand.primary} size="small" />
             </View>
           )}
         </View>

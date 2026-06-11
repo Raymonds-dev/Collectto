@@ -128,14 +128,25 @@ const resolveRemoteImageUrl = (url: string | null | undefined): string | undefin
  * Ensures relative URLs are resolved to absolute URLs.
  */
 const mapCollectionResponse = (c: any, userId?: string): CollectionResponse => {
-  // Resolve a capa da coleção (seja coverImageURL ou coverImageUrl)
-  const rawCover = c.coverImageURL || c.coverImageUrl;
+  // Resolve a capa da coleção (seja coverImageURL, coverImageUrl ou primeiro item de imagesURL)
+  const rawCover = c.coverImageURL || c.coverImageUrl || (c.imagesURL && c.imagesURL[0]);
   const resolvedCoverImageURL = resolveRemoteImageUrl(rawCover);
 
-  // Se houver capa, o array coverImageUrls conterá apenas ela
-  const resolvedCoverImageUrls = rawCover
-    ? [resolveRemoteImageUrl(rawCover)].filter((url): url is string => !!url)
-    : [];
+  // Se houver coverImageUrls, mapeia eles, senão tenta do imagesURL, senão usa rawCover
+  let resolvedCoverImageUrls: string[] = [];
+  if (c.coverImageUrls && c.coverImageUrls.length > 0) {
+    resolvedCoverImageUrls = c.coverImageUrls
+      .map((url: any) => resolveRemoteImageUrl(url))
+      .filter((url: string | null): url is string => !!url);
+  } else if (c.imagesURL && c.imagesURL.length > 0) {
+    resolvedCoverImageUrls = c.imagesURL
+      .map((url: any) => resolveRemoteImageUrl(url))
+      .filter((url: string | null): url is string => !!url);
+  } else if (rawCover) {
+    resolvedCoverImageUrls = [resolveRemoteImageUrl(rawCover)].filter(
+      (url): url is string => !!url
+    );
+  }
 
   return {
     id: c.id,
@@ -328,11 +339,36 @@ export const apiItemService: ItemService = {
   },
 
   moveItem: async (command: MoveItemCommand): Promise<ItemResponse> => {
-    throw new Error('A funcionalidade de mover itens não é suportada na API real no momento.');
+    return apiItemService.update(command.itemId, {
+      id: command.itemId,
+      collectionId: command.targetCollectionId,
+    });
   },
 
   moveItemsBulk: async (command: MoveItemsBulkCommand): Promise<MoveItemsResponse> => {
-    throw new Error('A funcionalidade de mover itens não é suportada na API real no momento.');
+    const movedItemIds: string[] = [];
+    const failedItemIds: string[] = [];
+
+    await Promise.all(
+      command.itemIds.map(async (itemId) => {
+        try {
+          await apiItemService.moveItem({
+            itemId,
+            targetCollectionId: command.targetCollectionId,
+            sourceCollectionId: command.sourceCollectionId,
+          });
+          movedItemIds.push(itemId);
+        } catch {
+          failedItemIds.push(itemId);
+        }
+      })
+    );
+
+    return {
+      success: failedItemIds.length === 0,
+      movedItemIds,
+      failedItemIds: failedItemIds.length > 0 ? failedItemIds : undefined,
+    };
   },
 
   deleteItemsBulk: async (itemIds: string[]): Promise<DeleteItemsBulkResponse> => {

@@ -1,4 +1,4 @@
-export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'UNLISTED';
+export type CollectionVisibility = 'PUBLIC' | 'PRIVATE' | 'FRIENDS';
 
 export type DeleteCollectionItemsStrategy = 'MOVE_TO_UNCATEGORIZED' | 'DELETE_ALL_ITEMS';
 
@@ -7,6 +7,7 @@ export interface CreateCollectionRequest {
   description: string;
   coverImageUrl?: string | null;
   tags?: string[] | null;
+  visibility?: CollectionVisibility;
 }
 
 export interface UpdateCollectionRequest {
@@ -53,7 +54,7 @@ export interface CollectionResponse {
 export interface CollectionSummaryResponse {
   id: string;
   name: string;
-  imageFilesUrls: string[];
+  imagesURL: string[];
 }
 
 export interface CollectionPageResponse {

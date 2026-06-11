@@ -289,7 +289,7 @@ if ($env:GIT_BRANCH_NAME) {
 
     if ($Timestamp) {
         $featureNum = Get-Date -Format 'yyyyMMdd-HHmmss'
-        $branchName = "$featureNum-$branchSuffix"
+        $branchName = "feature/$featureNum-$branchSuffix"
     } else {
         if ($Number -eq 0) {
             if ($DryRun -and $hasGit) {
@@ -304,20 +304,20 @@ if ($env:GIT_BRANCH_NAME) {
         }
 
         $featureNum = ('{0:000}' -f $Number)
-        $branchName = "$featureNum-$branchSuffix"
+        $branchName = "feature/$featureNum-$branchSuffix"
     }
 }
 
 $maxBranchLength = 244
 if ($branchName.Length -gt $maxBranchLength) {
-    $prefixLength = $featureNum.Length + 1
+    $prefixLength = $featureNum.Length + 9
     $maxSuffixLength = $maxBranchLength - $prefixLength
 
     $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
     $truncatedSuffix = $truncatedSuffix -replace '-$', ''
 
     $originalBranchName = $branchName
-    $branchName = "$featureNum-$truncatedSuffix"
+    $branchName = "feature/$featureNum-$truncatedSuffix"
 
     Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
     Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"

@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 
 const SESSION_TOKEN_KEY = 'collectto.session.token';
+const SESSION_REFRESH_TOKEN_KEY = 'collectto.session.refresh_token';
 
 export function validateTokenPayload(token: string): boolean {
   if (!token) return false;
@@ -46,10 +47,31 @@ export async function setSessionToken(token: string): Promise<void> {
   await SecureStore.setItemAsync(SESSION_TOKEN_KEY, token);
 }
 
+export async function getSessionRefreshToken(): Promise<string | null> {
+  const token = await SecureStore.getItemAsync(SESSION_REFRESH_TOKEN_KEY);
+  if (token) {
+    return token.replace(/^"|"$/g, '');
+  }
+  return null;
+}
+
+export async function setSessionRefreshToken(token: string): Promise<void> {
+  await SecureStore.setItemAsync(SESSION_REFRESH_TOKEN_KEY, token);
+}
+
+export async function clearSessionRefreshToken(): Promise<void> {
+  try {
+    await SecureStore.deleteItemAsync(SESSION_REFRESH_TOKEN_KEY);
+  } catch (error) {
+    console.warn('[authSession] Failed to delete session refresh token from SecureStore:', error);
+  }
+}
+
 export async function clearSessionToken(): Promise<void> {
   try {
     await SecureStore.deleteItemAsync(SESSION_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(SESSION_REFRESH_TOKEN_KEY);
   } catch (error) {
-    console.warn('[authSession] Failed to delete session token from SecureStore:', error);
+    console.warn('[authSession] Failed to delete session tokens from SecureStore:', error);
   }
 }

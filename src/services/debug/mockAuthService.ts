@@ -46,6 +46,7 @@ export const mockAuthService = {
     return {
       accessToken: generateMockToken(exp),
       tokenType: 'Bearer',
+      refreshToken: 'mock-refresh-token-' + Date.now(),
     };
   },
 

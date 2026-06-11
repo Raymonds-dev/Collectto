@@ -1,6 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Picker } from '@react-native-picker/picker';
+import React, { useMemo, useRef, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { tokens } from '@/styles/tailwind/tokens.native';
@@ -47,13 +46,16 @@ const formatDisplayDate = (dateString: string): string => {
 
 const pad2 = (value: number): string => String(value).padStart(2, '0');
 
-const getYearFromDate = (dateString?: string | null): number => {
-  if (!dateString) {
-    return new Date().getFullYear();
+const parseDateString = (dateString: string): Date => {
+  const [y, m, d] = dateString.split('-').map((part) => parseInt(part, 10));
+  if (!y || !m || !d) {
+    return new Date();
   }
+  return new Date(y, m - 1, d);
+};
 
-  const year = parseInt(dateString.split('-')[0], 10);
-  return Number.isNaN(year) ? new Date().getFullYear() : year;
+const formatDateForCalendar = (date: Date): string => {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 };
 
 const clampDayForMonth = (year: number, month: number, day: number): number => {
@@ -85,8 +87,18 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
   const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
   const [draftDate, setDraftDate] = useState<string | null>(value ?? null);
-  const [calendarMonth, setCalendarMonth] = useState<string | null>(value ?? null);
-  const [yearDraft, setYearDraft] = useState<number>(getYearFromDate(value));
+  const [calendarMonthDate, setCalendarMonthDate] = useState<Date>(
+    value ? parseDateString(value) : new Date()
+  );
+
+  const yearButtonRef = useRef<View>(null);
+  const modalCardRef = useRef<View>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const [calendarKey, setCalendarKey] = useState(0);
 
   const yearOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -106,33 +118,48 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
 
   const handleCancel = (): void => {
     setDraftDate(value ?? null);
-    setCalendarMonth(value ?? null);
+    setIsYearPickerVisible(false);
     setIsCalendarVisible(false);
-  };
-
-  const handleYearConfirm = (): void => {
-    const nextYear = yearDraft;
-    const nextDraftDate = draftDate ? updateDateYear(draftDate, nextYear) : null;
-    const baseMonth = nextDraftDate
-      ? nextDraftDate
-      : `${nextYear}-${pad2(new Date().getMonth() + 1)}-01`;
-
-    setDraftDate(nextDraftDate);
-    setCalendarMonth(baseMonth);
-    setIsYearPickerVisible(false);
-    setIsCalendarVisible(true);
-  };
-
-  const handleYearCancel = (): void => {
-    setYearDraft(getYearFromDate(value));
-    setIsYearPickerVisible(false);
   };
 
   const openCalendar = (): void => {
     setDraftDate(value ?? null);
-    setCalendarMonth(value ?? null);
-    setYearDraft(getYearFromDate(value));
-    setIsYearPickerVisible(true);
+    setCalendarMonthDate(value ? parseDateString(value) : new Date());
+    setIsYearPickerVisible(false);
+    setIsCalendarVisible(true);
+  };
+
+  const handleYearChange = (nextYear: number): void => {
+    setCalendarMonthDate(new Date(nextYear, calendarMonthDate.getMonth(), 1));
+    setCalendarKey((prev) => prev + 1);
+    if (draftDate) {
+      setDraftDate(updateDateYear(draftDate, nextYear));
+    }
+  };
+
+  const toggleYearPicker = (): void => {
+    if (!isYearPickerVisible) {
+      if (yearButtonRef.current && modalCardRef.current) {
+        modalCardRef.current.measure(
+          (modalX, modalY, modalWidth, modalHeight, modalPageX, modalPageY) => {
+            yearButtonRef.current?.measure(
+              (btnX, btnY, btnWidth, btnHeight, btnPageX, btnPageY) => {
+                setDropdownPosition({
+                  top: btnPageY - modalPageY + btnHeight + 4,
+                  left: btnPageX - modalPageX,
+                  width: btnWidth,
+                });
+                setIsYearPickerVisible(true);
+              }
+            );
+          }
+        );
+      } else {
+        setIsYearPickerVisible(true);
+      }
+    } else {
+      setIsYearPickerVisible(false);
+    }
   };
 
   const displayText = value ? formatDisplayDate(value) : 'SELECIONAR DATA';
@@ -163,56 +190,6 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
 
       {error && <Text className="mt-2 text-sm text-feedback-error">{error}</Text>}
 
-      {/* Year Picker Modal */}
-      <Modal
-        transparent
-        animationType="fade"
-        visible={isYearPickerVisible}
-        onRequestClose={handleYearCancel}>
-        <Pressable
-          style={styles.overlay}
-          onPress={handleYearCancel}
-          accessibilityRole="button"
-          accessibilityLabel="Fechar seletor de ano">
-          <View style={styles.centeredContainer}>
-            <Pressable style={styles.modalCard} onPress={() => {}}>
-              <View style={styles.yearHeader}>
-                <Text style={styles.yearHeaderText}>Selecionar ano</Text>
-              </View>
-
-              <Picker
-                selectedValue={yearDraft}
-                onValueChange={(value) => setYearDraft(Number(value))}
-                style={styles.yearPicker}
-                itemStyle={styles.yearPickerItem}
-                accessibilityLabel="Selecionar ano">
-                {yearOptions.map((year) => (
-                  <Picker.Item key={year} label={String(year)} value={year} />
-                ))}
-              </Picker>
-
-              <View style={styles.actionsRow}>
-                <Pressable
-                  onPress={handleYearCancel}
-                  style={styles.cancelButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="Cancelar seleção de ano">
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <View style={styles.actionsSpacer} />
-                <Pressable
-                  onPress={handleYearConfirm}
-                  style={styles.confirmButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="Confirmar ano selecionado">
-                  <Text style={styles.confirmText}>Continuar</Text>
-                </Pressable>
-              </View>
-            </Pressable>
-          </View>
-        </Pressable>
-      </Modal>
-
       {/* Calendar Modal */}
       <Modal
         transparent
@@ -225,7 +202,7 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
           accessibilityRole="button"
           accessibilityLabel="Fechar calendário">
           <View style={styles.centeredContainer}>
-            <Pressable style={styles.modalCard} onPress={() => {}}>
+            <Pressable ref={modalCardRef} style={styles.modalCard} onPress={() => {}}>
               {/* Modal header */}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
@@ -234,9 +211,41 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
               </View>
 
               <Calendar
-                current={calendarMonth ?? draftDate ?? undefined}
+                key={calendarKey}
+                current={formatDateForCalendar(calendarMonthDate)}
                 maxDate={new Date().toISOString().split('T')[0]}
                 onDayPress={handleDayPress}
+                onMonthChange={(date) => {
+                  setCalendarMonthDate(new Date(date.year, date.month - 1, 1));
+                }}
+                renderHeader={(date) => {
+                  const monthLabel = MONTH_NAMES[date.getMonth()] ?? '';
+                  const headerYear = date.getFullYear();
+                  return (
+                    <View style={[styles.calendarHeaderRow, { zIndex: 999, elevation: 999 }]}>
+                      <Text style={styles.calendarHeaderMonth}>{monthLabel}</Text>
+                      <View
+                        ref={yearButtonRef}
+                        style={{ position: 'relative', zIndex: 999, elevation: 999 }}>
+                        <Pressable
+                          onPress={toggleYearPicker}
+                          style={[
+                            styles.calendarHeaderYearButton,
+                            isYearPickerVisible && styles.calendarHeaderYearButtonActive,
+                          ]}
+                          accessibilityRole="button"
+                          accessibilityLabel="Selecionar ano">
+                          <Text style={styles.calendarHeaderYearText}>{headerYear}</Text>
+                          <Ionicons
+                            name={isYearPickerVisible ? 'chevron-up' : 'chevron-down'}
+                            size={14}
+                            style={styles.calendarHeaderYearIcon}
+                          />
+                        </Pressable>
+                      </View>
+                    </View>
+                  );
+                }}
                 markedDates={
                   draftDate
                     ? {
@@ -248,6 +257,20 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
                     : undefined
                 }
                 theme={{
+                  stylesheet: {
+                    calendar: {
+                      header: {
+                        flexDirection: 'row',
+                        justifyContent: 'space-between',
+                        paddingLeft: 10,
+                        paddingRight: 10,
+                        marginTop: 6,
+                        alignItems: 'center',
+                        zIndex: 9999,
+                        elevation: 9999,
+                      },
+                    },
+                  },
                   calendarBackground: tokens.colors.surface.canvas,
                   textSectionTitleColor: tokens.colors.text.subtle,
                   selectedDayBackgroundColor: tokens.colors.brand.primary,
@@ -285,6 +308,47 @@ export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePi
                   </Text>
                 </Pressable>
               </View>
+
+              {isYearPickerVisible && dropdownPosition && (
+                <View
+                  style={[
+                    styles.absoluteYearPicker,
+                    {
+                      top: dropdownPosition.top,
+                      left: dropdownPosition.left,
+                      width: dropdownPosition.width,
+                    },
+                  ]}>
+                  <ScrollView
+                    nestedScrollEnabled
+                    showsVerticalScrollIndicator={false}
+                    style={styles.yearPickerScroll}>
+                    {yearOptions.map((year) => {
+                      const isSelected = calendarMonthDate.getFullYear() === year;
+                      return (
+                        <Pressable
+                          key={year}
+                          style={[
+                            styles.yearPickerItem,
+                            isSelected && styles.yearPickerItemSelected,
+                          ]}
+                          onPress={() => {
+                            handleYearChange(year);
+                            setIsYearPickerVisible(false);
+                          }}>
+                          <Text
+                            style={[
+                              styles.yearPickerItemText,
+                              isSelected && styles.yearPickerItemTextSelected,
+                            ]}>
+                            {year}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                </View>
+              )}
             </Pressable>
           </View>
         </Pressable>
@@ -338,12 +402,84 @@ const styles = StyleSheet.create({
   confirmTextDisabled: {
     color: tokens.colors.text.disabled,
   },
+  calendarHeaderMonth: {
+    color: tokens.colors.text.base,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  calendarHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  calendarHeaderYearButton: {
+    alignItems: 'center',
+    borderColor: tokens.colors.surface.border,
+    borderRadius: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  calendarHeaderYearIcon: {
+    color: tokens.colors.text.muted,
+  },
+  calendarHeaderYearButtonActive: {
+    borderColor: tokens.colors.brand.primary,
+    backgroundColor: tokens.colors.brand[50],
+  },
+  absoluteYearPicker: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    backgroundColor: tokens.colors.surface.canvas,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: tokens.colors.surface.border,
+    shadowColor: tokens.colors.neutral.black,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 9999,
+    zIndex: 9999,
+    overflow: 'hidden',
+  },
+  yearPickerScroll: {
+    maxHeight: 240,
+  },
+  yearPickerItem: {
+    paddingVertical: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  yearPickerItemSelected: {
+    backgroundColor: tokens.colors.brand[50],
+  },
+  yearPickerItemText: {
+    fontSize: 14,
+    color: tokens.colors.text.base,
+    fontWeight: '500',
+  },
+  yearPickerItemTextSelected: {
+    color: tokens.colors.brand.primary,
+    fontWeight: '700',
+  },
+  calendarHeaderYearText: {
+    color: tokens.colors.text.base,
+    fontSize: 13,
+    fontWeight: '600',
+  },
   modalCard: {
     backgroundColor: tokens.colors.surface.canvas,
     borderRadius: 20,
     elevation: 8,
     maxWidth: 400,
-    overflow: 'hidden',
+    overflow: 'visible',
     shadowColor: tokens.colors.neutral.black,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.15,
@@ -360,27 +496,6 @@ const styles = StyleSheet.create({
     color: tokens.colors.neutral.white,
     fontFamily: 'PoetsenOne-Regular',
     fontSize: 18,
-  },
-  yearHeader: {
-    alignItems: 'center',
-    backgroundColor: tokens.colors.neutral.black,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  yearHeaderText: {
-    color: tokens.colors.neutral.white,
-    fontFamily: 'PoetsenOne-Regular',
-    fontSize: 18,
-  },
-  yearPicker: {
-    backgroundColor: tokens.colors.surface.canvas,
-    height: 180,
-    width: '100%',
-  },
-  yearPickerItem: {
-    color: tokens.colors.text.base,
-    fontSize: 16,
-    fontWeight: '600',
   },
   overlay: {
     backgroundColor: tokens.colors.overlay.scrim,

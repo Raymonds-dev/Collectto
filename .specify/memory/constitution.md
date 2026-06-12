@@ -1,12 +1,12 @@
 <!--
 Sync Impact Report
-Version change: 1.0.0 → 1.1.0
+Version change: 1.1.0 → 1.2.1
 Modified principles:
 - None
 Added sections:
 - None
 Expanded sections:
-- Diretrizes de Engenharia e Arquitetura (added code standard rules: strict TypeScript conventions, arrow functions, quality gates, secure logging, error mapping and Git workflows)
+- Padrões de Código Escrito e Qualidade (added Desenvolvimento Multiplataforma guideline prioritizing iOS/Android cross-platform compatibility and allowing library fallbacks)
 Removed sections:
 - None
 Templates requiring updates:
@@ -110,6 +110,7 @@ user-facing actions.
 - **Tratamento Resiliente de Erros**: Falhas de comunicação externa MUST ser tratadas usando o mapeador centralizado em português (pt-BR) com códigos de diagnósticos simplificados anexados para o usuário.
 - **Segurança de Logs**: Logs gerados pelo aplicativo MUST sanitizar e omitir qualquer informação pessoal identificável (PII), incluindo e-mails, tokens JWT e credenciais brutas, priorizando armazenamento temporário em memória (buffer FIFO circular).
 - **Padrão de Branches e Commits**: Branches de desenvolvimento MUST seguir o formato `<tipo>/<descricao-curta>`, onde o tipo é uma categoria semântica (`feature/`, `fix/`, `refactor/`, `chore/`). As mensagens de commit correspondentes MUST ser curtas e indicar o objetivo principal em português.
+- **Desenvolvimento Multiplataforma**: Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa tanto em Android quanto em iOS. Deve-se evitar depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto). Em vez disso, deve-se adotar soluções multiplataforma explícitas e consistentes, como o uso de `KeyboardAvoidingView` para garantir que o teclado não oculte áreas de entrada de dados ou conteúdo interativo em ambas as plataformas. Caso não exista uma solução nativa viável ou performática, o uso de bibliotecas de terceiros devidamente avaliadas é permitido.
 
 ## Governance
 
@@ -126,4 +127,4 @@ Compliance review MUST verify visual hierarchy, motion discipline, accessibility
 performance, and component reuse. If a change violates the constitution, the plan
 must record the violation and the reason a simpler compliant alternative was rejected.
 
-**Version**: 1.1.0 | **Ratified**: 2026-05-01 | **Last Amended**: 2026-05-30
+**Version**: 1.2.1 | **Ratified**: 2026-05-01 | **Last Amended**: 2026-06-11

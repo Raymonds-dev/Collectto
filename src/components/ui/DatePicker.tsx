@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -124,14 +124,6 @@ export function DatePicker({
     value ? parseDateString(value) : new Date()
   );
 
-  const yearButtonRef = useRef<View>(null);
-  const modalCardRef = useRef<View>(null);
-  const [dropdownPosition, setDropdownPosition] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
-
   const yearOptions = useMemo(() => {
     const currentYear = new Date().getFullYear();
     return Array.from({ length: currentYear - MIN_YEAR + 1 }, (_, index) => currentYear - index);
@@ -176,28 +168,7 @@ export function DatePicker({
   };
 
   const toggleYearPicker = (): void => {
-    if (!isYearPickerVisible) {
-      if (yearButtonRef.current && modalCardRef.current) {
-        modalCardRef.current.measure(
-          (modalX, modalY, modalWidth, modalHeight, modalPageX, modalPageY) => {
-            yearButtonRef.current?.measure(
-              (btnX, btnY, btnWidth, btnHeight, btnPageX, btnPageY) => {
-                setDropdownPosition({
-                  top: btnPageY - modalPageY + btnHeight + 4,
-                  left: btnPageX - modalPageX,
-                  width: btnWidth,
-                });
-                setIsYearPickerVisible(true);
-              }
-            );
-          }
-        );
-      } else {
-        setIsYearPickerVisible(true);
-      }
-    } else {
-      setIsYearPickerVisible(false);
-    }
+    setIsYearPickerVisible((prev) => !prev);
   };
 
   const hasValue = Boolean(value);
@@ -267,7 +238,7 @@ export function DatePicker({
           accessibilityRole="button"
           accessibilityLabel="Fechar calendário">
           <View style={styles.centeredContainer}>
-            <Pressable ref={modalCardRef} style={styles.modalCard} onPress={() => {}}>
+            <Pressable style={styles.modalCard} onPress={() => {}}>
               {/* Modal header with selected date chip */}
               <View style={styles.modalHeader}>
                 <Text style={styles.modalLabel}>{label ?? 'Selecionar data'}</Text>
@@ -283,160 +254,211 @@ export function DatePicker({
                 )}
               </View>
 
-              <Calendar
-                key={calendarKey}
-                current={formatDateForCalendar(calendarMonthDate)}
-                maxDate={new Date().toISOString().split('T')[0]}
-                onDayPress={handleDayPress}
-                onMonthChange={(date) => {
-                  setCalendarMonthDate(new Date(date.year, date.month - 1, 1));
-                }}
-                renderHeader={(date) => {
-                  const monthLabel = MONTH_NAMES[date.getMonth()] ?? '';
-                  const headerYear = date.getFullYear();
-                  return (
-                    <View style={[styles.calendarHeaderRow, { zIndex: 999, elevation: 999 }]}>
-                      <Text style={styles.calendarHeaderMonth}>{monthLabel}</Text>
-                      <View
-                        ref={yearButtonRef}
-                        style={{ position: 'relative', zIndex: 999, elevation: 999 }}>
-                        <Pressable
-                          onPress={toggleYearPicker}
-                          style={[
-                            styles.calendarHeaderYearButton,
-                            isYearPickerVisible && styles.calendarHeaderYearButtonActive,
-                          ]}
-                          accessibilityRole="button"
-                          accessibilityLabel="Selecionar ano">
-                          <Text style={styles.calendarHeaderYearText}>{headerYear}</Text>
-                          <Ionicons
-                            name={isYearPickerVisible ? 'chevron-up' : 'chevron-down'}
-                            size={14}
-                            style={styles.calendarHeaderYearIcon}
-                          />
-                        </Pressable>
-                      </View>
-                    </View>
-                  );
-                }}
-                markedDates={
-                  draftDate
-                    ? {
-                        [draftDate]: {
-                          selected: true,
-                          selectedColor: tokens.colors.brand.primary,
-                        },
-                      }
-                    : undefined
-                }
-                theme={{
-                  stylesheet: {
-                    calendar: {
-                      header: {
+              {isYearPickerVisible ? (
+                <View style={{ height: 350, paddingHorizontal: 16 }}>
+                  {/* Header inside the picker to return */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderBottomColor: tokens.colors.surface.border,
+                    }}>
+                    <Text
+                      style={{
+                        color: tokens.colors.text.base,
+                        fontSize: 15,
+                        fontWeight: '600',
+                      }}>
+                      Selecionar Ano
+                    </Text>
+                    <Pressable
+                      onPress={() => setIsYearPickerVisible(false)}
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                        backgroundColor: tokens.colors.brand[50],
+                      }}>
+                      <Text
+                        style={{
+                          color: tokens.colors.brand.primary,
+                          fontSize: 12,
+                          fontWeight: '600',
+                        }}>
+                        Voltar
+                      </Text>
+                    </Pressable>
+                  </View>
+
+                  <ScrollView nestedScrollEnabled showsVerticalScrollIndicator style={{ flex: 1 }}>
+                    <View
+                      style={{
                         flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        paddingLeft: 10,
-                        paddingRight: 10,
-                        marginTop: 6,
-                        alignItems: 'center',
-                        zIndex: 9999,
-                        elevation: 9999,
-                      },
-                    },
-                  },
-                  calendarBackground: tokens.colors.surface.canvas,
-                  textSectionTitleColor: tokens.colors.text.subtle,
-                  selectedDayBackgroundColor: tokens.colors.brand.primary,
-                  selectedDayTextColor: tokens.colors.text.inverse,
-                  todayTextColor: tokens.colors.brand[700],
-                  todayBackgroundColor: tokens.colors.brand[50],
-                  dayTextColor: tokens.colors.text.base,
-                  textDisabledColor: tokens.colors.text.disabled,
-                  monthTextColor: tokens.colors.text.base,
-                  arrowColor: tokens.colors.brand.primary,
-                  textMonthFontSize: 15,
-                  textMonthFontWeight: '600',
-                  textDayHeaderFontSize: 12,
-                  textDayFontSize: 14,
-                  textDayFontWeight: '500',
-                }}
-              />
-
-              {/* Actions row */}
-              <View style={styles.actionsRow}>
-                {hasValue && (
-                  <Pressable
-                    onPress={handleClear}
-                    style={styles.clearButton}
-                    accessibilityRole="button"
-                    accessibilityLabel="Limpar data selecionada">
-                    <Ionicons
-                      name="trash-outline"
-                      size={16}
-                      style={{ color: tokens.colors.feedback.error }}
-                    />
-                    <Text style={styles.clearText}>Limpar</Text>
-                  </Pressable>
-                )}
-                <Pressable
-                  onPress={handleCancel}
-                  style={styles.cancelButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="Cancelar seleção de data">
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <View style={styles.actionsSpacer} />
-                <Pressable
-                  onPress={handleConfirm}
-                  style={[styles.confirmButton, !draftDate && styles.confirmButtonDisabled]}
-                  disabled={!draftDate}
-                  accessibilityRole="button"
-                  accessibilityLabel="Confirmar data selecionada">
-                  <Text style={[styles.confirmText, !draftDate && styles.confirmTextDisabled]}>
-                    Confirmar
-                  </Text>
-                </Pressable>
-              </View>
-
-              {isYearPickerVisible && dropdownPosition && (
-                <View
-                  style={[
-                    styles.absoluteYearPicker,
-                    {
-                      top: dropdownPosition.top,
-                      left: dropdownPosition.left,
-                      width: dropdownPosition.width,
-                    },
-                  ]}>
-                  <ScrollView
-                    nestedScrollEnabled
-                    showsVerticalScrollIndicator={false}
-                    style={styles.yearPickerScroll}>
-                    {yearOptions.map((year) => {
-                      const isSelected = calendarMonthDate.getFullYear() === year;
-                      return (
-                        <Pressable
-                          key={year}
-                          style={[
-                            styles.yearPickerItem,
-                            isSelected && styles.yearPickerItemSelected,
-                          ]}
-                          onPress={() => {
-                            handleYearChange(year);
-                            setIsYearPickerVisible(false);
-                          }}>
-                          <Text
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-start',
+                        paddingVertical: 8,
+                        gap: 8,
+                      }}>
+                      {yearOptions.map((year) => {
+                        const isSelected = calendarMonthDate.getFullYear() === year;
+                        return (
+                          <Pressable
+                            key={year}
                             style={[
-                              styles.yearPickerItemText,
-                              isSelected && styles.yearPickerItemTextSelected,
-                            ]}>
-                            {year}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
+                              {
+                                width: '31%',
+                                marginHorizontal: '1%',
+                                marginVertical: 6,
+                                paddingVertical: 8,
+                                alignItems: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: tokens.colors.surface.border,
+                                backgroundColor: tokens.colors.surface.canvas,
+                              },
+                              isSelected && {
+                                backgroundColor: tokens.colors.brand.primary,
+                                borderColor: tokens.colors.brand.primary,
+                              },
+                            ]}
+                            onPress={() => {
+                              handleYearChange(year);
+                              setIsYearPickerVisible(false);
+                            }}>
+                            <Text
+                              style={[
+                                {
+                                  fontSize: 14,
+                                  color: tokens.colors.text.base,
+                                  fontWeight: '500',
+                                },
+                                isSelected && {
+                                  color: tokens.colors.text.inverse,
+                                  fontWeight: '700',
+                                },
+                              ]}>
+                              {year}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
                   </ScrollView>
                 </View>
+              ) : (
+                <>
+                  <Calendar
+                    key={calendarKey}
+                    current={formatDateForCalendar(calendarMonthDate)}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                    onDayPress={handleDayPress}
+                    onMonthChange={(date) => {
+                      setCalendarMonthDate(new Date(date.year, date.month - 1, 1));
+                    }}
+                    renderHeader={(date) => {
+                      const monthLabel = MONTH_NAMES[date.getMonth()] ?? '';
+                      const headerYear = date.getFullYear();
+                      return (
+                        <View style={styles.calendarHeaderRow}>
+                          <Text style={styles.calendarHeaderMonth}>{monthLabel}</Text>
+                          <Pressable
+                            onPress={toggleYearPicker}
+                            style={[
+                              styles.calendarHeaderYearButton,
+                              isYearPickerVisible && styles.calendarHeaderYearButtonActive,
+                            ]}
+                            accessibilityRole="button"
+                            accessibilityLabel="Selecionar ano">
+                            <Text style={styles.calendarHeaderYearText}>{headerYear}</Text>
+                            <Ionicons
+                              name="chevron-down"
+                              size={14}
+                              style={styles.calendarHeaderYearIcon}
+                            />
+                          </Pressable>
+                        </View>
+                      );
+                    }}
+                    markedDates={
+                      draftDate
+                        ? {
+                            [draftDate]: {
+                              selected: true,
+                              selectedColor: tokens.colors.brand.primary,
+                            },
+                          }
+                        : undefined
+                    }
+                    theme={{
+                      stylesheet: {
+                        calendar: {
+                          header: {
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            marginTop: 6,
+                            alignItems: 'center',
+                          },
+                        },
+                      },
+                      calendarBackground: tokens.colors.surface.canvas,
+                      textSectionTitleColor: tokens.colors.text.subtle,
+                      selectedDayBackgroundColor: tokens.colors.brand.primary,
+                      selectedDayTextColor: tokens.colors.text.inverse,
+                      todayTextColor: tokens.colors.brand[700],
+                      todayBackgroundColor: tokens.colors.brand[50],
+                      dayTextColor: tokens.colors.text.base,
+                      textDisabledColor: tokens.colors.text.disabled,
+                      monthTextColor: tokens.colors.text.base,
+                      arrowColor: tokens.colors.brand.primary,
+                      textMonthFontSize: 15,
+                      textMonthFontWeight: '600',
+                      textDayHeaderFontSize: 12,
+                      textDayFontSize: 14,
+                      textDayFontWeight: '500',
+                    }}
+                  />
+
+                  {/* Actions row */}
+                  <View style={styles.actionsRow}>
+                    {hasValue && (
+                      <Pressable
+                        onPress={handleClear}
+                        style={styles.clearButton}
+                        accessibilityRole="button"
+                        accessibilityLabel="Limpar data selecionada">
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          style={{ color: tokens.colors.feedback.error }}
+                        />
+                        <Text style={styles.clearText}>Limpar</Text>
+                      </Pressable>
+                    )}
+                    <Pressable
+                      onPress={handleCancel}
+                      style={styles.cancelButton}
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancelar seleção de data">
+                      <Text style={styles.cancelText}>Cancelar</Text>
+                    </Pressable>
+                    <View style={styles.actionsSpacer} />
+                    <Pressable
+                      onPress={handleConfirm}
+                      style={[styles.confirmButton, !draftDate && styles.confirmButtonDisabled]}
+                      disabled={!draftDate}
+                      accessibilityRole="button"
+                      accessibilityLabel="Confirmar data selecionada">
+                      <Text style={[styles.confirmText, !draftDate && styles.confirmTextDisabled]}>
+                        Confirmar
+                      </Text>
+                    </Pressable>
+                  </View>
+                </>
               )}
             </Pressable>
           </View>
@@ -535,44 +557,6 @@ const styles = StyleSheet.create({
   calendarHeaderYearButtonActive: {
     borderColor: tokens.colors.brand.primary,
     backgroundColor: tokens.colors.brand[50],
-  },
-  absoluteYearPicker: {
-    position: 'absolute',
-    top: '100%',
-    left: 0,
-    right: 0,
-    marginTop: 4,
-    backgroundColor: tokens.colors.surface.canvas,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: tokens.colors.surface.border,
-    shadowColor: tokens.colors.neutral.black,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 8,
-    elevation: 9999,
-    zIndex: 9999,
-    overflow: 'hidden',
-  },
-  yearPickerScroll: {
-    maxHeight: 240,
-  },
-  yearPickerItem: {
-    paddingVertical: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  yearPickerItemSelected: {
-    backgroundColor: tokens.colors.brand[50],
-  },
-  yearPickerItemText: {
-    fontSize: 14,
-    color: tokens.colors.text.base,
-    fontWeight: '500',
-  },
-  yearPickerItemTextSelected: {
-    color: tokens.colors.brand.primary,
-    fontWeight: '700',
   },
   calendarHeaderYearText: {
     color: tokens.colors.text.base,

@@ -14,6 +14,8 @@ import { createItemCollectionProviders as Providers } from '@/providers';
 
 import { createPhotoStorageProvider } from '@/services/photo-storage';
 
+import { NotificationProvider } from '@/providers/NotificationProvider';
+
 void SplashScreen.preventAutoHideAsync();
 
 function AuthGate() {
@@ -76,18 +78,20 @@ export default function RootLayout() {
           <SafeAreaView edges={['top', 'right', 'left']} className="flex-1 bg-surface-base">
             <AuthErrorBoundary>
               <AuthProvider>
-                <Providers>
-                  <AuthGate />
-                  <Stack
-                    screenOptions={{
-                      headerShown: false,
-                      animation: 'fade',
-                      gestureEnabled: true,
-                    }}>
-                    <Stack.Screen name="(auth)" />
-                    <Stack.Screen name="(tabs)" />
-                  </Stack>
-                </Providers>
+                <NotificationProvider>
+                  <Providers>
+                    <AuthGate />
+                    <Stack
+                      screenOptions={{
+                        headerShown: false,
+                        animation: 'fade',
+                        gestureEnabled: true,
+                      }}>
+                      <Stack.Screen name="(auth)" />
+                      <Stack.Screen name="(tabs)" />
+                    </Stack>
+                  </Providers>
+                </NotificationProvider>
               </AuthProvider>
             </AuthErrorBoundary>
             <StatusBar style="auto" />

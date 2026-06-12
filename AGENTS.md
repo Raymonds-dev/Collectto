@@ -132,6 +132,13 @@ npm run validate
 4. `Pull-to-refresh` deve ser nao destrutivo: so resetar snapshot quando houver posts novos; sem novidade, manter estado e ordem atual.
 5. Em paginação com `onEndReached`, aplique guardas de momentum e `in-flight` para evitar disparos duplicados, flicker e travamentos.
 
+### 10.2 Desenvolvimento Multiplataforma
+
+1. Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa tanto em Android quanto em iOS.
+2. Evite depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto).
+3. Adote soluções multiplataforma explícitas e consistentes, como o uso de `KeyboardAvoidingView` para garantir que o teclado não oculte áreas de entrada de dados ou conteúdo interativo em ambas as plataformas.
+4. Caso não exista uma solução nativa viável ou performática para tratar a disparidade entre as plataformas, é permitido o uso de bibliotecas de terceiros devidamente avaliadas.
+
 ## 11. Performance e seguranca
 
 1. Evite re-renders desnecessarios em componentes React.

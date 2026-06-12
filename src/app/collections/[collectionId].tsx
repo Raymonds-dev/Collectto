@@ -37,6 +37,7 @@ type CollectionViewScreenProps = {
   profile: CollectionViewProfile;
   isFollowing: boolean;
   isSystem: boolean;
+  itemId?: string;
 };
 
 const NOTIFICATION_CARD_TIMEOUT_MS = 200;
@@ -49,6 +50,7 @@ export function CollectionViewScreen({
   profile,
   isFollowing,
   isSystem,
+  itemId,
 }: CollectionViewScreenProps) {
   const router = useRouter();
   const itemService = useItemService();
@@ -232,6 +234,15 @@ export function CollectionViewScreen({
     };
   }, [clearNotificationTimer]);
 
+  useEffect(() => {
+    if (itemId && items && items.length > 0) {
+      const targetItem = items.find((item) => item.id === itemId);
+      if (targetItem) {
+        handleOpenItem(targetItem);
+      }
+    }
+  }, [itemId, items, handleOpenItem]);
+
   return (
     <View className="flex-1 bg-surface-base">
       <View className="flex-row items-center justify-between px-4 pb-2 pt-4">
@@ -373,11 +384,16 @@ export function CollectionViewScreen({
 }
 
 export default function CollectionViewScreenRoute() {
-  const params = useLocalSearchParams<{ collectionId?: string; ownerId?: string }>();
+  const params = useLocalSearchParams<{
+    collectionId?: string;
+    ownerId?: string;
+    itemId?: string;
+  }>();
   const collectionId = Array.isArray(params.collectionId)
     ? (params.collectionId[0] ?? 'default')
     : (params.collectionId ?? 'default');
   const ownerIdParam = Array.isArray(params.ownerId) ? params.ownerId[0] : params.ownerId;
+  const itemIdParam = Array.isArray(params.itemId) ? params.itemId[0] : params.itemId;
 
   const collectionService = useCollectionService();
   const itemService = useItemService();
@@ -406,6 +422,7 @@ export default function CollectionViewScreenRoute() {
             collectionId: collectionId,
             collectionTitle: collection.name,
             isSystem: collection.isSystem ?? false,
+            itemId: itemIdParam,
             items: items.map((item) => {
               const characteristics = Object.entries(item.attributes ?? {}).map(([key, value]) => ({
                 label: key.charAt(0).toUpperCase() + key.slice(1),
@@ -442,7 +459,7 @@ export default function CollectionViewScreenRoute() {
       return () => {
         isMounted = false;
       };
-    }, [collectionId, collectionService, itemService, user, ownerIdParam])
+    }, [collectionId, collectionService, itemService, user, ownerIdParam, itemIdParam])
   );
 
   if (!data) return null;

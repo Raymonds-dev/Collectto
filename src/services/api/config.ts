@@ -8,6 +8,6 @@ export const DEFAULT_RETRY_CONFIG: Required<RetryConfig> = {
   baseMultiplier: 2,
 };
 
-export const DEFAULT_BASE_URL = 'http://89.167.89.185:8080';
+export const DEFAULT_BASE_URL = 'https://api.collectto.app';
 
 export const DEFAULT_LOG_LEVEL = 'warn';

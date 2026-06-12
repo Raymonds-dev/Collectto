@@ -11,18 +11,21 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { Comment as CommentType } from '@/types/comments';
+import { AnimatedPressable } from '@/components/ui/animated';
 
 type CommentProps = {
   comment: CommentType;
   /** Optional callback for tapping author profile */
   onPressAuthor?: (authorId: string) => void;
+  /** Callback for deleting comment */
+  onDelete?: (commentId: string) => void;
 };
 
 /**
  * Displays a single comment with author avatar, name, text, and timestamp
  * Pure presentation component - no state management
  */
-export const Comment = ({ comment, onPressAuthor }: CommentProps) => {
+export const Comment = ({ comment, onPressAuthor, onDelete }: CommentProps) => {
   const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   return (
@@ -59,6 +62,19 @@ export const Comment = ({ comment, onPressAuthor }: CommentProps) => {
           {comment.text}
         </Text>
       </View>
+
+      {comment.isAuthor && (
+        <View className="items-center justify-center">
+          <AnimatedPressable
+            accessibilityRole="button"
+            accessibilityLabel="Excluir comentário"
+            onPress={() => onDelete?.(comment.id)}
+            className="h-8 w-8 items-center justify-center rounded-full"
+            hitSlop={8}>
+            <Ionicons name="trash-outline" size={18} color={tokens.colors.feedback.error} />
+          </AnimatedPressable>
+        </View>
+      )}
     </View>
   );
 };

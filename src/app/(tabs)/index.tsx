@@ -122,9 +122,7 @@ export default function FeedScreen() {
 
   const loadPage = useCallback(
     async (page: number): Promise<MockFeedPost[]> => {
-      const rawFeed = await postService.getFeed();
-      const startIndex = (page - 1) * PAGE_SIZE;
-      const pageFeed = rawFeed.slice(startIndex, startIndex + PAGE_SIZE);
+      const pageFeed = await postService.getFeed(page - 1, PAGE_SIZE);
 
       return pageFeed.map((post) => ({
         id: post.id,
@@ -195,16 +193,13 @@ export default function FeedScreen() {
   };
 
   const handleTogglePostLike = useCallback(
-    (postId: string): void => {
+    async (postId: string): Promise<void> => {
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
 
-      if (post.isLiked) {
-        void postService.unlikePost(postId);
-      } else {
-        void postService.likePost(postId);
-      }
+      const originalPostsState = [...posts];
 
+      // Optimistic update
       setPosts((current) => {
         return current.map((p) => {
           if (p.id !== postId) {
@@ -222,6 +217,17 @@ export default function FeedScreen() {
           };
         });
       });
+
+      try {
+        if (post.isLiked) {
+          await postService.unlikePost(postId);
+        } else {
+          await postService.likePost(postId);
+        }
+      } catch (error) {
+        console.error('Failed to toggle like on API, reverting:', error);
+        setPosts(originalPostsState);
+      }
     },
     [posts, postService]
   );
@@ -234,8 +240,9 @@ export default function FeedScreen() {
         return;
       }
 
+      // Share post details without any external URL links per product requirements
       await Share.share({
-        message: `${post.author.name} (@${post.author.username}) compartilhou ${post.item.title} no Collectto.\n\n${post.content}`,
+        message: `${post.author.name} (@${post.author.username}) compartilhou ${post.item.title} no Collectto: "${post.content}"`,
       });
     },
     [posts]

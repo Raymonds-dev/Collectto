@@ -13,6 +13,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
+import { useNotifications } from '@/hooks/useNotifications';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import type { NotificationSummary } from '@/types/notifications';
 import {
   ActivityIndicator,
   FlatList,
@@ -36,15 +39,16 @@ const DETAIL_NOTIFICATION_TIMEOUT_MS = 2500;
 const Header = ({
   onPressProfile,
   onPressLogo,
-  onPressSettings,
+  onPressNotifications,
   onPressCreate,
 }: {
   onPressProfile: () => void;
   onPressLogo: () => void;
-  onPressSettings: () => void;
+  onPressNotifications: () => void;
   onPressCreate: () => void;
 }) => {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
     <View className="bg-surface-base">
@@ -73,11 +77,18 @@ const Header = ({
 
         <AnimatedPressable
           accessibilityRole="button"
-          accessibilityLabel="Abrir configuracoes"
+          accessibilityLabel="Notificações"
           hitSlop={10}
-          onPress={onPressSettings}
-          className="h-11 w-11 items-center justify-center rounded-full">
-          <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
+          onPress={onPressNotifications}
+          className="relative h-11 w-11 items-center justify-center rounded-full">
+          <Ionicons name="notifications-sharp" size={28} color={tokens.colors.text.base} />
+          {unreadCount > 0 && (
+            <View className="absolute right-1 top-1 h-5 min-w-[20px] items-center justify-center rounded-full bg-feedback-error px-1">
+              <Text className="font-body text-[10px] font-bold text-text-inverse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </AnimatedPressable>
       </View>
     </View>
@@ -353,8 +364,40 @@ export default function FeedScreen() {
     router.push('/(tabs)/profile');
   };
 
-  const handleOpenSettings = (): void => {
-    router.push('/(tabs)/settings');
+  const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
+
+  const handleOpenNotifications = (): void => {
+    setIsNotificationsDropdownOpen(true);
+  };
+
+  const handleCloseNotifications = (): void => {
+    setIsNotificationsDropdownOpen(false);
+  };
+
+  const handlePressNotification = (notification: NotificationSummary): void => {
+    setIsNotificationsDropdownOpen(false);
+    if (
+      notification.context === 'USER_FOLLOW_REQUESTED' ||
+      notification.context === 'USER_ACCEPTED_FOLLOW_REQUEST'
+    ) {
+      router.push({
+        pathname: '/users/[userId]',
+        params: { userId: notification.actor.id },
+      });
+    } else if (notification.context === 'COLLECTION_FOLLOWED') {
+      router.push({
+        pathname: '/collections/[collectionId]',
+        params: { collectionId: notification.reference?.id },
+      });
+    } else if (notification.context === 'ITEM_COMMENTED' || notification.context === 'ITEM_LIKED') {
+      router.push({
+        pathname: '/collections/[collectionId]',
+        params: {
+          collectionId: notification.reference?.parentId || '',
+          itemId: notification.reference?.id,
+        },
+      });
+    }
   };
 
   const handleCreateItem = (): void => {
@@ -518,10 +561,16 @@ export default function FeedScreen() {
         <Header
           onPressProfile={handleOpenProfile}
           onPressLogo={handleScrollToTop}
-          onPressSettings={handleOpenSettings}
+          onPressNotifications={handleOpenNotifications}
           onPressCreate={handleCreateItem}
         />
       </View>
+
+      <NotificationDropdown
+        visible={isNotificationsDropdownOpen}
+        onClose={handleCloseNotifications}
+        onPressNotification={handlePressNotification}
+      />
 
       <FlatList
         ref={listRef}

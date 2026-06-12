@@ -20,12 +20,22 @@ import type {
   UpdateItemRequest,
 } from '@/types/items';
 
+import { UserFollowResponse } from '@/types/notifications';
+
 // Export the centralized client as the default export for backward compatibility
 const api = client;
 export default api;
 
 export const getUserById = async (userId: string): Promise<AuthUser> => {
   return client.get<AuthUser>(`users/${userId}`);
+};
+
+export const acceptFollowRequest = async (followerId: string): Promise<UserFollowResponse> => {
+  return client.patch<UserFollowResponse>(`users/follow/${followerId}/accept`);
+};
+
+export const declineFollowRequest = async (followerId: string): Promise<UserFollowResponse> => {
+  return client.patch<UserFollowResponse>(`users/follow/${followerId}/decline`);
 };
 
 export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {

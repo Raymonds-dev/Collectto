@@ -125,3 +125,14 @@ export const addCommentToPost = (postId: string, comment: Comment): void => {
   }
   MOCK_COMMENTS_BY_POST[postId].push(comment);
 };
+
+/**
+ * Delete a comment from a post (mock mutation)
+ * @param postId Post identifier
+ * @param commentId Comment identifier
+ */
+export const deleteCommentFromPost = (postId: string, commentId: string): void => {
+  if (MOCK_COMMENTS_BY_POST[postId]) {
+    MOCK_COMMENTS_BY_POST[postId] = MOCK_COMMENTS_BY_POST[postId].filter((c) => c.id !== commentId);
+  }
+};

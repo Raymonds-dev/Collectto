@@ -1,4 +1,4 @@
-import api, { getAuthenticatedUser, getUserById } from '@/services/api/api';
+import api, { getAuthenticatedUser, getUserById, refreshSession } from '@/services/api/api';
 import {
   clearSessionToken,
   getSessionToken,
@@ -355,6 +355,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } catch (error) {
           console.warn('[auth] Failed to persist refreshed token:', error);
         }
+      },
+      async (refreshToken) => {
+        return refreshSession({ refreshToken });
       }
     );
 

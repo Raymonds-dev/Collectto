@@ -3,6 +3,7 @@ import type { NotificationSummary } from '@/types/notifications';
 import { isDebugModeEnabled } from '@/services/debug/debugFlags';
 import { getNotifications } from '@/services/api/notificationService';
 import { acceptFollowRequest, declineFollowRequest } from '@/services/api/api';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface NotificationContextType {
   notifications: NotificationSummary[];
@@ -99,6 +100,7 @@ const MOCK_NOTIFICATIONS: NotificationSummary[] = [
 ];
 
 export const NotificationProvider = ({ children }: NotificationProviderProps) => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<NotificationSummary[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -108,6 +110,10 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   }, [notifications]);
 
   const fetchNotifications = useCallback(async () => {
+    if (!user) {
+      setNotifications([]);
+      return;
+    }
     setLoading(true);
     setRefreshing(true);
     try {
@@ -124,7 +130,7 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [user]);
 
   const markAllAsRead = useCallback(async () => {
     // Optimistically update notifications to read

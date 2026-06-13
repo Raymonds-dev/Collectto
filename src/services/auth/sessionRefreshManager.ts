@@ -1,8 +1,8 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
 import { authLogger } from '@/utils/authLogging';
-import { refreshSession } from '@/services/api/api';
 import { getSessionRefreshToken, setSessionRefreshToken } from '@/services/storage/authSession';
+import type { TokenRefreshResponse } from '@/types/auth';
 
 const decodeBase64Url = (value: string): string | null => {
   try {
@@ -40,6 +40,8 @@ export class SessionRefreshManager {
 
   private onUnauthorizedCallback: (() => Promise<void>) | null = null;
   private onTokenRefreshedCallback: ((newToken: string) => Promise<void>) | null = null;
+  private onRefreshCallback: ((refreshToken: string) => Promise<TokenRefreshResponse>) | null =
+    null;
 
   private activeToken: string | null = null;
   private refreshTimer: NodeJS.Timeout | null = null;
@@ -64,10 +66,12 @@ export class SessionRefreshManager {
 
   public initialize(
     onUnauthorized: () => Promise<void>,
-    onTokenRefreshed: (newToken: string) => Promise<void>
+    onTokenRefreshed: (newToken: string) => Promise<void>,
+    onRefresh: (refreshToken: string) => Promise<TokenRefreshResponse>
   ): void {
     this.onUnauthorizedCallback = onUnauthorized;
     this.onTokenRefreshedCallback = onTokenRefreshed;
+    this.onRefreshCallback = onRefresh;
   }
 
   public startSession(token: string): void {
@@ -126,7 +130,10 @@ export class SessionRefreshManager {
         throw new Error('Nenhum refresh token disponível no SecureStore.');
       }
 
-      const response = await refreshSession({ refreshToken });
+      if (!this.onRefreshCallback) {
+        throw new Error('Refresh callback não inicializado.');
+      }
+      const response = await this.onRefreshCallback(refreshToken);
 
       if (!response || !response.accessToken) {
         throw new Error('Resposta do refresh inválida.');

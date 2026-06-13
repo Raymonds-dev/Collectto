@@ -1,4 +1,4 @@
-import { useWindowDimensions } from 'react-native';
+import { Pressable, useWindowDimensions } from 'react-native';
 import Animated, {
   Extrapolation,
   interpolate,
@@ -42,6 +42,7 @@ type CollectionItemDetailViewProps = {
   onFollowToggle: () => void;
   onShare: () => void;
   onNotificationPress: () => void;
+  onPressProfile?: () => void;
   contentContainerClassName?: string;
 };
 
@@ -54,6 +55,7 @@ export const CollectionItemDetailView = ({
   onFollowToggle,
   onShare,
   onNotificationPress,
+  onPressProfile,
   contentContainerClassName = 'pb-8',
 }: CollectionItemDetailViewProps) => {
   const { height } = useWindowDimensions();
@@ -120,15 +122,20 @@ export const CollectionItemDetailView = ({
       scrollEventThrottle={16}
       showsVerticalScrollIndicator={false}>
       <Animated.View style={headerMotionStyle}>
-        <ProfileInfo
-          isOwner={isOwner}
-          profileImage={profile.profileImage}
-          name={profile.name}
-          username={profile.username}
-          bio={profile.bio}
-          showActions={false}
-          showStats={false}
-        />
+        <Pressable
+          onPress={onPressProfile}
+          accessibilityRole="link"
+          accessibilityLabel={`Ir para perfil de ${profile.name}`}>
+          <ProfileInfo
+            isOwner={isOwner}
+            profileImage={profile.profileImage}
+            name={profile.name}
+            username={profile.username}
+            bio={profile.bio}
+            showActions={false}
+            showStats={false}
+          />
+        </Pressable>
 
         <ProfileActionsBar
           isOwner={isOwner}

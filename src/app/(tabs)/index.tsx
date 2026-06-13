@@ -124,6 +124,7 @@ export default function FeedScreen() {
 
   const postService = usePostService();
   const itemService = useItemService();
+  const { user } = useAuth();
 
   const clearDetailNotificationTimer = useCallback((): void => {
     if (!detailNotificationTimeoutRef.current) {
@@ -141,6 +142,7 @@ export default function FeedScreen() {
       return pageFeed.map((post) => ({
         id: post.id,
         author: {
+          id: post.author.id,
           name: post.author.name,
           username: post.author.username,
           avatarUri: resolveUserPhotoUrl(post.author) ?? '',
@@ -334,9 +336,9 @@ export default function FeedScreen() {
 
     const attributeList = postItem?.attributes
       ? Object.entries(postItem.attributes).map(([key, value]) => ({
-        label: key.charAt(0).toUpperCase() + key.slice(1),
-        value: String(value ?? ''),
-      }))
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          value: String(value ?? ''),
+        }))
       : [];
 
     return {
@@ -399,6 +401,20 @@ export default function FeedScreen() {
   const handleOpenProfile = (): void => {
     router.push('/(tabs)/profile');
   };
+
+  const handlePressAuthorProfile = useCallback(
+    (authorId: string): void => {
+      if (authorId === user?.id) {
+        router.push('/(tabs)/profile');
+      } else {
+        router.push({
+          pathname: '/users/[userId]',
+          params: { userId: authorId },
+        });
+      }
+    },
+    [router, user]
+  );
 
   const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
 
@@ -470,14 +486,13 @@ export default function FeedScreen() {
     setIsRefreshingLatest(true);
 
     loadPage(1).then((latestSnapshot) => {
-      const currentTopPostId = posts[0]?.id;
-      const latestTopPostId = latestSnapshot[0]?.id;
       const hasNewPosts =
         posts.length === 0
           ? latestSnapshot.length > 0
-          : typeof currentTopPostId === 'string' &&
-          typeof latestTopPostId === 'string' &&
-          currentTopPostId !== latestTopPostId;
+          : latestSnapshot.some((latestPost) => !posts.some((p) => p.id === latestPost.id)) ||
+            posts
+              .slice(0, latestSnapshot.length)
+              .some((p, idx) => p.id !== latestSnapshot[idx]?.id);
 
       if (!hasNewPosts) {
         setIsRefreshingLatest(false);
@@ -586,6 +601,7 @@ export default function FeedScreen() {
           onPressShare={(postId) => {
             void handleSharePost(postId);
           }}
+          onPressProfile={handlePressAuthorProfile}
         />
       </View>
     );
@@ -661,7 +677,7 @@ export default function FeedScreen() {
 
           {isItemDetailOpen ? (
             <CollectionItemDetailView
-              isOwner={false}
+              isOwner={selectedPost?.author.id === user?.id}
               profile={detailProfile}
               isFollowing={isDetailFollowing}
               isNotificationsEnabled={isDetailNotificationsEnabled}
@@ -671,6 +687,12 @@ export default function FeedScreen() {
                 void handleShareSelectedItem();
               }}
               onNotificationPress={handleModalNotificationToggle}
+              onPressProfile={() => {
+                if (selectedPost) {
+                  handleCloseItemDetail();
+                  handlePressAuthorProfile(selectedPost.author.id);
+                }
+              }}
             />
           ) : null}
 

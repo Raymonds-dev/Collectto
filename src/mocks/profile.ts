@@ -58,8 +58,8 @@ export const MOCK_ITEM_DETAIL_PLACEHOLDER_IMAGE = MOCK_PROFILE_BANNER_URI;
 
 // Mock profile para visualizacao de colecoes (fallback)
 export const MOCK_COLLECTION_PROFILE = {
-  name: 'Debug User',
-  username: 'debugtester',
-  bio: 'Testing ephemeral debug mode',
+  name: 'Lucas Ramos',
+  username: 'lucasramos',
+  bio: 'Entusiasta de fotografia analógica, teclados mecânicos e carros clássicos. Colecionando histórias e objetos raros.',
   profileImage: MOCK_PROFILE_IMAGE_URI,
 };

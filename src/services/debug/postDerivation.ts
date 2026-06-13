@@ -1,8 +1,16 @@
 import { ItemResponse } from '@/types/items';
 import { UserResponse } from '@/types/auth';
 import { PostProjection } from '@/types/debug';
+import { debugSession } from './debugSession';
 
-export const derivePostFromItem = (item: ItemResponse, author: UserResponse): PostProjection => {
+export const derivePostFromItem = (
+  item: ItemResponse,
+  fallbackAuthor: UserResponse
+): PostProjection => {
+  const author = debugSession.isInitialized
+    ? debugSession.users.find((u) => u.id === item.userId) || fallbackAuthor
+    : fallbackAuthor;
+
   return {
     id: `post-${item.id}`,
     author: {
@@ -19,8 +27,11 @@ export const derivePostFromItem = (item: ItemResponse, author: UserResponse): Po
   };
 };
 
-export const deriveFeedPosts = (items: ItemResponse[], author: UserResponse): PostProjection[] => {
+export const deriveFeedPosts = (
+  items: ItemResponse[],
+  fallbackAuthor: UserResponse
+): PostProjection[] => {
   return items
-    .map((item) => derivePostFromItem(item, author))
+    .map((item) => derivePostFromItem(item, fallbackAuthor))
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 };

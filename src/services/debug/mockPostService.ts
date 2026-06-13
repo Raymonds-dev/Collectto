@@ -22,11 +22,21 @@ export const mockPostService = {
         const collection = debugSession.collections.find((c) => c.id === item.collectionId);
         if (!collection) return false;
         if (collection.isSystem) return false;
-        if (collection.visibility === 'PRIVATE') return false;
-        return true;
+
+        // Show our own items, or items from users we follow (if public)
+        if (item.userId === user.id) {
+          return true;
+        }
+        if (debugSession.follows.includes(item.userId) && collection.visibility === 'PUBLIC') {
+          return true;
+        }
+        return false;
       });
 
-      return deriveFeedPosts(feedItems, user);
+      const allPosts = deriveFeedPosts(feedItems, user);
+      const start = page * size;
+      const end = start + size;
+      return allPosts.slice(start, end);
     }
 
     try {
@@ -58,8 +68,15 @@ export const mockPostService = {
         const collection = debugSession.collections.find((c) => c.id === item.collectionId);
         if (!collection) return false;
         if (collection.isSystem) return false;
-        if (collection.visibility === 'PRIVATE') return false;
-        return true;
+
+        // Show our own items, or items from users we follow (if public)
+        if (item.userId === user.id) {
+          return true;
+        }
+        if (debugSession.follows.includes(item.userId) && collection.visibility === 'PUBLIC') {
+          return true;
+        }
+        return false;
       });
 
       return deriveFeedPosts(feedItems, user);
@@ -74,8 +91,15 @@ export const mockPostService = {
       const collection = debugSession.collections.find((c) => c.id === item.collectionId);
       if (!collection) return false;
       if (collection.isSystem) return false;
-      if (collection.visibility === 'PRIVATE') return false;
-      return true;
+
+      // Show our own items, or items from users we follow (if public)
+      if (item.userId === user.id) {
+        return true;
+      }
+      if (debugSession.follows.includes(item.userId) && collection.visibility === 'PUBLIC') {
+        return true;
+      }
+      return false;
     });
 
     return deriveFeedPosts(feedItems, user);

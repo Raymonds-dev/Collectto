@@ -107,15 +107,20 @@ const ExploreScreen = () => {
       return {
         id: card.id,
         postType,
-        title: 'Destaques',
-        subtitle: '',
-        caption: '',
-        postedBy: 'collectto',
-        postedAt: 'agora',
-        images: (card.imageUrls || []).map((uri) => ({ uri })),
+        title: card.title || 'Destaques',
+        subtitle: card.description || card.subtitle || '',
+        caption: card.description || card.caption || '',
+        postedBy: card.username || card.postedBy || 'collectto',
+        postedById: card.userId || card.postedById,
+        postedAt: card.postedAt || 'agora',
+        images: (card.imageUrls || []).map((img) => {
+          if (typeof img === 'string') return { uri: img };
+          return img;
+        }),
         tags: card.tags || [],
         categoryId: postType === 'item' ? 'items' : 'collections',
-        height: 214,
+        collectionId: card.id,
+        height: card.height || 214,
       };
     });
   }, [cards]);
@@ -135,7 +140,7 @@ const ExploreScreen = () => {
         return true;
       }
 
-      const searchableText = [card.title, card.subtitle, ...(card.tags || [])]
+      const searchableText = [card.title, card.subtitle, card.postedBy, ...(card.tags || [])]
         .join(' ')
         .toLowerCase();
 

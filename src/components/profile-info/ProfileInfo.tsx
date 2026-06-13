@@ -16,6 +16,8 @@ type ProfileInfoProps = {
   hasLink?: boolean;
   showActions?: boolean;
   showStats?: boolean;
+  isFollowing?: boolean;
+  onFollowToggle?: () => void;
 };
 
 type ActionButtonProps = {
@@ -77,8 +79,11 @@ export function ProfileInfo({
   hasLink = false,
   showActions = true,
   showStats = true,
+  isFollowing: isFollowingProp,
+  onFollowToggle,
 }: ProfileInfoProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingLocal, setIsFollowingLocal] = useState(false);
+  const isFollowing = isFollowingProp !== undefined ? isFollowingProp : isFollowingLocal;
   const shouldShowActionsRow = showActions || showStats;
 
   return (
@@ -132,7 +137,13 @@ export function ProfileInfo({
                   <ActionButton
                     label={isFollowing ? 'Seguindo' : 'Seguir'}
                     iconName={isFollowing ? 'checkmark' : 'add'}
-                    onPress={() => setIsFollowing((current) => !current)}
+                    onPress={() => {
+                      if (onFollowToggle) {
+                        onFollowToggle();
+                      } else {
+                        setIsFollowingLocal((current) => !current);
+                      }
+                    }}
                   />
                   {hasLink ? <ActionButton isCircular iconName="link-outline" /> : null}
                   <ActionButton iconName="notifications-outline" isCircular />

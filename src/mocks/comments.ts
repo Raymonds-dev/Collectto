@@ -12,84 +12,127 @@ import { buildComment } from '@/utils/comments';
  * Each post has 2-3 comments to simulate activity
  */
 export const MOCK_COMMENTS_BY_POST: Record<string, Comment[]> = {
-  'post-1': [
+  'post-33333333-0000-4000-8000-000000000000': [
     buildComment({
       id: 'comment-001-1',
-      postId: 'post-1',
+      postId: 'post-33333333-0000-4000-8000-000000000000',
       authorId: 'user-002',
-      text: 'Adorei essa coleção! Que itens incríveis! 🤩',
-      createdAt: Date.now() - 30 * 60 * 1000, // 30 minutes ago
+      text: 'Adorei essa Leica! O estado de conservação dela parece impecável. O telêmetro está calibrado? 🤩',
+      createdAt: Date.now() - 30 * 60 * 1000,
       authorName: 'Marina Silva',
-      authorAvatar: 'https://via.placeholder.com/44?text=MS',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=80&h=80&q=80',
     }),
     buildComment({
       id: 'comment-001-2',
-      postId: 'post-001',
+      postId: 'post-33333333-0000-4000-8000-000000000000',
       authorId: 'user-003',
-      text: 'Onde você encontrou isso? Procuro essa peça faz tempo!',
-      createdAt: Date.now() - 5 * 60 * 1000, // 5 minutes ago
+      text: 'Essa lente de 50mm f/2 é lendária. Procuro uma M3 nesse estado de conservação há anos!',
+      createdAt: Date.now() - 5 * 60 * 1000,
       authorName: 'João Oliveira',
-      authorAvatar: 'https://via.placeholder.com/44?text=JO',
-    }),
-    buildComment({
-      id: 'comment-001-3',
-      postId: 'post-001',
-      authorId: 'user-004',
-      text: 'Complementa perfeito com a outra coleção que você mostrou antes!',
-      createdAt: Date.now() - 2 * 60 * 1000, // 2 minutes ago
-      authorName: 'Ana Costa',
-      authorAvatar: 'https://via.placeholder.com/44?text=AC',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80',
     }),
   ],
-  'post-2': [
+  'post-44444444-0000-4000-8000-000000000000': [
     buildComment({
       id: 'comment-002-1',
-      postId: 'post-2',
+      postId: 'post-44444444-0000-4000-8000-000000000000',
       authorId: 'user-005',
-      text: 'Que raro! Tenho um parecido mas em excelente estado.',
-      createdAt: Date.now() - 45 * 60 * 1000, // 45 minutes ago
+      text: 'Que build limpa! Esse som dos Gateron Oil Kings é sensacional. Usou case foam?',
+      createdAt: Date.now() - 45 * 60 * 1000,
       authorName: 'Pedro Mendes',
-      authorAvatar: 'https://via.placeholder.com/44?text=PM',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=80&h=80&q=80',
     }),
     buildComment({
       id: 'comment-002-2',
-      postId: 'post-002',
+      postId: 'post-44444444-0000-4000-8000-000000000000',
       authorId: 'user-006',
-      text: 'Quantos itens você tem no total? Sua coleção é gigante!',
-      createdAt: Date.now() - 10 * 60 * 1000, // 10 minutes ago
+      text: 'Ficou lindo demais no setup! Parabéns pela montagem e escolha das keycaps.',
+      createdAt: Date.now() - 10 * 60 * 1000,
       authorName: 'Carla Souza',
-      authorAvatar: 'https://via.placeholder.com/44?text=CS',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80',
     }),
   ],
-  'post-3': [
+  'post-item-car-001': [
     buildComment({
       id: 'comment-003-1',
-      postId: 'post-3',
+      postId: 'post-item-car-001',
       authorId: 'user-007',
-      text: 'Primeira vez que vejo um assim! É autêntico?',
-      createdAt: Date.now() - 20 * 60 * 1000, // 20 minutes ago
+      text: 'Um verdadeiro monstro clássico! Esse motor HEMI 426 é simplesmente lendário.',
+      createdAt: Date.now() - 20 * 60 * 1000,
       authorName: 'Lucia Ferreira',
-      authorAvatar: 'https://via.placeholder.com/44?text=LF',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=80&h=80&q=80',
+    }),
+    buildComment({
+      id: 'comment-003-2',
+      postId: 'post-item-car-001',
+      authorId: 'user-008',
+      text: 'Restauração impecável. O ronco desse V8 deve ser música para os ouvidos.',
+      createdAt: Date.now() - 15 * 60 * 1000,
+      authorName: 'Roberto Santos',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=80&h=80&q=80',
     }),
   ],
-  'post-4': [
+  'post-item-car-002': [
     buildComment({
       id: 'comment-004-1',
-      postId: 'post-4',
-      authorId: 'user-008',
-      text: 'Combinação perfeita de cores! Muito bom gosto!',
-      createdAt: Date.now() - 15 * 60 * 1000, // 15 minutes ago
-      authorName: 'Roberto Santos',
-      authorAvatar: 'https://via.placeholder.com/44?text=RS',
+      postId: 'post-item-car-002',
+      authorId: 'user-009',
+      text: 'Essa pintura Eleanor-style cinza com listras pretas é sacanagem de linda. Sonho de consumo!',
+      createdAt: Date.now() - 15 * 60 * 1000,
+      authorName: 'Beatriz Lima',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=80&h=80&q=80',
+    }),
+  ],
+  'post-ana-item-vinyl-001': [
+    buildComment({
+      id: 'comment-ana-vinyl-1',
+      postId: 'post-ana-item-vinyl-001',
+      authorId: '00000000-0000-4000-8000-000000000000', // Lucas Ramos
+      text: 'Esse disco é uma das maiores obras de arte da música brasileira! A capa dupla da Odeon Mono é histórica. Parabéns pela cópia conservada!',
+      createdAt: Date.now() - 2 * 60 * 60 * 1000,
+      authorName: 'Lucas Ramos',
+      authorAvatar: 'https://i.pravatar.cc/150?img=53',
     }),
     buildComment({
-      id: 'comment-004-2',
-      postId: 'post-004',
-      authorId: 'user-009',
-      text: 'Você está sempre descobrindo peças novas! De onde vem a inspiração?',
-      createdAt: Date.now() - 5 * 60 * 1000, // 5 minutes ago
-      authorName: 'Beatriz Lima',
-      authorAvatar: 'https://via.placeholder.com/44?text=BL',
+      id: 'comment-ana-vinyl-2',
+      postId: 'post-ana-item-vinyl-001',
+      authorId: 'user-003',
+      text: 'Ouvir Clube da Esquina no vinil, com esse som analógico quente, é incomparável. Clássico demais!',
+      createdAt: Date.now() - 30 * 60 * 1000,
+      authorName: 'João Oliveira',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&h=80&q=80',
+    }),
+  ],
+  'post-ana-item-vinyl-002': [
+    buildComment({
+      id: 'comment-ana-vinyl-3',
+      postId: 'post-ana-item-vinyl-002',
+      authorId: 'user-008',
+      text: 'A prensagem japonesa com o OBI original é o santo graal dos audiófilos. A masterização é absurda!',
+      createdAt: Date.now() - 1 * 60 * 60 * 1000,
+      authorName: 'Roberto Santos',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=80&h=80&q=80',
+    }),
+  ],
+  'post-ana-item-plant-001': [
+    buildComment({
+      id: 'comment-ana-plant-1',
+      postId: 'post-ana-item-plant-001',
+      authorId: 'user-006',
+      text: 'Essa variegação Albo está super equilibrada e saudável! Qual o segredo do substrato?',
+      createdAt: Date.now() - 25 * 60 * 1000,
+      authorName: 'Carla Souza',
+      authorAvatar:
+        'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=80&h=80&q=80',
     }),
   ],
 };

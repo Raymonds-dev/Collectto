@@ -33,7 +33,7 @@ export const mockItemService: ItemService = {
     return newItem;
   },
 
-  getById: async (itemId: string): Promise<ItemResponse | null> => {
+  getById: async (itemId: string, collectionId?: string): Promise<ItemResponse | null> => {
     return debugSession.items.find((i) => i.id === itemId) || null;
   },
 

@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useItemService } from '@/providers/ItemContextProvider';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import type { NotificationSummary } from '@/types/notifications';
 import {
@@ -119,8 +120,10 @@ export default function FeedScreen() {
   const [isDetailNotificationCardVisible, setIsDetailNotificationCardVisible] = useState(false);
   const [detailNotificationCardMessage, setDetailNotificationCardMessage] = useState('');
   const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
+  const [selectedItemFull, setSelectedItemFull] = useState<any | null>(null);
 
   const postService = usePostService();
+  const itemService = useItemService();
 
   const clearDetailNotificationTimer = useCallback((): void => {
     if (!detailNotificationTimeoutRef.current) {
@@ -201,6 +204,18 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     clearDetailNotificationTimer();
+
+    setSelectedItemFull(null);
+    itemService
+      .getById(selected.item.id, selected.item.collectionId)
+      .then((fullItem) => {
+        if (fullItem) {
+          setSelectedItemFull(fullItem);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load item details in FeedScreen:', err);
+      });
   };
 
   const handleTogglePostLike = useCallback(
@@ -235,7 +250,27 @@ export default function FeedScreen() {
         } else {
           await postService.likePost(postId);
         }
-      } catch (error) {
+      } catch (error: any) {
+        // TODO(user): Solucao temporaria. O usuario deve ajustar no backend ou nas chamadas de carregamento do Feed para retornar o estado real de 'isLiked' do banco de dados, em vez de retornar sempre 'false' no frontend. Nao remover este TODO via IA.
+        const errorMessage = error?.message || error?.data?.message || '';
+        const isAlreadyLikedError = errorMessage.includes('already liked');
+        const isNotLikedError =
+          errorMessage.includes('not liked') || errorMessage.includes('never liked');
+
+        if (!post.isLiked && isAlreadyLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already liked in the backend, keeping UI state as liked.'
+          );
+          return;
+        }
+
+        if (post.isLiked && isNotLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already unliked in the backend, keeping UI state as unliked.'
+          );
+          return;
+        }
+
         console.error('Failed to toggle like on API, reverting:', error);
         setPosts(originalPostsState);
       }
@@ -285,6 +320,7 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     setSelectedPost(null);
+    setSelectedItemFull(null);
   };
 
   const detailItem = useMemo(() => {
@@ -292,15 +328,15 @@ export default function FeedScreen() {
       return null;
     }
 
-    const postItem = (postService.getFeedSync?.() || []).find(
-      (p) => p.id === selectedPost.id
-    )?.item;
+    const postItem =
+      selectedItemFull ||
+      (postService.getFeedSync?.() || []).find((p) => p.id === selectedPost.id)?.item;
 
     const attributeList = postItem?.attributes
       ? Object.entries(postItem.attributes).map(([key, value]) => ({
-          label: key.charAt(0).toUpperCase() + key.slice(1),
-          value: String(value ?? ''),
-        }))
+        label: key.charAt(0).toUpperCase() + key.slice(1),
+        value: String(value ?? ''),
+      }))
       : [];
 
     return {
@@ -314,7 +350,7 @@ export default function FeedScreen() {
         { label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' },
       ],
     };
-  }, [postService, selectedPost]);
+  }, [postService, selectedPost, selectedItemFull]);
 
   const detailProfile = useMemo(() => {
     if (!selectedPost) {
@@ -440,8 +476,8 @@ export default function FeedScreen() {
         posts.length === 0
           ? latestSnapshot.length > 0
           : typeof currentTopPostId === 'string' &&
-            typeof latestTopPostId === 'string' &&
-            currentTopPostId !== latestTopPostId;
+          typeof latestTopPostId === 'string' &&
+          currentTopPostId !== latestTopPostId;
 
       if (!hasNewPosts) {
         setIsRefreshingLatest(false);

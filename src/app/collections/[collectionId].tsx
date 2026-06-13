@@ -148,7 +148,7 @@ export function CollectionViewScreen({
       setSelectedItem(item);
       if (item.id) {
         itemService
-          .getById(item.id)
+          .getById(item.id, collectionId)
           .then((fullItem) => {
             if (fullItem) {
               setSelectedItemFull(fullItem);
@@ -159,7 +159,7 @@ export function CollectionViewScreen({
           });
       }
     },
-    [itemService]
+    [itemService, collectionId]
   );
 
   const handleCloseItem = useCallback(() => {

@@ -14,6 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useItemService } from '@/providers/ItemContextProvider';
 import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
 import type { NotificationSummary } from '@/types/notifications';
 import {
@@ -119,8 +120,11 @@ export default function FeedScreen() {
   const [isDetailNotificationCardVisible, setIsDetailNotificationCardVisible] = useState(false);
   const [detailNotificationCardMessage, setDetailNotificationCardMessage] = useState('');
   const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
+  const [selectedItemFull, setSelectedItemFull] = useState<any | null>(null);
 
   const postService = usePostService();
+  const itemService = useItemService();
+  const { user } = useAuth();
 
   const clearDetailNotificationTimer = useCallback((): void => {
     if (!detailNotificationTimeoutRef.current) {
@@ -138,6 +142,7 @@ export default function FeedScreen() {
       return pageFeed.map((post) => ({
         id: post.id,
         author: {
+          id: post.author.id,
           name: post.author.name,
           username: post.author.username,
           avatarUri: resolveUserPhotoUrl(post.author) ?? '',
@@ -201,6 +206,18 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     clearDetailNotificationTimer();
+
+    setSelectedItemFull(null);
+    itemService
+      .getById(selected.item.id, selected.item.collectionId)
+      .then((fullItem) => {
+        if (fullItem) {
+          setSelectedItemFull(fullItem);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load item details in FeedScreen:', err);
+      });
   };
 
   const handleTogglePostLike = useCallback(
@@ -235,7 +252,27 @@ export default function FeedScreen() {
         } else {
           await postService.likePost(postId);
         }
-      } catch (error) {
+      } catch (error: any) {
+        // TODO(user): Solucao temporaria. O usuario deve ajustar no backend ou nas chamadas de carregamento do Feed para retornar o estado real de 'isLiked' do banco de dados, em vez de retornar sempre 'false' no frontend. Nao remover este TODO via IA.
+        const errorMessage = error?.message || error?.data?.message || '';
+        const isAlreadyLikedError = errorMessage.includes('already liked');
+        const isNotLikedError =
+          errorMessage.includes('not liked') || errorMessage.includes('never liked');
+
+        if (!post.isLiked && isAlreadyLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already liked in the backend, keeping UI state as liked.'
+          );
+          return;
+        }
+
+        if (post.isLiked && isNotLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already unliked in the backend, keeping UI state as unliked.'
+          );
+          return;
+        }
+
         console.error('Failed to toggle like on API, reverting:', error);
         setPosts(originalPostsState);
       }
@@ -285,6 +322,7 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     setSelectedPost(null);
+    setSelectedItemFull(null);
   };
 
   const detailItem = useMemo(() => {
@@ -292,9 +330,9 @@ export default function FeedScreen() {
       return null;
     }
 
-    const postItem = (postService.getFeedSync?.() || []).find(
-      (p) => p.id === selectedPost.id
-    )?.item;
+    const postItem =
+      selectedItemFull ||
+      (postService.getFeedSync?.() || []).find((p) => p.id === selectedPost.id)?.item;
 
     const attributeList = postItem?.attributes
       ? Object.entries(postItem.attributes).map(([key, value]) => ({
@@ -314,7 +352,7 @@ export default function FeedScreen() {
         { label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' },
       ],
     };
-  }, [postService, selectedPost]);
+  }, [postService, selectedPost, selectedItemFull]);
 
   const detailProfile = useMemo(() => {
     if (!selectedPost) {
@@ -363,6 +401,20 @@ export default function FeedScreen() {
   const handleOpenProfile = (): void => {
     router.push('/(tabs)/profile');
   };
+
+  const handlePressAuthorProfile = useCallback(
+    (authorId: string): void => {
+      if (authorId === user?.id) {
+        router.push('/(tabs)/profile');
+      } else {
+        router.push({
+          pathname: '/users/[userId]',
+          params: { userId: authorId },
+        });
+      }
+    },
+    [router, user]
+  );
 
   const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
 
@@ -434,14 +486,13 @@ export default function FeedScreen() {
     setIsRefreshingLatest(true);
 
     loadPage(1).then((latestSnapshot) => {
-      const currentTopPostId = posts[0]?.id;
-      const latestTopPostId = latestSnapshot[0]?.id;
       const hasNewPosts =
         posts.length === 0
           ? latestSnapshot.length > 0
-          : typeof currentTopPostId === 'string' &&
-            typeof latestTopPostId === 'string' &&
-            currentTopPostId !== latestTopPostId;
+          : latestSnapshot.some((latestPost) => !posts.some((p) => p.id === latestPost.id)) ||
+            posts
+              .slice(0, latestSnapshot.length)
+              .some((p, idx) => p.id !== latestSnapshot[idx]?.id);
 
       if (!hasNewPosts) {
         setIsRefreshingLatest(false);
@@ -550,6 +601,7 @@ export default function FeedScreen() {
           onPressShare={(postId) => {
             void handleSharePost(postId);
           }}
+          onPressProfile={handlePressAuthorProfile}
         />
       </View>
     );
@@ -625,7 +677,7 @@ export default function FeedScreen() {
 
           {isItemDetailOpen ? (
             <CollectionItemDetailView
-              isOwner={false}
+              isOwner={selectedPost?.author.id === user?.id}
               profile={detailProfile}
               isFollowing={isDetailFollowing}
               isNotificationsEnabled={isDetailNotificationsEnabled}
@@ -635,6 +687,12 @@ export default function FeedScreen() {
                 void handleShareSelectedItem();
               }}
               onNotificationPress={handleModalNotificationToggle}
+              onPressProfile={() => {
+                if (selectedPost) {
+                  handleCloseItemDetail();
+                  handlePressAuthorProfile(selectedPost.author.id);
+                }
+              }}
             />
           ) : null}
 

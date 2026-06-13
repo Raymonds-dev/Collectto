@@ -17,6 +17,7 @@ import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { sessionRefreshManager } from '@/services/auth/sessionRefreshManager';
 import { authLogger } from '@/utils/authLogging';
 import { mapErrorToMessage } from '@/utils/errorMapping';
+import { Alert } from 'react-native';
 
 const resolveProfileAssetUrl = (value?: string | null): string | undefined => {
   if (!value) {
@@ -347,6 +348,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     sessionRefreshManager.initialize(
       async () => {
         await signOut();
+        Alert.alert('Sessão Expirada', 'Sua sessão expirou. Por favor, faça login novamente.');
       },
       async (newToken) => {
         try {
@@ -378,7 +380,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const token = await getSessionToken();
 
             if (token) {
-              const cleanToken = token.replace(/^"|"$/g, '');
+              let cleanToken = token.replace(/^"|"$/g, '');
 
               // Log explicit token validation
               let validationError: Error | null = null;
@@ -398,10 +400,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 .catch(() => {});
 
               if (validationError) {
-                console.warn(`[auth] ${(validationError as Error).message} Clearing.`);
-                await clearSessionToken();
-                setUser(null);
-                return;
+                console.warn(`[auth] ${(validationError as Error).message} Attempting refresh.`);
+                const newAccessToken = await sessionRefreshManager.performRefresh();
+                if (newAccessToken) {
+                  cleanToken = newAccessToken;
+                } else {
+                  console.warn('[auth] Token refresh failed on expired token bootstrap. Clearing.');
+                  await clearSessionToken();
+                  setUser(null);
+                  return;
+                }
               }
 
               // 3. Header setup
@@ -423,12 +431,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                   try {
                     profile = await getUserById(resolvedUserId);
                   } catch (error) {
-                    // If it's a 401 or 403, clear session and return (don't throw)
+                    // If it's a 401, 403 or refresh failure, clear session and return (don't throw)
                     const status = (error as any)?.status || (error as any)?.response?.status;
-                    if (status === 401 || status === 403) {
-                      console.warn('[auth] Token invalid/unauthorized on bootstrap. Clearing.');
-                      await clearSessionToken();
-                      setUser(null);
+                    const message = (error as any)?.message;
+                    const isAuthError =
+                      status === 401 ||
+                      status === 403 ||
+                      message?.includes('Refresh failed') ||
+                      (error as any)?.code === 'UNAUTHORIZED';
+
+                    if (isAuthError) {
+                      console.warn(
+                        '[auth] Token invalid/unauthorized or refresh failed on bootstrap. Clearing.'
+                      );
+                      await signOut();
                       return;
                     }
                     throw error;
@@ -441,12 +457,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     profile = await getAuthenticatedUser();
                   } catch (error) {
                     const status = (error as any)?.status || (error as any)?.response?.status;
-                    if (status === 401 || status === 403) {
+                    const message = (error as any)?.message;
+                    const isAuthError =
+                      status === 401 ||
+                      status === 403 ||
+                      message?.includes('Refresh failed') ||
+                      (error as any)?.code === 'UNAUTHORIZED';
+
+                    if (isAuthError) {
                       console.warn(
-                        '[auth] Token invalid/unauthorized on bootstrap fallback. Clearing.'
+                        '[auth] Token invalid/unauthorized or refresh failed on bootstrap fallback. Clearing.'
                       );
-                      await clearSessionToken();
-                      setUser(null);
+                      await signOut();
                       return;
                     }
                     throw error;
@@ -470,6 +492,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           delete api.defaults.headers.common['Authorization'];
           setUser(null);
         } catch (error) {
+          const status = (error as any)?.status || (error as any)?.response?.status;
+          const message = (error as any)?.message;
+          const isAuthError =
+            status === 401 ||
+            status === 403 ||
+            message?.includes('Refresh failed') ||
+            (error as any)?.code === 'UNAUTHORIZED';
+
+          if (isAuthError) {
+            console.warn('[auth] Auth-related error caught on bootstrap. Handling gracefully.');
+            try {
+              await signOut();
+            } catch (signOutError) {
+              console.warn(
+                '[auth] Failed to sign out during bootstrap auth error recovery:',
+                signOutError
+              );
+            }
+            return;
+          }
+
           console.error('[auth] Bootstrap failed:', error);
           setBootstrapError(error instanceof Error ? error : new Error(String(error)));
           throw error;

@@ -1,4 +1,6 @@
 import { api as client } from './client';
+import { isDebugModeEnabled } from '@/services/debug/debugFlags';
+import { debugSession } from '@/services/debug/debugSession';
 import {
   AuthUser,
   ChangePasswordRequest,
@@ -27,6 +29,14 @@ const api = client;
 export default api;
 
 export const getUserById = async (userId: string): Promise<AuthUser> => {
+  if (isDebugModeEnabled()) {
+    if (!debugSession.isInitialized) {
+      debugSession.initialize();
+    }
+    const user = debugSession.users.find((u) => u.id === userId) || debugSession.currentUser;
+    if (!user) throw new Error('User not found in debug mode');
+    return user as AuthUser;
+  }
   return client.get<AuthUser>(`users/${userId}`);
 };
 
@@ -39,6 +49,13 @@ export const declineFollowRequest = async (followerId: string): Promise<UserFoll
 };
 
 export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {
+  if (isDebugModeEnabled()) {
+    if (!debugSession.isInitialized) {
+      debugSession.initialize();
+    }
+    if (!debugSession.currentUser) throw new Error('No user authenticated');
+    return debugSession.currentUser as AuthUser;
+  }
   return client.get<AuthUser>('users/me', {
     headers: authorization ? { Authorization: authorization } : undefined,
   });
@@ -99,6 +116,24 @@ export const getCollectionsByUser = async (
   page: number = 0,
   pageSize: number = 20
 ): Promise<CollectionPageResponse> => {
+  if (isDebugModeEnabled()) {
+    if (!debugSession.isInitialized) {
+      debugSession.initialize();
+    }
+    const userCollections = debugSession.collections.filter((c) => c.userId === userId);
+    const mappedCollections = userCollections.map((c) => ({
+      id: c.id,
+      name: c.name,
+      imagesURL: c.coverImageUrls || (c.coverImageURL ? [c.coverImageURL] : []),
+    }));
+    return {
+      content: mappedCollections,
+      collections: mappedCollections,
+      totalPages: 1,
+      totalElements: mappedCollections.length,
+      currentPage: 0,
+    };
+  }
   return client.get<CollectionPageResponse>(`collections/by-user/${userId}`, {
     params: { page, pageSize },
   });

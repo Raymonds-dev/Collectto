@@ -284,9 +284,14 @@ export const apiItemService: ItemService = {
     return mapItemResponse(response, input.collectionId);
   },
 
-  getById: async (itemId: string): Promise<ItemResponse | null> => {
+  getById: async (itemId: string, collectionId?: string): Promise<ItemResponse | null> => {
     try {
       const userId = await getCurrentUserId();
+      if (collectionId) {
+        // Fetch the full item details using getItem directly since we know the collectionId
+        const fullItem = await getItem(collectionId, itemId);
+        return mapItemResponse(fullItem, collectionId, userId);
+      }
       const collections = await apiCollectionService.getMe();
       for (const col of collections) {
         const response = await getItemsByCollection(col.id, 0, 100);

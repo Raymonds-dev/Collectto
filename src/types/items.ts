@@ -78,7 +78,7 @@ export interface ItemPageResponse {
 
 export interface ItemService {
   create(input: CreateItemRequest): Promise<ItemResponse>;
-  getById(itemId: string): Promise<ItemResponse | null>;
+  getById(itemId: string, collectionId?: string): Promise<ItemResponse | null>;
   getByCollection(collectionId: string): Promise<ItemResponse[]>;
   update(itemId: string, input: UpdateItemRequest): Promise<ItemResponse>;
   delete(itemId: string): Promise<void>;

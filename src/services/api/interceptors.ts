@@ -125,9 +125,15 @@ export const setupAuthInterceptor = (axiosInstance: AxiosInstance): void => {
   axiosInstance.interceptors.request.use(
     async (config) => {
       try {
-        const token = await getSessionToken();
-        if (token && config.headers && !config.headers.Authorization) {
-          config.headers.Authorization = `Bearer ${token}`;
+        if (config.headers) {
+          if (config.headers.Authorization === '') {
+            delete config.headers.Authorization;
+          } else {
+            const token = await getSessionToken();
+            if (token && !config.headers.Authorization) {
+              config.headers.Authorization = `Bearer ${token}`;
+            }
+          }
         }
       } catch (error) {
         console.warn('Failed to retrieve session token for request', error);

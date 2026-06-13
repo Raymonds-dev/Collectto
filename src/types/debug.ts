@@ -22,6 +22,7 @@ export interface PostProjection {
 export type MockFeedPost = {
   id: string;
   author: {
+    id: string;
     name: string;
     username: string;
     avatarUri: string;

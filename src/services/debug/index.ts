@@ -13,3 +13,4 @@ export * from './mockExploreService';
 export * from './mockItemService';
 export * from './mockPostService';
 export * from './testRefreshHelper';
+export * from './mockNotificationService';

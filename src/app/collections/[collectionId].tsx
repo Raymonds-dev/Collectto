@@ -38,6 +38,7 @@ type CollectionViewScreenProps = {
   isFollowing: boolean;
   isSystem: boolean;
   itemId?: string;
+  ownerId?: string;
 };
 
 const NOTIFICATION_CARD_TIMEOUT_MS = 200;
@@ -51,6 +52,7 @@ export function CollectionViewScreen({
   isFollowing,
   isSystem,
   itemId,
+  ownerId,
 }: CollectionViewScreenProps) {
   const router = useRouter();
   const itemService = useItemService();
@@ -148,7 +150,7 @@ export function CollectionViewScreen({
       setSelectedItem(item);
       if (item.id) {
         itemService
-          .getById(item.id)
+          .getById(item.id, collectionId)
           .then((fullItem) => {
             if (fullItem) {
               setSelectedItemFull(fullItem);
@@ -159,7 +161,7 @@ export function CollectionViewScreen({
           });
       }
     },
-    [itemService]
+    [itemService, collectionId]
   );
 
   const handleCloseItem = useCallback(() => {
@@ -194,6 +196,17 @@ export function CollectionViewScreen({
 
     router.back();
   }, [handleCloseItem, router, selectedItem]);
+
+  const handlePressProfile = useCallback(() => {
+    if (isOwner) {
+      router.push('/(tabs)/profile');
+    } else if (ownerId) {
+      router.push({
+        pathname: '/users/[userId]',
+        params: { userId: ownerId },
+      });
+    }
+  }, [isOwner, ownerId, router]);
 
   useFocusEffect(
     useCallback(() => {
@@ -322,18 +335,24 @@ export function CollectionViewScreen({
             void handleShareCollection();
           }}
           onNotificationPress={handleNotificationPress}
+          onPressProfile={handlePressProfile}
         />
       ) : (
         <ScrollView className="flex-1" contentContainerClassName="pb-8">
-          <ProfileInfo
-            isOwner={isOwner}
-            profileImage={profile.profileImage}
-            name={profile.name}
-            username={profile.username}
-            bio={profile.bio}
-            showActions={false}
-            showStats={false}
-          />
+          <Pressable
+            onPress={handlePressProfile}
+            accessibilityRole="link"
+            accessibilityLabel={`Ir para perfil de ${profile.name}`}>
+            <ProfileInfo
+              isOwner={isOwner}
+              profileImage={profile.profileImage}
+              name={profile.name}
+              username={profile.username}
+              bio={profile.bio}
+              showActions={false}
+              showStats={false}
+            />
+          </Pressable>
 
           <ProfileActionsBar
             isOwner={isOwner}
@@ -453,6 +472,7 @@ export default function CollectionViewScreenRoute() {
               profileImage: resolveUserPhotoUrl(authorProfile) ?? null,
             },
             isFollowing: false,
+            ownerId: authorProfile?.id || collection.userId,
           });
         }
       });

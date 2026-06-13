@@ -23,9 +23,9 @@ const encodeBase64Url = (str: string): string => {
 export const generateMockToken = (expirationSeconds: number): string => {
   const header = { alg: 'HS256', typ: 'JWT' };
   const payload = {
-    userId: 'local-user',
-    email: 'user@example.com',
-    name: 'User',
+    userId: debugSession.currentUser?.id || 'local-user',
+    email: debugSession.currentUser?.email || 'user@example.com',
+    name: debugSession.currentUser?.name || 'User',
     exp: expirationSeconds,
   };
 
@@ -38,6 +38,17 @@ export const mockAuthService = {
   login: async (credentials: Credentials): Promise<LoginResponse> => {
     console.log('[DEBUG] mockAuthService.login called', credentials.email);
     debugSession.initialize();
+
+    const input = credentials.email.trim().toLowerCase();
+    const isAna = input === 'anasilva' || input === 'ana@collectto.app' || input.includes('ana');
+
+    const selectedUser = isAna
+      ? debugSession.users.find((u) => u.id === 'ana-silva-uuid-9999')
+      : debugSession.users.find((u) => u.id === '00000000-0000-4000-8000-000000000000');
+
+    if (selectedUser) {
+      debugSession.currentUser = selectedUser;
+    }
 
     // Set expiration to 24 hours from now by default
     const nowInSeconds = Math.floor(Date.now() / 1000);

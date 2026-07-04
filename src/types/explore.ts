@@ -64,6 +64,37 @@ export interface ExploreFeedQuery {
   size?: number;
 }
 
+export interface ExploreGlobalSearchResponse {
+  content: (string | ExploreGlobalSearchItem)[];
+  size: number;
+  currentPage: number;
+  hasNext: boolean;
+}
+
+export interface ExploreGlobalSearchItem {
+  id?: string;
+  name?: string;
+  username?: string;
+  profilePictureUrl?: string;
+  coverImgUrl?: string;
+  title?: string;
+  label?: string;
+  description?: string;
+}
+
+export interface ExploreTagSearchResult {
+  id: string;
+  name: string;
+  usageCount: number;
+}
+
+export interface ExploreTagSearchResponse {
+  content: ExploreTagSearchResult[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+}
+
 export type ExploreCategoriesResponse = ExploreCategory[];
 
 export const REQUIRED_SPOTLIGHT_FIELDS = ['id', 'title', 'postType', 'images', 'categoryId'];

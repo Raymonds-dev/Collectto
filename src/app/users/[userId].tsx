@@ -1,5 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Share,
+  Text,
+  View,
+} from 'react-native';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -45,6 +53,7 @@ export default function UserProfileScreen() {
   const [collections, setCollections] = useState<CollectionSummaryResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
 
   const loadProfileData = React.useCallback(async () => {
     if (!userId) return;
@@ -117,6 +126,17 @@ export default function UserProfileScreen() {
     }
   };
 
+  const handleShareProfile = React.useCallback(async () => {
+    if (!userProfile) return;
+    try {
+      await Share.share({
+        message: `Confira o perfil de ${userProfile.name} (@${userProfile.username}) no Collectto!`,
+      });
+    } catch (error) {
+      console.error('[UserProfileScreen] Failed to share profile:', error);
+    }
+  }, [userProfile]);
+
   const filteredCollections = useMemo(() => {
     if (!searchQuery.trim()) return collections;
     const query = searchQuery.toLowerCase();
@@ -162,21 +182,41 @@ export default function UserProfileScreen() {
     <View className="flex-1 bg-surface-base">
       <Stack.Screen
         options={{
-          headerShown: true,
-          headerTransparent: true,
-          headerTitle: '',
-          headerLeft: () => (
-            <AnimatedPressable
-              accessibilityRole="button"
-              accessibilityLabel="Voltar"
-              onPress={() => router.back()}
-              style={{ marginTop: insets.top }}
-              className="h-10 w-10 items-center justify-center rounded-full border border-surface-border bg-surface-card/80">
-              <Ionicons name="arrow-back" size={20} color={tokens.colors.text.base} />
-            </AnimatedPressable>
-          ),
+          headerShown: false,
         }}
       />
+
+      <AnimatedPressable
+        accessibilityRole="button"
+        accessibilityLabel="Voltar"
+        onPress={() => router.back()}
+        className="absolute left-3 top-3 z-20 h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-overlay-scrimSoft active:opacity-75">
+        <Ionicons name="arrow-back" size={18} color={tokens.colors.text.inverse} />
+      </AnimatedPressable>
+
+      {isMenuVisible && (
+        <Pressable
+          onPress={() => setIsMenuVisible(false)}
+          className="absolute inset-0 z-50 bg-black/20"
+          accessibilityRole="button"
+          accessibilityLabel="Fechar menu">
+          <View
+            style={{ top: insets.top + 15 }}
+            className="absolute right-4 z-50 w-48 overflow-hidden rounded-2xl border border-surface-border bg-surface-card shadow-lg">
+            <Pressable
+              onPress={() => {
+                setIsMenuVisible(false);
+                handleShareProfile();
+              }}
+              className="flex-row items-center gap-3 px-4 py-3 active:bg-surface-muted"
+              accessibilityRole="button"
+              accessibilityLabel="Compartilhar perfil">
+              <Ionicons name="share-social-outline" size={18} color={tokens.colors.text.base} />
+              <Text className="font-body text-sm text-text-base">Compartilhar perfil</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      )}
 
       <ScrollView
         className="flex-1 bg-surface-base"
@@ -187,6 +227,7 @@ export default function UserProfileScreen() {
             isOwner={false}
             bannerImage={resolveProfileBackgroundUrl(userProfile.profileBackgroundUrl)}
             isUploading={false}
+            onOptionsPress={() => setIsMenuVisible(true)}
           />
           <ProfileInfo
             isOwner={false}

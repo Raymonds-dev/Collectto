@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, TextInput, TextInputProps, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, TextInputProps, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
@@ -24,6 +24,7 @@ export const SearchInput = ({
 
       <TextInput
         className="ml-2 flex-1 font-body text-base text-text-base"
+        style={styles.input}
         placeholder={placeholder}
         placeholderTextColor={tokens.colors.text.disabled}
         value={value}
@@ -43,5 +44,15 @@ export const SearchInput = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  input: {
+    fontSize: 16,
+    lineHeight: 20,
+    paddingVertical: 0,
+    includeFontPadding: false,
+    textAlignVertical: 'center',
+  },
+});
 
 export default SearchInput;

@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/tailwind/tokens.native';
@@ -18,6 +18,7 @@ type ProfileInfoProps = {
   showStats?: boolean;
   isFollowing?: boolean;
   onFollowToggle?: () => void;
+  onSharePress?: () => void;
 };
 
 type ActionButtonProps = {
@@ -81,10 +82,34 @@ export function ProfileInfo({
   showStats = true,
   isFollowing: isFollowingProp,
   onFollowToggle,
+  onSharePress,
 }: ProfileInfoProps) {
   const [isFollowingLocal, setIsFollowingLocal] = useState(false);
   const isFollowing = isFollowingProp !== undefined ? isFollowingProp : isFollowingLocal;
   const shouldShowActionsRow = showActions || showStats;
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const checkStaticHasMore = useCallback((text: string) => {
+    if (!text) return false;
+    const newlineCount = (text.match(/\n/g) || []).length;
+    if (newlineCount >= 2) return true;
+    if (text.length > 85) return true;
+    return false;
+  }, []);
+
+  const [hasMore, setHasMore] = useState(() => checkStaticHasMore(bio));
+
+  useEffect(() => {
+    setIsExpanded(false);
+    setHasMore(checkStaticHasMore(bio));
+  }, [bio, checkStaticHasMore]);
+
+  const handleTextLayout = useCallback((e: any) => {
+    if (e.nativeEvent.lines.length > 2) {
+      setHasMore(true);
+    }
+  }, []);
 
   return (
     <View className="px-[10px] pt-[5px]">
@@ -110,9 +135,25 @@ export function ProfileInfo({
         <View className="flex-1">
           <Text className="text-2xl font-bold text-text-base">{name}</Text>
           <Text className="mt-1 text-sm text-text-muted">@{username}</Text>
-          <Text className="mt-2 w-full text-sm leading-5 text-text-base" numberOfLines={2}>
-            {bio}
-          </Text>
+          <View>
+            <Text
+              className="mt-2 w-full text-sm leading-5 text-text-base"
+              numberOfLines={isExpanded ? undefined : 2}
+              onTextLayout={handleTextLayout}>
+              {bio}
+            </Text>
+            {hasMore && (
+              <Pressable
+                onPress={() => setIsExpanded(!isExpanded)}
+                accessibilityRole="button"
+                accessibilityLabel={isExpanded ? 'Mostrar menos' : 'Mostrar mais'}
+                className="mt-1 self-start active:opacity-75">
+                <Text className="text-sm font-semibold text-brand-primary">
+                  {isExpanded ? 'menos' : 'mais'}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
       {/* Action Buttons */}
@@ -122,7 +163,7 @@ export function ProfileInfo({
           showsHorizontalScrollIndicator={false}
           className="mt-5"
           contentContainerClassName="pr-2">
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center justify-end gap-3">
             {showStats ? <StatChip label="Seguidores" value={followersCount} /> : null}
             {showStats ? <StatChip label="Seguindo" value={followingCount} /> : null}
 
@@ -130,7 +171,7 @@ export function ProfileInfo({
               isOwner ? (
                 <>
                   {hasLink ? <ActionButton label="Links" iconName="link-outline" /> : null}
-                  <ActionButton isCircular iconName="share-social-outline" />
+                  <ActionButton isCircular iconName="share-social-outline" onPress={onSharePress} />
                 </>
               ) : (
                 <>

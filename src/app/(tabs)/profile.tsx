@@ -3,7 +3,7 @@ import { SearchInput } from '@/components/ui/SearchInput';
 import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { OptionsBar, OptionsBarOption } from '@/components/ui/OptionsBar';
 import { useAuth } from '@/hooks/useAuth';
-import { Alert, Modal, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Alert, Modal, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
 import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
@@ -51,6 +51,17 @@ export default function ProfileScreen() {
   const [useRemoteBackground, setUseRemoteBackground] = useState(true);
   const [backgroundCropVisible, setBackgroundCropVisible] = useState(false);
   const [pendingBackgroundUri, setPendingBackgroundUri] = useState<string | null>(null);
+
+  const handleShareProfile = useCallback(async () => {
+    if (!user) return;
+    try {
+      await Share.share({
+        message: `Confira o perfil de ${user.name ?? 'Usuário'} (@${user.username ?? user.email?.split('@')[0] ?? 'collectto'}) no Collectto!`,
+      });
+    } catch (error) {
+      console.error('[ProfileScreen] Failed to share profile:', error);
+    }
+  }, [user]);
 
   const resolveProfileBackgroundUrl = (value?: string | null): string | undefined => {
     if (!value) {
@@ -303,7 +314,8 @@ export default function ProfileScreen() {
           bio={user?.bio ?? ''}
           followersCount={user?.followersCount ?? 0}
           followingCount={user?.followingCount ?? 0}
-          hasLink
+          hasLink={false}
+          onSharePress={handleShareProfile}
         />
         <ProfileSectionDivider />
         <View>
@@ -312,7 +324,7 @@ export default function ProfileScreen() {
             renderContent={(activeTab) => {
               if (activeTab === 'collections') {
                 return (
-                  <View className="gap-4 px-4 pb-4 pt-4 ">
+                  <View className="gap-4 px-4 pb-4 pt-4">
                     <SearchInput
                       value={searchQuery}
                       onChangeText={setSearchQuery}

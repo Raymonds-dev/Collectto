@@ -3,6 +3,7 @@
     "name": "Collectto",
     "slug": "Collectto",
     "scheme": "collectto",
+    "owner": "collectto",
     "version": "1.0.0",
     "web": {
       "favicon": "./src/assets/favicon.png"
@@ -19,7 +20,8 @@
           "photosPermission": "Allow Collectto to access your photos.",
           "cameraPermission": "Allow Collectto to use your camera."
         }
-      ]
+      ],
+      "expo-font"
     ],
     "orientation": "portrait",
     "icon": "./src/assets/icon.svg",
@@ -57,7 +59,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "07dad355-d614-4daa-8b0e-71668120d1a4"
+        "projectId": "57aa1a5b-b447-4bb3-871a-0e6d6759f94b"
       }
     }
   }

@@ -92,6 +92,13 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 - Do not add legacy `eslint-env` header comments to flat ESLint config files.
 - For local image background URIs, prefer the established patterns used in tab and profile screens.
 
+## Multiplatform Conventions
+
+- Prioritize cross-platform compatibility for both Android and iOS in all developed features.
+- Avoid relying solely on automatic platform-specific behaviors (such as automatic FlatList scrolling on Android when the keyboard opens).
+- Implement explicit, consistent cross-platform solutions, such as using `KeyboardAvoidingView` to ensure input fields or interactive content are not obscured by the keyboard.
+- Third-party libraries (e.g., specialized keyboard packages) are permitted only when a native solution is not viable or performant.
+
 ## References
 
 - Project overview and setup: README.md
@@ -100,9 +107,6 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 - Project rules: AGENTS.md
 
 <!-- SPECKIT START -->
-
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan:
-[specs/005-collection-item-management/plan.md](specs/005-collection-item-management/plan.md)
-
+shell commands, and other important information, read the current plan at [specs/018-implement-notifications/plan.md](file:///C:/Users/garam/.projetos/Collectto/frontend/specs/018-implement-notifications/plan.md)
 <!-- SPECKIT END -->

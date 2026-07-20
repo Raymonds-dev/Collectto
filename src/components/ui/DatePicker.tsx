@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Calendar, type DateData } from 'react-native-calendars';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { tokens } from '@/styles/tailwind/tokens.native';
@@ -48,6 +48,8 @@ const MONTH_NAMES = [
   'Dezembro',
 ];
 
+const MIN_YEAR = 1900;
+
 /**
  * Formats a date for compact display on the trigger.
  * Example: "2023-06-15" → "15 Jun 2023"
@@ -66,6 +68,33 @@ const formatFullDate = (dateString: string): string => {
   const [y, m, d] = dateString.split('-');
   const monthIndex = parseInt(m, 10) - 1;
   return `${parseInt(d, 10)} de ${MONTH_NAMES[monthIndex] ?? m} de ${y}`;
+};
+
+const pad2 = (value: number): string => String(value).padStart(2, '0');
+
+const parseDateString = (dateString: string): Date => {
+  const [y, m, d] = dateString.split('-').map((part) => parseInt(part, 10));
+  if (!y || !m || !d) {
+    return new Date();
+  }
+  return new Date(y, m - 1, d);
+};
+
+const formatDateForCalendar = (date: Date): string => {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+};
+
+const clampDayForMonth = (year: number, month: number, day: number): number => {
+  const daysInMonth = new Date(year, month, 0).getDate();
+  return Math.min(day, daysInMonth);
+};
+
+const updateDateYear = (dateString: string, year: number): string => {
+  const [, m, d] = dateString.split('-');
+  const month = parseInt(m, 10);
+  const day = parseInt(d, 10);
+  const safeDay = clampDayForMonth(year, month, day);
+  return `${year}-${pad2(month)}-${pad2(safeDay)}`;
 };
 
 /**
@@ -88,7 +117,17 @@ export function DatePicker({
   placeholder = 'Selecionar data',
 }: DatePickerProps) {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);
+  const [isYearPickerVisible, setIsYearPickerVisible] = useState(false);
+  const [calendarKey, setCalendarKey] = useState(0);
   const [draftDate, setDraftDate] = useState<string | null>(value ?? null);
+  const [calendarMonthDate, setCalendarMonthDate] = useState<Date>(
+    value ? parseDateString(value) : new Date()
+  );
+
+  const yearOptions = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    return Array.from({ length: currentYear - MIN_YEAR + 1 }, (_, index) => currentYear - index);
+  }, []);
 
   const handleDayPress = (date: DateData): void => {
     setDraftDate(date.dateString);
@@ -103,6 +142,7 @@ export function DatePicker({
 
   const handleCancel = (): void => {
     setDraftDate(value ?? null);
+    setIsYearPickerVisible(false);
     setIsCalendarVisible(false);
   };
 
@@ -114,7 +154,21 @@ export function DatePicker({
 
   const openCalendar = (): void => {
     setDraftDate(value ?? null);
+    setCalendarMonthDate(value ? parseDateString(value) : new Date());
+    setIsYearPickerVisible(false);
     setIsCalendarVisible(true);
+  };
+
+  const handleYearChange = (nextYear: number): void => {
+    setCalendarMonthDate(new Date(nextYear, calendarMonthDate.getMonth(), 1));
+    setCalendarKey((prev) => prev + 1);
+    if (draftDate) {
+      setDraftDate(updateDateYear(draftDate, nextYear));
+    }
+  };
+
+  const toggleYearPicker = (): void => {
+    setIsYearPickerVisible((prev) => !prev);
   };
 
   const hasValue = Boolean(value);
@@ -200,74 +254,212 @@ export function DatePicker({
                 )}
               </View>
 
-              <Calendar
-                current={draftDate ?? undefined}
-                maxDate={new Date().toISOString().split('T')[0]}
-                onDayPress={handleDayPress}
-                markedDates={
-                  draftDate
-                    ? {
-                        [draftDate]: {
-                          selected: true,
-                          selectedColor: tokens.colors.brand.primary,
-                        },
-                      }
-                    : undefined
-                }
-                theme={{
-                  calendarBackground: tokens.colors.surface.canvas,
-                  textSectionTitleColor: tokens.colors.text.subtle,
-                  selectedDayBackgroundColor: tokens.colors.brand.primary,
-                  selectedDayTextColor: tokens.colors.text.inverse,
-                  todayTextColor: tokens.colors.brand[700],
-                  todayBackgroundColor: tokens.colors.brand[50],
-                  dayTextColor: tokens.colors.text.base,
-                  textDisabledColor: tokens.colors.text.disabled,
-                  monthTextColor: tokens.colors.text.base,
-                  arrowColor: tokens.colors.brand.primary,
-                  textMonthFontSize: 15,
-                  textMonthFontWeight: '600',
-                  textDayHeaderFontSize: 12,
-                  textDayFontSize: 14,
-                  textDayFontWeight: '500',
-                }}
-              />
+              {isYearPickerVisible ? (
+                <View style={{ height: 350, paddingHorizontal: 16 }}>
+                  {/* Header inside the picker to return */}
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      paddingVertical: 12,
+                      borderBottomWidth: 1,
+                      borderBottomColor: tokens.colors.surface.border,
+                    }}>
+                    <Text
+                      style={{
+                        color: tokens.colors.text.base,
+                        fontSize: 15,
+                        fontWeight: '600',
+                      }}>
+                      Selecionar Ano
+                    </Text>
+                    <Pressable
+                      onPress={() => setIsYearPickerVisible(false)}
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 6,
+                        borderRadius: 8,
+                        backgroundColor: tokens.colors.brand[50],
+                      }}>
+                      <Text
+                        style={{
+                          color: tokens.colors.brand.primary,
+                          fontSize: 12,
+                          fontWeight: '600',
+                        }}>
+                        Voltar
+                      </Text>
+                    </Pressable>
+                  </View>
 
-              {/* Actions row */}
-              <View style={styles.actionsRow}>
-                {hasValue && (
-                  <Pressable
-                    onPress={handleClear}
-                    style={styles.clearButton}
-                    accessibilityRole="button"
-                    accessibilityLabel="Limpar data selecionada">
-                    <Ionicons
-                      name="trash-outline"
-                      size={16}
-                      style={{ color: tokens.colors.feedback.error }}
-                    />
-                    <Text style={styles.clearText}>Limpar</Text>
-                  </Pressable>
-                )}
-                <View style={styles.actionsSpacer} />
-                <Pressable
-                  onPress={handleCancel}
-                  style={styles.cancelButton}
-                  accessibilityRole="button"
-                  accessibilityLabel="Cancelar seleção de data">
-                  <Text style={styles.cancelText}>Cancelar</Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleConfirm}
-                  style={[styles.confirmButton, !draftDate && styles.confirmButtonDisabled]}
-                  disabled={!draftDate}
-                  accessibilityRole="button"
-                  accessibilityLabel="Confirmar data selecionada">
-                  <Text style={[styles.confirmText, !draftDate && styles.confirmTextDisabled]}>
-                    Confirmar
-                  </Text>
-                </Pressable>
-              </View>
+                  <ScrollView nestedScrollEnabled showsVerticalScrollIndicator style={{ flex: 1 }}>
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                        justifyContent: 'flex-start',
+                        paddingVertical: 8,
+                        gap: 8,
+                      }}>
+                      {yearOptions.map((year) => {
+                        const isSelected = calendarMonthDate.getFullYear() === year;
+                        return (
+                          <Pressable
+                            key={year}
+                            style={[
+                              {
+                                width: '31%',
+                                marginHorizontal: '1%',
+                                marginVertical: 6,
+                                paddingVertical: 8,
+                                alignItems: 'center',
+                                borderRadius: 8,
+                                borderWidth: 1,
+                                borderColor: tokens.colors.surface.border,
+                                backgroundColor: tokens.colors.surface.canvas,
+                              },
+                              isSelected && {
+                                backgroundColor: tokens.colors.brand.primary,
+                                borderColor: tokens.colors.brand.primary,
+                              },
+                            ]}
+                            onPress={() => {
+                              handleYearChange(year);
+                              setIsYearPickerVisible(false);
+                            }}>
+                            <Text
+                              style={[
+                                {
+                                  fontSize: 14,
+                                  color: tokens.colors.text.base,
+                                  fontWeight: '500',
+                                },
+                                isSelected && {
+                                  color: tokens.colors.text.inverse,
+                                  fontWeight: '700',
+                                },
+                              ]}>
+                              {year}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </ScrollView>
+                </View>
+              ) : (
+                <>
+                  <Calendar
+                    key={calendarKey}
+                    current={formatDateForCalendar(calendarMonthDate)}
+                    maxDate={new Date().toISOString().split('T')[0]}
+                    onDayPress={handleDayPress}
+                    onMonthChange={(date) => {
+                      setCalendarMonthDate(new Date(date.year, date.month - 1, 1));
+                    }}
+                    renderHeader={(date) => {
+                      const monthLabel = MONTH_NAMES[date.getMonth()] ?? '';
+                      const headerYear = date.getFullYear();
+                      return (
+                        <View style={styles.calendarHeaderRow}>
+                          <Text style={styles.calendarHeaderMonth}>{monthLabel}</Text>
+                          <Pressable
+                            onPress={toggleYearPicker}
+                            style={[
+                              styles.calendarHeaderYearButton,
+                              isYearPickerVisible && styles.calendarHeaderYearButtonActive,
+                            ]}
+                            accessibilityRole="button"
+                            accessibilityLabel="Selecionar ano">
+                            <Text style={styles.calendarHeaderYearText}>{headerYear}</Text>
+                            <Ionicons
+                              name="chevron-down"
+                              size={14}
+                              style={styles.calendarHeaderYearIcon}
+                            />
+                          </Pressable>
+                        </View>
+                      );
+                    }}
+                    markedDates={
+                      draftDate
+                        ? {
+                            [draftDate]: {
+                              selected: true,
+                              selectedColor: tokens.colors.brand.primary,
+                            },
+                          }
+                        : undefined
+                    }
+                    theme={{
+                      stylesheet: {
+                        calendar: {
+                          header: {
+                            flexDirection: 'row',
+                            justifyContent: 'space-between',
+                            paddingLeft: 10,
+                            paddingRight: 10,
+                            marginTop: 6,
+                            alignItems: 'center',
+                          },
+                        },
+                      },
+                      calendarBackground: tokens.colors.surface.canvas,
+                      textSectionTitleColor: tokens.colors.text.subtle,
+                      selectedDayBackgroundColor: tokens.colors.brand.primary,
+                      selectedDayTextColor: tokens.colors.text.inverse,
+                      todayTextColor: tokens.colors.brand[700],
+                      todayBackgroundColor: tokens.colors.brand[50],
+                      dayTextColor: tokens.colors.text.base,
+                      textDisabledColor: tokens.colors.text.disabled,
+                      monthTextColor: tokens.colors.text.base,
+                      arrowColor: tokens.colors.brand.primary,
+                      textMonthFontSize: 15,
+                      textMonthFontWeight: '600',
+                      textDayHeaderFontSize: 12,
+                      textDayFontSize: 14,
+                      textDayFontWeight: '500',
+                    }}
+                  />
+
+                  {/* Actions row */}
+                  <View style={styles.actionsRow}>
+                    {hasValue && (
+                      <Pressable
+                        onPress={handleClear}
+                        style={styles.clearButton}
+                        accessibilityRole="button"
+                        accessibilityLabel="Limpar data selecionada">
+                        <Ionicons
+                          name="trash-outline"
+                          size={16}
+                          style={{ color: tokens.colors.feedback.error }}
+                        />
+                        <Text style={styles.clearText}>Limpar</Text>
+                      </Pressable>
+                    )}
+                    <Pressable
+                      onPress={handleCancel}
+                      style={styles.cancelButton}
+                      accessibilityRole="button"
+                      accessibilityLabel="Cancelar seleção de data">
+                      <Text style={styles.cancelText}>Cancelar</Text>
+                    </Pressable>
+                    <View style={styles.actionsSpacer} />
+                    <Pressable
+                      onPress={handleConfirm}
+                      style={[styles.confirmButton, !draftDate && styles.confirmButtonDisabled]}
+                      disabled={!draftDate}
+                      accessibilityRole="button"
+                      accessibilityLabel="Confirmar data selecionada">
+                      <Text style={[styles.confirmText, !draftDate && styles.confirmTextDisabled]}>
+                        Confirmar
+                      </Text>
+                    </Pressable>
+                  </View>
+                </>
+              )}
             </Pressable>
           </View>
         </Pressable>
@@ -299,6 +491,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
   },
+  confirmButton: {
+    backgroundColor: tokens.colors.brand.primary,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  confirmButtonDisabled: {
+    backgroundColor: tokens.colors.surface.muted,
+  },
+  confirmText: {
+    color: tokens.colors.text.inverse,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  confirmTextDisabled: {
+    color: tokens.colors.text.disabled,
+  },
   centeredContainer: {
     alignItems: 'center',
     flex: 1,
@@ -320,25 +529,41 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
   },
-  confirmButton: {
-    backgroundColor: tokens.colors.brand.primary,
+  calendarHeaderMonth: {
+    color: tokens.colors.text.base,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  calendarHeaderRow: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 10,
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+  },
+  calendarHeaderYearButton: {
+    alignItems: 'center',
+    borderColor: tokens.colors.surface.border,
     borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    borderWidth: 1,
+    flexDirection: 'row',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
-  confirmButtonDisabled: {
-    backgroundColor: tokens.colors.surface.muted,
+  calendarHeaderYearIcon: {
+    color: tokens.colors.text.muted,
   },
-  confirmText: {
-    color: tokens.colors.text.inverse,
-    fontSize: 14,
-    fontWeight: '700',
+  calendarHeaderYearButtonActive: {
+    borderColor: tokens.colors.brand.primary,
+    backgroundColor: tokens.colors.brand[50],
   },
-  confirmTextDisabled: {
-    color: tokens.colors.text.disabled,
+  calendarHeaderYearText: {
+    color: tokens.colors.text.base,
+    fontSize: 13,
+    fontWeight: '600',
   },
   dateChip: {
-    alignItems: 'center',
     backgroundColor: tokens.colors.feedback.infoSoft,
     borderRadius: 8,
     flexDirection: 'row',
@@ -357,7 +582,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     elevation: 8,
     maxWidth: 400,
-    overflow: 'hidden',
+    overflow: 'visible',
     shadowColor: tokens.colors.neutral.black,
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.12,

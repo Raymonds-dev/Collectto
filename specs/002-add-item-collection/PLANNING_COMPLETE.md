@@ -1,7 +1,7 @@
 # ✅ Implementation Plan Summary
 
 **Feature**: Item and Collection Creation Flow  
-**Branch**: `002-add-item-collection`  
+**Branch**: `feature/002-add-item-collection`  
 **Status**: ✅ Ready for Task Generation  
 **Date**: 2026-05-02
 

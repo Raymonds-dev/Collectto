@@ -1,12 +1,12 @@
 export interface CreateItemRequest {
   collectionId: string;
   name: string;
-  description?: string;
-  acquisitionDate?: string;
-  lastUsedDate?: string;
-  imageFilesUrls?: string[];
-  attributes?: Record<string, unknown>;
-  tags?: string[];
+  description?: string | null;
+  acquisitionDate?: string | null;
+  lastUsedDate?: string | null;
+  imageFilesUrls?: string[] | null;
+  attributes?: Record<string, unknown> | null;
+  tags?: string[] | null;
 }
 
 export interface UpdateItemRequest {
@@ -17,6 +17,7 @@ export interface UpdateItemRequest {
   imageFilesUrls?: string[] | null;
   attributes?: Record<string, unknown>;
   tags?: string[];
+  collectionId?: string;
 }
 
 export interface MoveItemCommand {
@@ -68,7 +69,8 @@ export interface ItemSummaryResponse {
 }
 
 export interface ItemPageResponse {
-  items: ItemSummaryResponse[];
+  items?: ItemSummaryResponse[];
+  content?: ItemSummaryResponse[];
   totalPages: number;
   totalElements: number;
   currentPage: number;
@@ -76,7 +78,7 @@ export interface ItemPageResponse {
 
 export interface ItemService {
   create(input: CreateItemRequest): Promise<ItemResponse>;
-  getById(itemId: string): Promise<ItemResponse | null>;
+  getById(itemId: string, collectionId?: string): Promise<ItemResponse | null>;
   getByCollection(collectionId: string): Promise<ItemResponse[]>;
   update(itemId: string, input: UpdateItemRequest): Promise<ItemResponse>;
   delete(itemId: string): Promise<void>;

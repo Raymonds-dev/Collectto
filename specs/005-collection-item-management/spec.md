@@ -1,6 +1,6 @@
 # Feature Specification: Collection and Item Management
 
-**Feature Branch**: `005-collection-item-management`  
+**Feature Branch**: `feature/005-collection-item-management`  
 **Created**: 2026-05-18  
 **Status**: Draft  
 **Input**: User description: "Quero poder editar as minhas coleções e itens existente que são da minha propriedade, na tela respectiva de cada um.

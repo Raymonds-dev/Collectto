@@ -12,6 +12,11 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePostService } from '@/providers/PostContextProvider';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
+import { useNotifications } from '@/hooks/useNotifications';
+import { useItemService } from '@/providers/ItemContextProvider';
+import { NotificationDropdown } from '@/components/notifications/NotificationDropdown';
+import type { NotificationSummary } from '@/types/notifications';
 import {
   ActivityIndicator,
   FlatList,
@@ -35,15 +40,16 @@ const DETAIL_NOTIFICATION_TIMEOUT_MS = 2500;
 const Header = ({
   onPressProfile,
   onPressLogo,
-  onPressSettings,
+  onPressNotifications,
   onPressCreate,
 }: {
   onPressProfile: () => void;
   onPressLogo: () => void;
-  onPressSettings: () => void;
+  onPressNotifications: () => void;
   onPressCreate: () => void;
 }) => {
   const { user } = useAuth();
+  const { unreadCount } = useNotifications();
 
   return (
     <View className="bg-surface-base">
@@ -55,7 +61,7 @@ const Header = ({
           onPress={onPressProfile}
           className="h-11 w-11 items-center justify-center rounded-full">
           <Image
-            source={{ uri: user?.profilePictureUrl ?? undefined }}
+            source={{ uri: resolveUserPhotoUrl(user) ?? undefined }}
             className="h-8 w-8 rounded-full border border-surface-border bg-surface-muted"
             accessibilityIgnoresInvertColors
           />
@@ -72,11 +78,18 @@ const Header = ({
 
         <AnimatedPressable
           accessibilityRole="button"
-          accessibilityLabel="Abrir configuracoes"
+          accessibilityLabel="Notificações"
           hitSlop={10}
-          onPress={onPressSettings}
-          className="h-11 w-11 items-center justify-center rounded-full">
-          <Ionicons name="settings-sharp" size={28} color={tokens.colors.text.base} />
+          onPress={onPressNotifications}
+          className="relative h-11 w-11 items-center justify-center rounded-full">
+          <Ionicons name="notifications-sharp" size={28} color={tokens.colors.text.base} />
+          {unreadCount > 0 && (
+            <View className="absolute right-1 top-1 h-5 min-w-[20px] items-center justify-center rounded-full bg-feedback-error px-1">
+              <Text className="font-body text-[10px] font-bold text-text-inverse">
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </Text>
+            </View>
+          )}
         </AnimatedPressable>
       </View>
     </View>
@@ -107,8 +120,11 @@ export default function FeedScreen() {
   const [isDetailNotificationCardVisible, setIsDetailNotificationCardVisible] = useState(false);
   const [detailNotificationCardMessage, setDetailNotificationCardMessage] = useState('');
   const [commentThreadPostId, setCommentThreadPostId] = useState<string | null>(null);
+  const [selectedItemFull, setSelectedItemFull] = useState<any | null>(null);
 
   const postService = usePostService();
+  const itemService = useItemService();
+  const { user } = useAuth();
 
   const clearDetailNotificationTimer = useCallback((): void => {
     if (!detailNotificationTimeoutRef.current) {
@@ -121,16 +137,15 @@ export default function FeedScreen() {
 
   const loadPage = useCallback(
     async (page: number): Promise<MockFeedPost[]> => {
-      const rawFeed = await postService.getFeed();
-      const startIndex = (page - 1) * PAGE_SIZE;
-      const pageFeed = rawFeed.slice(startIndex, startIndex + PAGE_SIZE);
+      const pageFeed = await postService.getFeed(page - 1, PAGE_SIZE);
 
       return pageFeed.map((post) => ({
         id: post.id,
         author: {
+          id: post.author.id,
           name: post.author.name,
           username: post.author.username,
-          avatarUri: post.author.profilePictureUrl || '',
+          avatarUri: resolveUserPhotoUrl(post.author) ?? '',
         },
         content: post.item.description || 'Novo item na coleção!',
         publishedLabel: 'Agora',
@@ -191,19 +206,28 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     clearDetailNotificationTimer();
+
+    setSelectedItemFull(null);
+    itemService
+      .getById(selected.item.id, selected.item.collectionId)
+      .then((fullItem) => {
+        if (fullItem) {
+          setSelectedItemFull(fullItem);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load item details in FeedScreen:', err);
+      });
   };
 
   const handleTogglePostLike = useCallback(
-    (postId: string): void => {
+    async (postId: string): Promise<void> => {
       const post = posts.find((p) => p.id === postId);
       if (!post) return;
 
-      if (post.isLiked) {
-        void postService.unlikePost(postId);
-      } else {
-        void postService.likePost(postId);
-      }
+      const originalPostsState = [...posts];
 
+      // Optimistic update
       setPosts((current) => {
         return current.map((p) => {
           if (p.id !== postId) {
@@ -221,6 +245,37 @@ export default function FeedScreen() {
           };
         });
       });
+
+      try {
+        if (post.isLiked) {
+          await postService.unlikePost(postId);
+        } else {
+          await postService.likePost(postId);
+        }
+      } catch (error: any) {
+        // TODO(user): Solucao temporaria. O usuario deve ajustar no backend ou nas chamadas de carregamento do Feed para retornar o estado real de 'isLiked' do banco de dados, em vez de retornar sempre 'false' no frontend. Nao remover este TODO via IA.
+        const errorMessage = error?.message || error?.data?.message || '';
+        const isAlreadyLikedError = errorMessage.includes('already liked');
+        const isNotLikedError =
+          errorMessage.includes('not liked') || errorMessage.includes('never liked');
+
+        if (!post.isLiked && isAlreadyLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already liked in the backend, keeping UI state as liked.'
+          );
+          return;
+        }
+
+        if (post.isLiked && isNotLikedError) {
+          console.warn(
+            '[FeedScreen] Item was already unliked in the backend, keeping UI state as unliked.'
+          );
+          return;
+        }
+
+        console.error('Failed to toggle like on API, reverting:', error);
+        setPosts(originalPostsState);
+      }
     },
     [posts, postService]
   );
@@ -233,8 +288,9 @@ export default function FeedScreen() {
         return;
       }
 
+      // Share post details without any external URL links per product requirements
       await Share.share({
-        message: `${post.author.name} (@${post.author.username}) compartilhou ${post.item.title} no Collectto.\n\n${post.content}`,
+        message: `${post.author.name} (@${post.author.username}) compartilhou ${post.item.title} no Collectto: "${post.content}"`,
       });
     },
     [posts]
@@ -266,6 +322,7 @@ export default function FeedScreen() {
     setIsDetailNotificationCardVisible(false);
     setDetailNotificationCardMessage('');
     setSelectedPost(null);
+    setSelectedItemFull(null);
   };
 
   const detailItem = useMemo(() => {
@@ -273,9 +330,9 @@ export default function FeedScreen() {
       return null;
     }
 
-    const postItem = (postService.getFeedSync?.() || []).find(
-      (p) => p.id === selectedPost.id
-    )?.item;
+    const postItem =
+      selectedItemFull ||
+      (postService.getFeedSync?.() || []).find((p) => p.id === selectedPost.id)?.item;
 
     const attributeList = postItem?.attributes
       ? Object.entries(postItem.attributes).map(([key, value]) => ({
@@ -295,7 +352,7 @@ export default function FeedScreen() {
         { label: 'Status', value: postItem?.isActive ? 'Ativo' : 'Inativo' },
       ],
     };
-  }, [postService, selectedPost]);
+  }, [postService, selectedPost, selectedItemFull]);
 
   const detailProfile = useMemo(() => {
     if (!selectedPost) {
@@ -345,8 +402,54 @@ export default function FeedScreen() {
     router.push('/(tabs)/profile');
   };
 
-  const handleOpenSettings = (): void => {
-    router.push('/(tabs)/settings');
+  const handlePressAuthorProfile = useCallback(
+    (authorId: string): void => {
+      if (authorId === user?.id) {
+        router.push('/(tabs)/profile');
+      } else {
+        router.push({
+          pathname: '/users/[userId]',
+          params: { userId: authorId },
+        });
+      }
+    },
+    [router, user]
+  );
+
+  const [isNotificationsDropdownOpen, setIsNotificationsDropdownOpen] = useState(false);
+
+  const handleOpenNotifications = (): void => {
+    setIsNotificationsDropdownOpen(true);
+  };
+
+  const handleCloseNotifications = (): void => {
+    setIsNotificationsDropdownOpen(false);
+  };
+
+  const handlePressNotification = (notification: NotificationSummary): void => {
+    setIsNotificationsDropdownOpen(false);
+    if (
+      notification.context === 'USER_FOLLOW_REQUESTED' ||
+      notification.context === 'USER_ACCEPTED_FOLLOW_REQUEST'
+    ) {
+      router.push({
+        pathname: '/users/[userId]',
+        params: { userId: notification.actor.id },
+      });
+    } else if (notification.context === 'COLLECTION_FOLLOWED') {
+      router.push({
+        pathname: '/collections/[collectionId]',
+        params: { collectionId: notification.reference?.id },
+      });
+    } else if (notification.context === 'ITEM_COMMENTED' || notification.context === 'ITEM_LIKED') {
+      router.push({
+        pathname: '/collections/[collectionId]',
+        params: {
+          collectionId: notification.reference?.parentId || '',
+          itemId: notification.reference?.id,
+        },
+      });
+    }
   };
 
   const handleCreateItem = (): void => {
@@ -383,14 +486,13 @@ export default function FeedScreen() {
     setIsRefreshingLatest(true);
 
     loadPage(1).then((latestSnapshot) => {
-      const currentTopPostId = posts[0]?.id;
-      const latestTopPostId = latestSnapshot[0]?.id;
       const hasNewPosts =
         posts.length === 0
           ? latestSnapshot.length > 0
-          : typeof currentTopPostId === 'string' &&
-            typeof latestTopPostId === 'string' &&
-            currentTopPostId !== latestTopPostId;
+          : latestSnapshot.some((latestPost) => !posts.some((p) => p.id === latestPost.id)) ||
+            posts
+              .slice(0, latestSnapshot.length)
+              .some((p, idx) => p.id !== latestSnapshot[idx]?.id);
 
       if (!hasNewPosts) {
         setIsRefreshingLatest(false);
@@ -499,6 +601,7 @@ export default function FeedScreen() {
           onPressShare={(postId) => {
             void handleSharePost(postId);
           }}
+          onPressProfile={handlePressAuthorProfile}
         />
       </View>
     );
@@ -510,10 +613,16 @@ export default function FeedScreen() {
         <Header
           onPressProfile={handleOpenProfile}
           onPressLogo={handleScrollToTop}
-          onPressSettings={handleOpenSettings}
+          onPressNotifications={handleOpenNotifications}
           onPressCreate={handleCreateItem}
         />
       </View>
+
+      <NotificationDropdown
+        visible={isNotificationsDropdownOpen}
+        onClose={handleCloseNotifications}
+        onPressNotification={handlePressNotification}
+      />
 
       <FlatList
         ref={listRef}
@@ -568,7 +677,7 @@ export default function FeedScreen() {
 
           {isItemDetailOpen ? (
             <CollectionItemDetailView
-              isOwner={false}
+              isOwner={selectedPost?.author.id === user?.id}
               profile={detailProfile}
               isFollowing={isDetailFollowing}
               isNotificationsEnabled={isDetailNotificationsEnabled}
@@ -578,6 +687,12 @@ export default function FeedScreen() {
                 void handleShareSelectedItem();
               }}
               onNotificationPress={handleModalNotificationToggle}
+              onPressProfile={() => {
+                if (selectedPost) {
+                  handleCloseItemDetail();
+                  handlePressAuthorProfile(selectedPost.author.id);
+                }
+              }}
             />
           ) : null}
 

@@ -18,6 +18,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { formatDate } from '@/utils/formatDate';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
+import { getUserById } from '@/services/api/api';
+import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
 import { useItemService } from '@/providers/ItemContextProvider';
 
 type CollectionViewProfile = {
@@ -35,6 +37,8 @@ type CollectionViewScreenProps = {
   profile: CollectionViewProfile;
   isFollowing: boolean;
   isSystem: boolean;
+  itemId?: string;
+  ownerId?: string;
 };
 
 const NOTIFICATION_CARD_TIMEOUT_MS = 200;
@@ -47,13 +51,17 @@ export function CollectionViewScreen({
   profile,
   isFollowing,
   isSystem,
+  itemId,
+  ownerId,
 }: CollectionViewScreenProps) {
   const router = useRouter();
+  const itemService = useItemService();
   const [following, setFollowing] = useState(isFollowing);
   const [isNotificationsEnabled, setIsNotificationsEnabled] = useState(false);
   const [isNotificationCardVisible, setIsNotificationCardVisible] = useState(false);
   const [notificationCardMessage, setNotificationCardMessage] = useState('');
   const [selectedItem, setSelectedItem] = useState<CollectionGridItem | null>(null);
+  const [selectedItemFull, setSelectedItemFull] = useState<any | null>(null);
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [isSystemModalVisible, setIsSystemModalVisible] = useState(false);
   const notificationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -81,17 +89,47 @@ export function CollectionViewScreen({
       return null;
     }
 
+    if (selectedItemFull && selectedItemFull.id === selectedItem.id) {
+      const characteristics = Object.entries(selectedItemFull.attributes ?? {}).map(
+        ([key, value]) => ({
+          label: key.charAt(0).toUpperCase() + key.slice(1),
+          value: String(value),
+        })
+      );
+
+      if (characteristics.length === 0) {
+        characteristics.push({
+          label: 'Status',
+          value: selectedItemFull.isActive ? 'Ativo' : 'Inativo',
+        });
+      }
+
+      return {
+        title: selectedItemFull.name ?? selectedItem.title ?? collectionTitle,
+        images:
+          selectedItemFull.imageFilesUrls && selectedItemFull.imageFilesUrls.length > 0
+            ? selectedItemFull.imageFilesUrls
+            : selectedItem.images,
+        acquiredDate:
+          formatDate(selectedItemFull.acquisitionDate) ?? selectedItem.acquiredDate ?? '--/--/----',
+        lastUsedDate:
+          formatDate(selectedItemFull.lastUsedDate) ?? selectedItem.lastUsedDate ?? '--/--/----',
+        description: selectedItemFull.description ?? 'Sem descrição para este item.',
+        characteristics,
+      };
+    }
+
     return {
       title: selectedItem.title ?? collectionTitle,
       images: selectedItem.images,
       acquiredDate: selectedItem.acquiredDate ?? '--/--/----',
       lastUsedDate: selectedItem.lastUsedDate ?? '--/--/----',
-      description: selectedItem.description ?? 'Sem descricao para este item.',
+      description: selectedItem.description ?? 'Carregando detalhes...',
       characteristics: selectedItem.characteristics ?? [
-        { label: 'Status', value: 'Sem informacoes' },
+        { label: 'Status', value: 'Carregando...' },
       ],
     };
-  }, [collectionTitle, selectedItem]);
+  }, [collectionTitle, selectedItem, selectedItemFull]);
 
   const handleShareCollection = useCallback(async () => {
     await Share.share({
@@ -107,12 +145,28 @@ export function CollectionViewScreen({
     });
   }, [router, collectionId]);
 
-  const handleOpenItem = useCallback((item: CollectionGridItem) => {
-    setSelectedItem(item);
-  }, []);
+  const handleOpenItem = useCallback(
+    (item: CollectionGridItem) => {
+      setSelectedItem(item);
+      if (item.id) {
+        itemService
+          .getById(item.id, collectionId)
+          .then((fullItem) => {
+            if (fullItem) {
+              setSelectedItemFull(fullItem);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to load item details:', err);
+          });
+      }
+    },
+    [itemService, collectionId]
+  );
 
   const handleCloseItem = useCallback(() => {
     setSelectedItem(null);
+    setSelectedItemFull(null);
   }, []);
 
   const handleNotificationPress = useCallback(() => {
@@ -143,6 +197,17 @@ export function CollectionViewScreen({
     router.back();
   }, [handleCloseItem, router, selectedItem]);
 
+  const handlePressProfile = useCallback(() => {
+    if (isOwner) {
+      router.push('/(tabs)/profile');
+    } else if (ownerId) {
+      router.push({
+        pathname: '/users/[userId]',
+        params: { userId: ownerId },
+      });
+    }
+  }, [isOwner, ownerId, router]);
+
   useFocusEffect(
     useCallback(() => {
       const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -163,10 +228,12 @@ export function CollectionViewScreen({
   useFocusEffect(
     useCallback(() => {
       setSelectedItem(null);
+      setSelectedItemFull(null);
       clearNotificationTimer();
 
       return () => {
         setSelectedItem(null);
+        setSelectedItemFull(null);
         setIsNotificationCardVisible(false);
         setNotificationCardMessage('');
         clearNotificationTimer();
@@ -179,6 +246,15 @@ export function CollectionViewScreen({
       clearNotificationTimer();
     };
   }, [clearNotificationTimer]);
+
+  useEffect(() => {
+    if (itemId && items && items.length > 0) {
+      const targetItem = items.find((item) => item.id === itemId);
+      if (targetItem) {
+        handleOpenItem(targetItem);
+      }
+    }
+  }, [itemId, items, handleOpenItem]);
 
   return (
     <View className="flex-1 bg-surface-base">
@@ -259,18 +335,24 @@ export function CollectionViewScreen({
             void handleShareCollection();
           }}
           onNotificationPress={handleNotificationPress}
+          onPressProfile={handlePressProfile}
         />
       ) : (
         <ScrollView className="flex-1" contentContainerClassName="pb-8">
-          <ProfileInfo
-            isOwner={isOwner}
-            profileImage={profile.profileImage}
-            name={profile.name}
-            username={profile.username}
-            bio={profile.bio}
-            showActions={false}
-            showStats={false}
-          />
+          <Pressable
+            onPress={handlePressProfile}
+            accessibilityRole="link"
+            accessibilityLabel={`Ir para perfil de ${profile.name}`}>
+            <ProfileInfo
+              isOwner={isOwner}
+              profileImage={profile.profileImage}
+              name={profile.name}
+              username={profile.username}
+              bio={profile.bio}
+              showActions={false}
+              showStats={false}
+            />
+          </Pressable>
 
           <ProfileActionsBar
             isOwner={isOwner}
@@ -321,10 +403,16 @@ export function CollectionViewScreen({
 }
 
 export default function CollectionViewScreenRoute() {
-  const params = useLocalSearchParams<{ collectionId?: string }>();
+  const params = useLocalSearchParams<{
+    collectionId?: string;
+    ownerId?: string;
+    itemId?: string;
+  }>();
   const collectionId = Array.isArray(params.collectionId)
     ? (params.collectionId[0] ?? 'default')
     : (params.collectionId ?? 'default');
+  const ownerIdParam = Array.isArray(params.ownerId) ? params.ownerId[0] : params.ownerId;
+  const itemIdParam = Array.isArray(params.itemId) ? params.itemId[0] : params.itemId;
 
   const collectionService = useCollectionService();
   const itemService = useItemService();
@@ -337,13 +425,23 @@ export default function CollectionViewScreenRoute() {
       Promise.all([
         collectionService.getById(collectionId),
         itemService.getByCollection(collectionId),
-      ]).then(([collection, items]) => {
+      ]).then(async ([collection, items]) => {
         if (isMounted && collection) {
+          let authorProfile = user;
+          try {
+            const fetchId = ownerIdParam ?? collection.userId;
+            const fetched = await getUserById(fetchId);
+            if (fetched) authorProfile = fetched;
+          } catch {
+            // ignore and fallback to current user
+          }
+
           setData({
             isOwner: collection.userId === user?.id,
             collectionId: collectionId,
             collectionTitle: collection.name,
             isSystem: collection.isSystem ?? false,
+            itemId: itemIdParam,
             items: items.map((item) => {
               const characteristics = Object.entries(item.attributes ?? {}).map(([key, value]) => ({
                 label: key.charAt(0).toUpperCase() + key.slice(1),
@@ -368,19 +466,20 @@ export default function CollectionViewScreenRoute() {
               };
             }),
             profile: {
-              name: user?.name || 'Usuário',
-              username: user?.username || 'collectto',
-              bio: user?.bio || '',
-              profileImage: user?.profilePictureUrl || null,
+              name: authorProfile?.name || 'Usuário',
+              username: authorProfile?.username || 'collectto',
+              bio: authorProfile?.bio || '',
+              profileImage: resolveUserPhotoUrl(authorProfile) ?? null,
             },
             isFollowing: false,
+            ownerId: authorProfile?.id || collection.userId,
           });
         }
       });
       return () => {
         isMounted = false;
       };
-    }, [collectionId, collectionService, itemService, user])
+    }, [collectionId, collectionService, itemService, user, ownerIdParam, itemIdParam])
   );
 
   if (!data) return null;

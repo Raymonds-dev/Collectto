@@ -1,6 +1,6 @@
 # Feature Specification: Debug Mode
 
-**Feature Branch**: `003-create-feature-spec`  
+**Feature Branch**: `feature/003-create-feature-spec`  
 **Created**: 2026-05-12  
 **Status**: Draft  
 **Input**: User description: "Quero fazer o app funcionar de forma efêmera ... para testar fluxos novos e fazer apresentação offline, com DEBUG true usando mocks em memória e sem API."

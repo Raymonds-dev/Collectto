@@ -1,6 +1,6 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { tokens } from '@/styles/tailwind/tokens.native';
@@ -16,12 +16,19 @@ type ProfileInfoProps = {
   hasLink?: boolean;
   showActions?: boolean;
   showStats?: boolean;
+  isFollowing?: boolean;
+  followStatus?: 'NONE' | 'PENDING' | 'ACCEPTED';
+  isFollowLoading?: boolean;
+  onFollowToggle?: () => void;
+  onSharePress?: () => void;
 };
 
 type ActionButtonProps = {
   label?: string;
   iconName?: React.ComponentProps<typeof Ionicons>['name'];
   isCircular?: boolean;
+  accessibilityLabel?: string;
+  disabled?: boolean;
   onPress?: () => void;
 };
 
@@ -37,7 +44,14 @@ function formatCount(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value);
 }
 
-function ActionButton({ label, iconName, isCircular = false, onPress }: ActionButtonProps) {
+function ActionButton({
+  label,
+  iconName,
+  isCircular = false,
+  accessibilityLabel,
+  disabled = false,
+  onPress,
+}: ActionButtonProps) {
   const baseClass = isCircular ? 'p-2 rounded-full' : 'h-10 min-w-[88px] rounded-full px-4';
 
   return (
@@ -48,8 +62,12 @@ function ActionButton({ label, iconName, isCircular = false, onPress }: ActionBu
       style={styles.buttonGradient}>
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        disabled={disabled}
         onPress={onPress}
-        className={`flex-row items-center justify-center border border-surface-borderStrong bg-surface-base active:opacity-75 ${baseClass}`}>
+        className={`flex-row items-center justify-center border border-surface-borderStrong bg-surface-base active:opacity-75 ${
+          disabled ? 'opacity-60' : ''
+        } ${baseClass}`}>
         {iconName ? <Ionicons name={iconName} size={18} color={tokens.colors.text.base} /> : null}
         {label ? <Text className="ml-2 text-sm font-semibold text-text-base">{label}</Text> : null}
       </Pressable>
@@ -77,9 +95,39 @@ export function ProfileInfo({
   hasLink = false,
   showActions = true,
   showStats = true,
+  isFollowing: isFollowingProp,
+  followStatus = 'NONE',
+  isFollowLoading = false,
+  onFollowToggle,
+  onSharePress,
 }: ProfileInfoProps) {
-  const [isFollowing, setIsFollowing] = useState(false);
+  const isPendingFollow = followStatus === 'PENDING';
+  const [isFollowingLocal, setIsFollowingLocal] = useState(false);
+  const isFollowing = isFollowingProp !== undefined ? isFollowingProp : isFollowingLocal;
   const shouldShowActionsRow = showActions || showStats;
+
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  const checkStaticHasMore = useCallback((text: string) => {
+    if (!text) return false;
+    const newlineCount = (text.match(/\n/g) || []).length;
+    if (newlineCount >= 2) return true;
+    if (text.length > 85) return true;
+    return false;
+  }, []);
+
+  const [hasMore, setHasMore] = useState(() => checkStaticHasMore(bio));
+
+  useEffect(() => {
+    setIsExpanded(false);
+    setHasMore(checkStaticHasMore(bio));
+  }, [bio, checkStaticHasMore]);
+
+  const handleTextLayout = useCallback((e: any) => {
+    if (e.nativeEvent.lines.length > 2) {
+      setHasMore(true);
+    }
+  }, []);
 
   return (
     <View className="px-[10px] pt-[5px]">
@@ -105,9 +153,25 @@ export function ProfileInfo({
         <View className="flex-1">
           <Text className="text-2xl font-bold text-text-base">{name}</Text>
           <Text className="mt-1 text-sm text-text-muted">@{username}</Text>
-          <Text className="mt-2 w-full text-sm leading-5 text-text-base" numberOfLines={2}>
-            {bio}
-          </Text>
+          <View>
+            <Text
+              className="mt-2 w-full text-sm leading-5 text-text-base"
+              numberOfLines={isExpanded ? undefined : 2}
+              onTextLayout={handleTextLayout}>
+              {bio}
+            </Text>
+            {hasMore && (
+              <Pressable
+                onPress={() => setIsExpanded(!isExpanded)}
+                accessibilityRole="button"
+                accessibilityLabel={isExpanded ? 'Mostrar menos' : 'Mostrar mais'}
+                className="mt-1 self-start active:opacity-75">
+                <Text className="text-sm font-semibold text-brand-primary">
+                  {isExpanded ? 'menos' : 'mais'}
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </View>
       {/* Action Buttons */}
@@ -117,7 +181,7 @@ export function ProfileInfo({
           showsHorizontalScrollIndicator={false}
           className="mt-5"
           contentContainerClassName="pr-2">
-          <View className="flex-row items-center gap-3">
+          <View className="flex-row items-center justify-end gap-3">
             {showStats ? <StatChip label="Seguidores" value={followersCount} /> : null}
             {showStats ? <StatChip label="Seguindo" value={followingCount} /> : null}
 
@@ -125,14 +189,29 @@ export function ProfileInfo({
               isOwner ? (
                 <>
                   {hasLink ? <ActionButton label="Links" iconName="link-outline" /> : null}
-                  <ActionButton isCircular iconName="share-social-outline" />
+                  <ActionButton isCircular iconName="share-social-outline" onPress={onSharePress} />
                 </>
               ) : (
                 <>
                   <ActionButton
-                    label={isFollowing ? 'Seguindo' : 'Seguir'}
-                    iconName={isFollowing ? 'checkmark' : 'add'}
-                    onPress={() => setIsFollowing((current) => !current)}
+                    label={isPendingFollow ? 'Pendente' : isFollowing ? 'Seguindo' : 'Seguir'}
+                    iconName={isPendingFollow ? 'time-outline' : isFollowing ? 'checkmark' : 'add'}
+                    accessibilityLabel={
+                      isPendingFollow
+                        ? 'Solicitação de follow pendente'
+                        : isFollowing
+                          ? 'Parar de seguir'
+                          : 'Seguir usuário'
+                    }
+                    disabled={isFollowLoading || isPendingFollow}
+                    onPress={() => {
+                      if (isFollowLoading || isPendingFollow) return;
+                      if (onFollowToggle) {
+                        onFollowToggle();
+                      } else {
+                        setIsFollowingLocal((current) => !current);
+                      }
+                    }}
                   />
                   {hasLink ? <ActionButton isCircular iconName="link-outline" /> : null}
                   <ActionButton iconName="notifications-outline" isCircular />

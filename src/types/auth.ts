@@ -6,6 +6,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string;
   tokenType: 'Bearer';
+  refreshToken: string;
 }
 
 export interface CreateUserRequest {
@@ -33,6 +34,11 @@ export interface UpdateUserRequest {
   birthdayDate?: string;
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+}
+
 export interface UserResponse {
   id: string;
   name: string;
@@ -41,6 +47,8 @@ export interface UserResponse {
   bio?: string;
   profilePictureUrl?: string;
   profileBackgroundUrl?: string;
+  /** Compatibility alias used across the codebase for profile picture */
+  photoUrl?: string;
   followersCount?: number;
   followingCount?: number;
   isActive?: boolean;
@@ -51,3 +59,13 @@ export interface UserResponse {
 export type AuthUser = UserResponse;
 export type Credentials = LoginRequest;
 export type RegisterData = CreateUserRequest;
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
+
+export interface TokenRefreshResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+}

@@ -18,13 +18,13 @@ export const mockItemService: ItemService = {
       userId: debugSession.currentUser?.id || '',
       name: input.name,
       description: input.description || '',
-      acquisitionDate: input.acquisitionDate,
-      lastUsedDate: input.lastUsedDate,
+      acquisitionDate: input.acquisitionDate || undefined,
+      lastUsedDate: input.lastUsedDate || undefined,
       imageFilesUrls: input.imageFilesUrls || [],
-      attributes: input.attributes,
+      attributes: input.attributes || undefined,
       likesCount: 0,
       commentsCount: 0,
-      tags: input.tags,
+      tags: input.tags || undefined,
       isActive: true,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
@@ -33,7 +33,7 @@ export const mockItemService: ItemService = {
     return newItem;
   },
 
-  getById: async (itemId: string): Promise<ItemResponse | null> => {
+  getById: async (itemId: string, collectionId?: string): Promise<ItemResponse | null> => {
     return debugSession.items.find((i) => i.id === itemId) || null;
   },
 

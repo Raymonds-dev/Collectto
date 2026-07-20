@@ -8,13 +8,56 @@ import {
 } from '@/types/auth';
 import { debugSession } from './debugSession';
 
+const encodeBase64Url = (str: string): string => {
+  let base64 = '';
+  if (typeof Buffer !== 'undefined') {
+    base64 = Buffer.from(str).toString('base64');
+  } else if (typeof globalThis.btoa === 'function') {
+    base64 = globalThis.btoa(str);
+  } else if (typeof btoa === 'function') {
+    base64 = btoa(str);
+  }
+  return base64.replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+};
+
+export const generateMockToken = (expirationSeconds: number): string => {
+  const header = { alg: 'HS256', typ: 'JWT' };
+  const payload = {
+    userId: debugSession.currentUser?.id || 'local-user',
+    email: debugSession.currentUser?.email || 'user@example.com',
+    name: debugSession.currentUser?.name || 'User',
+    exp: expirationSeconds,
+  };
+
+  const encodedHeader = encodeBase64Url(JSON.stringify(header));
+  const encodedPayload = encodeBase64Url(JSON.stringify(payload));
+  return `${encodedHeader}.${encodedPayload}.mocksignature`;
+};
+
 export const mockAuthService = {
   login: async (credentials: Credentials): Promise<LoginResponse> => {
     console.log('[DEBUG] mockAuthService.login called', credentials.email);
     debugSession.initialize();
+
+    const input = credentials.email.trim().toLowerCase();
+    const isAna = input === 'anasilva' || input === 'ana@collectto.app' || input.includes('ana');
+
+    const selectedUser = isAna
+      ? debugSession.users.find((u) => u.id === 'ana-silva-uuid-9999')
+      : debugSession.users.find((u) => u.id === '00000000-0000-4000-8000-000000000000');
+
+    if (selectedUser) {
+      debugSession.currentUser = selectedUser;
+    }
+
+    // Set expiration to 24 hours from now by default
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    const exp = nowInSeconds + 24 * 60 * 60;
+
     return {
-      accessToken: 'debug-token-123',
+      accessToken: generateMockToken(exp),
       tokenType: 'Bearer',
+      refreshToken: 'mock-refresh-token-' + Date.now(),
     };
   },
 
@@ -26,7 +69,6 @@ export const mockAuthService = {
       name: data.name,
       username: data.username,
       email: data.email,
-
       createdAt: new Date().toISOString(),
     };
   },
@@ -46,7 +88,6 @@ export const mockAuthService = {
       if (data.profilePictureUrl === null) delete updated.profilePictureUrl;
       if (data.profileBackgroundUrl === null) delete updated.profileBackgroundUrl;
 
-      // Type assertion since we deleted the nulls
       debugSession.currentUser = updated as UserResponse;
     }
     return debugSession.currentUser!;
@@ -55,5 +96,12 @@ export const mockAuthService = {
   logout: async (): Promise<void> => {
     console.log('[DEBUG] mockAuthService.logout called');
     debugSession.clear();
+  },
+
+  refreshSession: async (currentToken: string): Promise<string> => {
+    console.log('[DEBUG] mockAuthService.refreshSession called');
+    const nowInSeconds = Math.floor(Date.now() / 1000);
+    // Extend the expiration time by 1 hour (3600 seconds)
+    return generateMockToken(nowInSeconds + 3600);
   },
 };

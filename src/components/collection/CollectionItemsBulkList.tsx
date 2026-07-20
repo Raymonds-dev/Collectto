@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, Image, Pressable, Text, View } from 'react-native';
+import { FlatList, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
@@ -250,7 +250,7 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
           onConfirm={() => {
             void handleMoveConfirm();
           }}>
-          <View className="mt-4 max-h-[300px]">
+          <ScrollView className="mt-4 max-h-[300px]" showsVerticalScrollIndicator={true}>
             <CollectionSelector
               selectedCollectionId={moveTargetId}
               onSelectCollection={setMoveTargetId}
@@ -260,7 +260,7 @@ export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = (
               collections={moveableCollections}
               allowSkip={false}
             />
-          </View>
+          </ScrollView>
         </Modal>
       )}
     </View>

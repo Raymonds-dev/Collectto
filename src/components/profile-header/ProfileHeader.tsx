@@ -2,27 +2,42 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import { tokens } from '@/styles/tailwind/tokens.native';
-import { ImageBackground, Pressable, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 
 type ProfileHeaderProps = {
   isOwner: boolean;
   bannerImage: string | null;
+  isUploading?: boolean;
+  onBannerLoad?: () => void;
+  onBannerError?: () => void;
   onEditPress?: () => void;
   onOptionsPress?: () => void;
 };
 
 type HeaderActionProps = {
   isOwner: boolean;
+  disabled?: boolean;
   onEditPress?: () => void;
   onOptionsPress?: () => void;
 };
 
-function HeaderAction({ isOwner, onEditPress, onOptionsPress }: HeaderActionProps) {
+function HeaderAction({ isOwner, disabled, onEditPress, onOptionsPress }: HeaderActionProps) {
   const [isPressed, setIsPressed] = useState(false);
   const iconName = isOwner ? 'pencil' : 'ellipsis-horizontal';
   const accessibilityLabel = isOwner ? 'Editar perfil' : 'Abrir acoes do perfil';
 
   function handlePress() {
+    if (disabled) {
+      return;
+    }
+
     if (isOwner) {
       onEditPress?.();
       return;
@@ -35,10 +50,12 @@ function HeaderAction({ isOwner, onEditPress, onOptionsPress }: HeaderActionProp
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: Boolean(disabled) }}
+      disabled={disabled}
       onPress={handlePress}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
-      className={`absolute right-3 top-3 z-10 h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-overlay-scrimSoft ${isPressed ? 'opacity-75' : 'opacity-100'}`}>
+      className={`absolute right-3 top-3 z-10 h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-overlay-scrimSoft ${isPressed ? 'opacity-75' : 'opacity-100'} ${disabled ? 'opacity-60' : ''}`}>
       <Ionicons name={iconName} size={18} color={tokens.colors.text.inverse} />
     </Pressable>
   );
@@ -47,6 +64,9 @@ function HeaderAction({ isOwner, onEditPress, onOptionsPress }: HeaderActionProp
 export function ProfileHeader({
   isOwner,
   bannerImage,
+  isUploading = false,
+  onBannerLoad,
+  onBannerError,
   onEditPress,
   onOptionsPress,
 }: ProfileHeaderProps) {
@@ -65,13 +85,27 @@ export function ProfileHeader({
         <ImageBackground
           source={{ uri: bannerImage as string }}
           resizeMode="cover"
+          onLoad={onBannerLoad}
+          onError={onBannerError}
           className="h-full w-full"
         />
       ) : (
         <View className="h-full w-full bg-surface-muted" />
       )}
 
-      <HeaderAction isOwner={isOwner} onEditPress={onEditPress} onOptionsPress={onOptionsPress} />
+      <HeaderAction
+        isOwner={isOwner}
+        disabled={isUploading}
+        onEditPress={onEditPress}
+        onOptionsPress={onOptionsPress}
+      />
+
+      {isUploading ? (
+        <View className="absolute inset-0 items-center justify-center bg-overlay-scrim">
+          <ActivityIndicator size="small" color={tokens.colors.brand.primary} />
+          <Text className="mt-2 text-xs font-semibold text-text-inverse">Atualizando capa...</Text>
+        </View>
+      ) : null}
 
       {/* expo-linear-gradient tem suporte parcial a NativeWind; usar style nativo evita inconsistencias */}
       <LinearGradient

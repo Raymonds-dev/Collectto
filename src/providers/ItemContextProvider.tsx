@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react';
 import type { ItemService } from '@/types/items';
+import { isDebugModeEnabled } from '@/services/debug/debugFlags';
 import { mockItemService } from '@/services/debug';
+import { apiItemService } from '@/services/api/crudServices';
 
 interface ItemContextValue {
   itemService: ItemService;
@@ -15,7 +17,7 @@ interface ItemContextProviderProps {
 export const ItemContextProvider = ({ children }: ItemContextProviderProps) => {
   const value = useMemo<ItemContextValue>(
     () => ({
-      itemService: mockItemService,
+      itemService: isDebugModeEnabled() ? mockItemService : apiItemService,
     }),
     []
   );

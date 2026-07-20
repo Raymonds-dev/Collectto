@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useItemCreation } from '@/hooks/useItemCreation';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
@@ -337,7 +337,10 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({
           <ScrollView
             className="flex-1"
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}>
+            contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
+            refreshControl={
+              <RefreshControl refreshing={collectionsLoading} onRefresh={loadCollections} />
+            }>
             <CollectionCreationForm
               selectedCollectionId={formData.collectionId}
               onSelectCollection={selectCollection}

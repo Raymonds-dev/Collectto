@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Collection, CollectionVisibility } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
-import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { uploadCollectionCover } from '@/services/api/uploadService';
 
 export interface CollectionCreationInput {
   name: string;
@@ -35,28 +35,44 @@ export const useCollectionCreation = () => {
           return { success: false, error: validationError };
         }
 
-        let coverImageUrl: string | null = null;
-        if (input.coverLocalUri) {
-          const storageProvider = createPhotoStorageProvider();
-          const permanentReference = await storageProvider.moveToPermament(
-            input.coverLocalUri,
-            'collections'
-          );
-          coverImageUrl = permanentReference.permanentUri;
-        }
-
-        const collection = await collectionService.create({
+        const payload = {
           name,
           description: input.description?.trim() || '',
-          coverImageUrl: coverImageUrl || undefined,
-          tags: input.tags,
-        });
+          coverImageUrl: null,
+          tags: input.tags || [],
+          visibility: input.visibility,
+        };
+
+        let collection = await collectionService.create(payload);
+
+        if (input.coverLocalUri) {
+          try {
+            const uploadedUrl = await uploadCollectionCover(input.coverLocalUri, collection.id);
+            collection = await collectionService.update(collection.id, {
+              id: collection.id,
+              coverImageUrl: uploadedUrl,
+            });
+          } catch (uploadErr) {
+            console.error(
+              '[useCollectionCreation] Failed to upload/update collection cover:',
+              uploadErr
+            );
+            throw uploadErr;
+          }
+        }
 
         return {
           success: true,
           collection,
         };
-      } catch (err) {
+      } catch (err: any) {
+        console.error('[useCollectionCreation] Failed to create collection:', err);
+        if (err && typeof err === 'object' && err.data) {
+          console.error(
+            '[useCollectionCreation] Backend response details:',
+            JSON.stringify(err.data)
+          );
+        }
         const errorMessage = err instanceof Error ? err.message : 'Falha ao criar coleção';
         setError(errorMessage);
         return {

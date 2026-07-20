@@ -1,15 +1,12 @@
 <!--
 Sync Impact Report
-Version change: template → 1.0.0
+Version change: 1.1.0 → 1.2.1
 Modified principles:
-- Principle 1 placeholder → Visual First
-- Principle 2 placeholder → Fluidez Acima de Complexidade
-- Principle 3 placeholder → Consistência > Criatividade Isolada
-- Principle 4 placeholder → Coleção É Identidade
-- Principle 5 placeholder → Microinterações, Performance e Motion Oficial
+- None
 Added sections:
-- Diretrizes de Produto e UX
-- Diretrizes de Engenharia e Arquitetura
+- None
+Expanded sections:
+- Padrões de Código Escrito e Qualidade (added Desenvolvimento Multiplataforma guideline prioritizing iOS/Android cross-platform compatibility and allowing library fallbacks)
 Removed sections:
 - None
 Templates requiring updates:
@@ -104,6 +101,17 @@ reduced with guard clauses, and public contracts SHOULD use explicit TypeScript 
 Accessibility labels, touch feedback, and safe interaction states are required for
 user-facing actions.
 
+### Padrões de Código Escrito e Qualidade
+
+- **Uso de Arrow Functions**: Funções auxiliares, helpers, utilitários, hooks e callbacks globais MUST ser declarados através de arrow functions atribuídas a constantes. Componentes React, métodos de classe e callbacks inline são exceções permitidas.
+- **Tipagem Estrita**: Declarações em TypeScript MUST evitar o tipo `any`, preferindo tipos estruturados, união de tipos literais ou `unknown`. Contratos de serviço, utilitários e APIs públicas MUST ter anotações explícitas de parâmetros e retorno.
+- **Estruturas de Controle**: O aninhamento profundo de condicionais MUST ser evitado através de retornos precoces (*guard clauses*).
+- **Gates de Qualidade**: Antes de qualquer commit ou pull request, o código MUST passar livre de warnings ou erros pelo linter, TypeScript compiler e formatador através da execução do comando `npm run validate`.
+- **Tratamento Resiliente de Erros**: Falhas de comunicação externa MUST ser tratadas usando o mapeador centralizado em português (pt-BR) com códigos de diagnósticos simplificados anexados para o usuário.
+- **Segurança de Logs**: Logs gerados pelo aplicativo MUST sanitizar e omitir qualquer informação pessoal identificável (PII), incluindo e-mails, tokens JWT e credenciais brutas, priorizando armazenamento temporário em memória (buffer FIFO circular).
+- **Padrão de Branches e Commits**: Branches de desenvolvimento MUST seguir o formato `<tipo>/<descricao-curta>`, onde o tipo é uma categoria semântica (`feature/`, `fix/`, `refactor/`, `chore/`). As mensagens de commit correspondentes MUST ser curtas e indicar o objetivo principal em português.
+- **Desenvolvimento Multiplataforma**: Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa tanto em Android quanto em iOS. Deve-se evitar depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto). Em vez disso, deve-se adotar soluções multiplataforma explícitas e consistentes, como o uso de `KeyboardAvoidingView` para garantir que o teclado não oculte áreas de entrada de dados ou conteúdo interativo em ambas as plataformas. Caso não exista uma solução nativa viável ou performática, o uso de bibliotecas de terceiros devidamente avaliadas é permitido.
+
 ## Governance
 
 This constitution supersedes local style preferences, ad-hoc patterns, and conflicting
@@ -119,4 +127,4 @@ Compliance review MUST verify visual hierarchy, motion discipline, accessibility
 performance, and component reuse. If a change violates the constitution, the plan
 must record the violation and the reason a simpler compliant alternative was rejected.
 
-**Version**: 1.0.0 | **Ratified**: 2026-05-01 | **Last Amended**: 2026-05-01
+**Version**: 1.2.1 | **Ratified**: 2026-05-01 | **Last Amended**: 2026-06-11

@@ -18,6 +18,7 @@ export type PostItemPreview = {
 };
 
 export type PostAuthor = {
+  id: string;
   name: string;
   username: string;
   avatarUri: string;
@@ -40,6 +41,7 @@ export type PostProps = {
   onPressComment?: (postId: string) => void;
   onPressOpenCollection?: (postId: string) => void;
   onPressShare?: (postId: string) => void;
+  onPressProfile?: (authorId: string) => void;
 };
 
 const brandJourney = tokens.gradients.brandJourney as string[];
@@ -97,6 +99,7 @@ export const Post = ({
   onPressComment,
   onPressOpenCollection,
   onPressShare,
+  onPressProfile,
 }: PostProps) => {
   const [avatarLoading, setAvatarLoading] = useState(true);
   const [avatarError, setAvatarError] = useState(false);
@@ -104,7 +107,11 @@ export const Post = ({
   return (
     <MotionView visible presets={['slideUp', 'fade']} delay={entranceDelay} className="w-full">
       <View className="w-full rounded-2xl bg-surface-base p-1">
-        <View className="w-full flex-row items-start gap-2 p-1">
+        <AnimatedPressable
+          accessibilityRole="link"
+          accessibilityLabel={`Ir para perfil de ${author.name}`}
+          onPress={() => onPressProfile?.(author.id)}
+          className="w-full flex-row items-start gap-2 p-1">
           {avatarLoading ? (
             <View className="h-10 w-10 rounded-full border border-surface-border bg-surface-muted" />
           ) : null}
@@ -138,7 +145,7 @@ export const Post = ({
 
             <Text className="font-body text-[11px] leading-[16px] text-text-base">{content}</Text>
           </View>
-        </View>
+        </AnimatedPressable>
 
         <AnimatedPressable
           accessibilityRole="button"

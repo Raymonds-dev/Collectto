@@ -17,6 +17,8 @@ import { useItemService } from '@/providers/ItemContextProvider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { Collection } from '@/types/collections';
 import type { ItemResponse } from '@/types/items';
+import { uploadItemPhoto } from '@/services/api/uploadService';
+import { getApiBaseUrl } from '@/services/api/env';
 
 /**
  * Edit Item Screen.
@@ -58,7 +60,6 @@ export default function EditItemScreen() {
     removeExistingPhoto,
     setFormField,
     selectCollection,
-    buildUpdateRequest,
     isValid,
     reset,
   } = useItemEdit({ item });
@@ -96,17 +97,75 @@ export default function EditItemScreen() {
   }, [itemId, itemService, collectionService]);
 
   const handleSave = useCallback(async (): Promise<void> => {
-    if (!isValid()) return;
+    if (!isValid() || !item) return;
     setIsSaving(true);
     setSaveError(null);
     try {
-      const request = buildUpdateRequest();
-      await itemService.update(itemId, request);
+      // 1. Upload new local photos first
+      const uploadedPhotoPaths: string[] = [];
+      for (const photo of localPhotos) {
+        const filePath = await uploadItemPhoto(
+          photo.localUri,
+          formData.collectionId || item.collectionId,
+          itemId
+        );
+        uploadedPhotoPaths.push(filePath);
+      }
+
+      // 2. Format existingPhotoUrls by removing the API base URL prefix
+      const baseUrl = getApiBaseUrl();
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+      const relativeExistingUrls = existingPhotoUrls.map((url) => {
+        if (url.startsWith(cleanBase)) {
+          return url.substring(cleanBase.length);
+        }
+        return url;
+      });
+
+      const finalImageUrls = [...relativeExistingUrls, ...uploadedPhotoPaths];
+
+      await itemService.update(itemId, {
+        id: itemId,
+        name: formData.name.trim(),
+        description: formData.description.trim() || undefined,
+        acquisitionDate: formData.acquisitionDate || undefined,
+        imageFilesUrls: finalImageUrls.length > 0 ? finalImageUrls : null,
+        attributes: Object.keys(formData.attributes).length > 0 ? formData.attributes : undefined,
+        tags: formData.tags.length > 0 ? formData.tags : undefined,
+        collectionId: formData.collectionId,
+      });
+
       if (isMountedRef.current) {
         reset();
         router.back();
       }
-    } catch (err) {
+    } catch (err: any) {
+      console.error('[EditItemScreen] Error updating item.');
+      console.error(
+        '[EditItemScreen] Attempted form data:',
+        JSON.stringify({ formData, existingPhotoUrls, localPhotos }, null, 2)
+      );
+      if (err && typeof err === 'object') {
+        console.error(
+          '[EditItemScreen] Error details:',
+          JSON.stringify(
+            {
+              message: err.message,
+              code: err.code,
+              status: err.status,
+              data: err.data,
+            },
+            null,
+            2
+          )
+        );
+        if (err.stack) {
+          console.error('[EditItemScreen] Stack trace:', err.stack);
+        }
+      } else {
+        console.error('[EditItemScreen] Error:', err);
+      }
+
       const message = err instanceof Error ? err.message : 'Falha ao salvar item';
       if (isMountedRef.current) {
         setSaveError(message);
@@ -116,7 +175,7 @@ export default function EditItemScreen() {
         setIsSaving(false);
       }
     }
-  }, [buildUpdateRequest, isValid, itemId, itemService, reset, router]);
+  }, [isValid, item, localPhotos, existingPhotoUrls, formData, itemId, itemService, reset, router]);
 
   const handleDelete = useCallback(async (): Promise<void> => {
     setIsDeleting(true);
@@ -372,7 +431,7 @@ export default function EditItemScreen() {
         onConfirm={() => {
           void handleMove();
         }}>
-        <View className="mt-2 max-h-[300px]">
+        <ScrollView className="mt-2 max-h-[300px]" showsVerticalScrollIndicator={true}>
           <CollectionCreationForm
             selectedCollectionId={moveTargetId}
             onSelectCollection={setMoveTargetId}
@@ -380,7 +439,7 @@ export default function EditItemScreen() {
             collections={moveableCollections}
             allowSkip={false}
           />
-        </View>
+        </ScrollView>
       </Modal>
     </View>
   );

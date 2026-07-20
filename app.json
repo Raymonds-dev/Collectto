@@ -24,7 +24,7 @@
       "expo-font"
     ],
     "orientation": "portrait",
-    "icon": "./src/assets/icon.svg",
+    "icon": "./src/assets/logo-default.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/splash.png",
@@ -45,13 +45,15 @@
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/logo.png",
+        "foregroundImage": "./src/assets/logo-default.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.raymondsdev.Collectto"

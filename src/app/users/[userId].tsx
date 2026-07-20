@@ -25,7 +25,9 @@ import { AnimatedPressable } from '@/components/ui/animated';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 
-import { getCollectionsByUser, getUserById } from '@/services/api/api';
+import { followUser, getCollectionsByUser, getUserById, unfollowUser } from '@/services/api/api';
+import { useAuth } from '@/providers/AuthProvider';
+import { ApiError } from '@/services/api/types';
 import type { AuthUser } from '@/types/auth';
 import type { CollectionSummaryResponse } from '@/types/collections';
 import { isDebugModeEnabled } from '@/services/debug/debugFlags';
@@ -45,15 +47,19 @@ const profileOptions: OptionsBarOption[] = [
 export default function UserProfileScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { user: authenticatedUser } = useAuth();
   const { userId } = useLocalSearchParams<{ userId: string }>();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
   const [userProfile, setUserProfile] = useState<AuthUser | null>(null);
   const [collections, setCollections] = useState<CollectionSummaryResponse[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followStatus, setFollowStatus] = useState<'NONE' | 'PENDING' | 'ACCEPTED'>('NONE');
   const [isMenuVisible, setIsMenuVisible] = useState(false);
+  const isOwner = authenticatedUser?.id === userProfile?.id;
 
   const loadProfileData = React.useCallback(async () => {
     if (!userId) return;
@@ -66,9 +72,12 @@ export default function UserProfileScreen() {
       setCollections(collectionsData.content || collectionsData.collections || []);
 
       if (isDebugModeEnabled()) {
-        setIsFollowing(debugSession.follows.includes(userId));
+        const followingNow = debugSession.follows.includes(userId);
+        setIsFollowing(followingNow);
+        setFollowStatus(followingNow ? 'PENDING' : 'NONE');
       } else {
         setIsFollowing(false);
+        setFollowStatus('NONE');
       }
     } catch (error) {
       console.error('[UserProfileScreen] Failed to load profile:', error);
@@ -88,41 +97,81 @@ export default function UserProfileScreen() {
   };
 
   const handleFollowToggle = async () => {
-    if (!userId) return;
+    if (!userId || followLoading || isOwner) return;
+    setFollowLoading(true);
 
-    if (isDebugModeEnabled()) {
-      const index = debugSession.follows.indexOf(userId);
-      if (index > -1) {
-        debugSession.follows.splice(index, 1);
-        setIsFollowing(false);
-        if (userProfile) {
-          const updatedProfile = {
-            ...userProfile,
-            followersCount: Math.max(0, (userProfile.followersCount || 0) - 1),
-          };
-          setUserProfile(updatedProfile);
-          const sessionUser = debugSession.users.find((u: any) => u.id === userId);
-          if (sessionUser) {
-            sessionUser.followersCount = updatedProfile.followersCount;
-          }
+    try {
+      if (isDebugModeEnabled()) {
+        if (!debugSession.isInitialized) {
+          debugSession.initialize();
         }
-      } else {
-        debugSession.follows.push(userId);
-        setIsFollowing(true);
+
+        const nextFollowingState = !isFollowing;
+        if (nextFollowingState) {
+          await followUser(userId);
+          setFollowStatus('PENDING');
+        } else {
+          await unfollowUser(userId);
+          setFollowStatus('NONE');
+        }
+
+        setIsFollowing(nextFollowingState);
         if (userProfile) {
           const updatedProfile = {
             ...userProfile,
-            followersCount: (userProfile.followersCount || 0) + 1,
+            followersCount: Math.max(
+              0,
+              (userProfile.followersCount || 0) + (nextFollowingState ? 1 : -1)
+            ),
           };
           setUserProfile(updatedProfile);
-          const sessionUser = debugSession.users.find((u: any) => u.id === userId);
-          if (sessionUser) {
-            sessionUser.followersCount = updatedProfile.followersCount;
-          }
+        }
+        return;
+      }
+
+      if (isFollowing) {
+        await unfollowUser(userId);
+        setIsFollowing(false);
+        setFollowStatus('NONE');
+        setUserProfile((current) =>
+          current
+            ? {
+                ...current,
+                followersCount: Math.max(0, (current.followersCount || 0) - 1),
+              }
+            : current
+        );
+        return;
+      }
+
+      await followUser(userId);
+      setIsFollowing(true);
+      setFollowStatus('PENDING');
+      setUserProfile((current) =>
+        current
+          ? {
+              ...current,
+              followersCount: (current.followersCount || 0) + 1,
+            }
+          : current
+      );
+    } catch (error) {
+      if (error instanceof ApiError) {
+        const requestAlreadySent =
+          error.code === 'CONFLICT' ||
+          error.status === 409 ||
+          error.message.toLowerCase().includes('request already sent');
+
+        if (requestAlreadySent) {
+          setIsFollowing(true);
+          setFollowStatus('PENDING');
+          return;
         }
       }
-    } else {
-      // Real API follow logic
+
+      console.error('[UserProfileScreen] Failed to toggle follow state:', error);
+    } finally {
+      setFollowLoading(false);
     }
   };
 
@@ -224,13 +273,13 @@ export default function UserProfileScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
         <View className="flex-1 bg-surface-base">
           <ProfileHeader
-            isOwner={false}
+            isOwner={isOwner}
             bannerImage={resolveProfileBackgroundUrl(userProfile.profileBackgroundUrl)}
             isUploading={false}
             onOptionsPress={() => setIsMenuVisible(true)}
           />
           <ProfileInfo
-            isOwner={false}
+            isOwner={isOwner}
             profileImage={userProfile.profilePictureUrl || userProfile.photoUrl || null}
             name={userProfile.name}
             username={userProfile.username}
@@ -239,6 +288,8 @@ export default function UserProfileScreen() {
             followingCount={userProfile.followingCount || 0}
             hasLink={false}
             isFollowing={isFollowing}
+            followStatus={followStatus}
+            isFollowLoading={followLoading}
             onFollowToggle={handleFollowToggle}
           />
           <ProfileSectionDivider />

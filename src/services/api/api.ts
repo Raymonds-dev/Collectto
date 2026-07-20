@@ -48,6 +48,64 @@ export const declineFollowRequest = async (followerId: string): Promise<UserFoll
   return client.patch<UserFollowResponse>(`users/follow/${followerId}/decline`);
 };
 
+export const followUser = async (followedId: string): Promise<UserFollowResponse> => {
+  if (isDebugModeEnabled()) {
+    if (!debugSession.isInitialized) {
+      debugSession.initialize();
+    }
+
+    const currentUser = debugSession.currentUser;
+    if (!currentUser) {
+      throw new Error('No user authenticated in debug mode');
+    }
+
+    if (!debugSession.follows.includes(followedId)) {
+      debugSession.follows.push(followedId);
+    }
+
+    const targetUser = debugSession.users.find((user) => user.id === followedId);
+    if (targetUser) {
+      targetUser.followersCount = (targetUser.followersCount || 0) + 1;
+    }
+
+    currentUser.followingCount = (currentUser.followingCount || 0) + 1;
+
+    return {
+      followerId: currentUser.id,
+      followedId,
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+    };
+  }
+
+  return client.post<UserFollowResponse>(`users/follow/${followedId}`);
+};
+
+export const unfollowUser = async (followedId: string): Promise<void> => {
+  if (isDebugModeEnabled()) {
+    if (!debugSession.isInitialized) {
+      debugSession.initialize();
+    }
+
+    const currentUser = debugSession.currentUser;
+    if (!currentUser) {
+      throw new Error('No user authenticated in debug mode');
+    }
+
+    debugSession.follows = debugSession.follows.filter((userId) => userId !== followedId);
+
+    const targetUser = debugSession.users.find((user) => user.id === followedId);
+    if (targetUser) {
+      targetUser.followersCount = Math.max(0, (targetUser.followersCount || 0) - 1);
+    }
+
+    currentUser.followingCount = Math.max(0, (currentUser.followingCount || 0) - 1);
+    return;
+  }
+
+  return client.delete<void>(`users/follow/${followedId}`);
+};
+
 export const getAuthenticatedUser = async (authorization?: string): Promise<AuthUser> => {
   if (isDebugModeEnabled()) {
     if (!debugSession.isInitialized) {

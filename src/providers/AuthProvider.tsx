@@ -1,8 +1,8 @@
 import api, { getAuthenticatedUser, getUserById, refreshSession } from '@/services/api/api';
 import {
   clearSessionToken,
-  getSessionToken,
   getSessionRefreshToken,
+  getSessionToken,
   setSessionRefreshToken,
   setSessionToken,
 } from '@/services/storage/authSession';
@@ -399,7 +399,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                     setUser(resolveAuthUserFromProfile(profile, profile.email));
                     return;
                   } catch (error) {
-                    console.warn('[auth] Failed to hydrate user after refresh. Falling back.', error);
+                    console.warn(
+                      '[auth] Failed to hydrate user after refresh. Falling back.',
+                      error
+                    );
                   }
                 }
               }

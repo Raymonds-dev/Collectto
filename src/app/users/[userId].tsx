@@ -27,6 +27,7 @@ import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 
 import { followUser, getCollectionsByUser, getUserById, unfollowUser } from '@/services/api/api';
 import { useAuth } from '@/providers/AuthProvider';
+import { ApiError } from '@/services/api/types';
 import type { AuthUser } from '@/types/auth';
 import type { CollectionSummaryResponse } from '@/types/collections';
 import { isDebugModeEnabled } from '@/services/debug/debugFlags';
@@ -155,6 +156,19 @@ export default function UserProfileScreen() {
           : current
       );
     } catch (error) {
+      if (error instanceof ApiError) {
+        const requestAlreadySent =
+          error.code === 'CONFLICT' ||
+          error.status === 409 ||
+          error.message.toLowerCase().includes('request already sent');
+
+        if (requestAlreadySent) {
+          setIsFollowing(true);
+          setFollowStatus('PENDING');
+          return;
+        }
+      }
+
       console.error('[UserProfileScreen] Failed to toggle follow state:', error);
     } finally {
       setFollowLoading(false);

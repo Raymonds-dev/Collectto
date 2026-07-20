@@ -194,9 +194,7 @@ export function ProfileInfo({
               ) : (
                 <>
                   <ActionButton
-                    label={
-                      isPendingFollow ? 'Pendente' : isFollowing ? 'Seguindo' : 'Seguir'
-                    }
+                    label={isPendingFollow ? 'Pendente' : isFollowing ? 'Seguindo' : 'Seguir'}
                     iconName={isPendingFollow ? 'time-outline' : isFollowing ? 'checkmark' : 'add'}
                     accessibilityLabel={
                       isPendingFollow

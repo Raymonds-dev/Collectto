@@ -17,6 +17,8 @@ type ProfileInfoProps = {
   showActions?: boolean;
   showStats?: boolean;
   isFollowing?: boolean;
+  followStatus?: 'NONE' | 'PENDING' | 'ACCEPTED';
+  isFollowLoading?: boolean;
   onFollowToggle?: () => void;
   onSharePress?: () => void;
 };
@@ -25,6 +27,8 @@ type ActionButtonProps = {
   label?: string;
   iconName?: React.ComponentProps<typeof Ionicons>['name'];
   isCircular?: boolean;
+  accessibilityLabel?: string;
+  disabled?: boolean;
   onPress?: () => void;
 };
 
@@ -40,7 +44,14 @@ function formatCount(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value);
 }
 
-function ActionButton({ label, iconName, isCircular = false, onPress }: ActionButtonProps) {
+function ActionButton({
+  label,
+  iconName,
+  isCircular = false,
+  accessibilityLabel,
+  disabled = false,
+  onPress,
+}: ActionButtonProps) {
   const baseClass = isCircular ? 'p-2 rounded-full' : 'h-10 min-w-[88px] rounded-full px-4';
 
   return (
@@ -51,8 +62,12 @@ function ActionButton({ label, iconName, isCircular = false, onPress }: ActionBu
       style={styles.buttonGradient}>
       <Pressable
         accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        disabled={disabled}
         onPress={onPress}
-        className={`flex-row items-center justify-center border border-surface-borderStrong bg-surface-base active:opacity-75 ${baseClass}`}>
+        className={`flex-row items-center justify-center border border-surface-borderStrong bg-surface-base active:opacity-75 ${
+          disabled ? 'opacity-60' : ''
+        } ${baseClass}`}>
         {iconName ? <Ionicons name={iconName} size={18} color={tokens.colors.text.base} /> : null}
         {label ? <Text className="ml-2 text-sm font-semibold text-text-base">{label}</Text> : null}
       </Pressable>
@@ -81,9 +96,12 @@ export function ProfileInfo({
   showActions = true,
   showStats = true,
   isFollowing: isFollowingProp,
+  followStatus = 'NONE',
+  isFollowLoading = false,
   onFollowToggle,
   onSharePress,
 }: ProfileInfoProps) {
+  const isPendingFollow = followStatus === 'PENDING';
   const [isFollowingLocal, setIsFollowingLocal] = useState(false);
   const isFollowing = isFollowingProp !== undefined ? isFollowingProp : isFollowingLocal;
   const shouldShowActionsRow = showActions || showStats;
@@ -176,9 +194,20 @@ export function ProfileInfo({
               ) : (
                 <>
                   <ActionButton
-                    label={isFollowing ? 'Seguindo' : 'Seguir'}
-                    iconName={isFollowing ? 'checkmark' : 'add'}
+                    label={
+                      isPendingFollow ? 'Pendente' : isFollowing ? 'Seguindo' : 'Seguir'
+                    }
+                    iconName={isPendingFollow ? 'time-outline' : isFollowing ? 'checkmark' : 'add'}
+                    accessibilityLabel={
+                      isPendingFollow
+                        ? 'Solicitação de follow pendente'
+                        : isFollowing
+                          ? 'Parar de seguir'
+                          : 'Seguir usuário'
+                    }
+                    disabled={isFollowLoading || isPendingFollow}
                     onPress={() => {
+                      if (isFollowLoading || isPendingFollow) return;
                       if (onFollowToggle) {
                         onFollowToggle();
                       } else {

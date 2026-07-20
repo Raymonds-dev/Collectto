@@ -24,7 +24,7 @@
       "expo-font"
     ],
     "orientation": "portrait",
-    "icon": "./src/assets/icon.svg",
+    "icon": "./src/assets/logo-default.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./src/assets/splash.png",
@@ -45,7 +45,7 @@
     "android": {
       "softwareKeyboardLayoutMode": "pan",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/logo.png",
+        "foregroundImage": "./src/assets/logo-default.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [

@@ -33,12 +33,6 @@ export function validateTokenPayload(token: string): boolean {
 export async function getSessionToken(): Promise<string | null> {
   // Let SecureStore getItemAsync errors bubble up so that they trigger the boundary
   const token = await SecureStore.getItemAsync(SESSION_TOKEN_KEY);
-  if (token) {
-    const cleanToken = token.replace(/^"|"$/g, '');
-    if (!validateTokenPayload(cleanToken)) {
-      throw new Error('Token parsing failed: invalid payload format or missing identifiers');
-    }
-  }
   return token;
 }
 

@@ -2,6 +2,7 @@ import api, { getAuthenticatedUser, getUserById, refreshSession } from '@/servic
 import {
   clearSessionToken,
   getSessionToken,
+  getSessionRefreshToken,
   setSessionRefreshToken,
   setSessionToken,
 } from '@/services/storage/authSession';
@@ -378,6 +379,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           if (shouldRestorePersistentSession) {
             const token = await getSessionToken();
+            const refreshToken = await getSessionRefreshToken();
+
+            if (refreshToken) {
+              const newAccessToken = await sessionRefreshManager.performRefresh();
+              if (newAccessToken) {
+                api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+                sessionRefreshManager.startSession(newAccessToken);
+
+                if (isDebugModeEnabled()) {
+                  const debugUser = await mockAuthService.getCurrentUser();
+                  if (debugUser) {
+                    setUser(debugUser);
+                    return;
+                  }
+                } else {
+                  try {
+                    const profile = await getAuthenticatedUser();
+                    setUser(resolveAuthUserFromProfile(profile, profile.email));
+                    return;
+                  } catch (error) {
+                    console.warn('[auth] Failed to hydrate user after refresh. Falling back.', error);
+                  }
+                }
+              }
+            }
 
             if (token) {
               let cleanToken = token.replace(/^"|"$/g, '');

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
@@ -19,6 +20,8 @@ interface CollectionCoverPreviewProps {
 /**
  * Displays a preview of the selected collection cover image.
  * Provides a button to remove the selection and shows a placeholder if no image is selected.
+ * Uses expo-image instead of react-native Image to correctly render local
+ * file:// URIs in production Android builds (scoped storage safe).
  *
  * @param props - The component props.
  * @returns A React component for previewing or selecting a collection cover.
@@ -38,9 +41,11 @@ export const CollectionCoverPreview: React.FC<CollectionCoverPreviewProps> = ({
 
   return (
     <View className="relative">
+      {/* expo-image handles local file:// URIs correctly in Android native builds */}
       <Image
         source={{ uri: coverPhoto.localUri }}
-        className="h-40 w-full rounded-xl"
+        style={{ width: '100%', height: 160, borderRadius: 12 }}
+        contentFit="cover"
         accessibilityLabel="Preview da capa da coleção"
       />
       <Pressable

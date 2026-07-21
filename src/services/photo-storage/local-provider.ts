@@ -30,15 +30,12 @@ const generateTempId = (): string => {
 export const createLocalPhotoStorage = (): PhotoStorageProvider => {
   return {
     async saveToLocal(photoData: PhotoData): Promise<LocalPhotoReference> {
+      const tempId = generateTempId();
+      const fileName = `${tempId}.jpg`;
+      const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
+      const tempPath = `${tmpDir}${fileName}`;
+
       try {
-        const tempId = generateTempId();
-        const fileName = `${tempId}.jpg`;
-
-        // Store in app-exclusive document directory so Android native builds
-        // can render the URI without scoped-storage restrictions.
-        const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
-        const tempPath = `${tmpDir}${fileName}`;
-
         // Ensure directory exists
         await FileSystem.makeDirectoryAsync(tmpDir, { intermediates: true });
 
@@ -48,11 +45,21 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
           to: tempPath,
         });
 
+        // Verify that the file was copied and is readable
+        const verifyInfo = await FileSystem.getInfoAsync(tempPath);
+
+        if (!verifyInfo.exists) {
+          console.error(
+            `[LocalPhotoStorage] CRITICAL: File does not exist at ${tempPath} after copy!`
+          );
+        }
+
         return {
           localUri: tempPath,
           tempId,
         };
       } catch (error) {
+        console.error(`[LocalPhotoStorage] Error in saveToLocal:`, error);
         throw new Error(`Failed to save photo locally: ${error}`);
       }
     },
@@ -61,14 +68,13 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
       localUri: string,
       destination: 'items' | 'collections'
     ): Promise<PermanentPhotoReference> {
-      try {
-        const permanentDir = `${FileSystem.documentDirectory}photos/permanent/${destination}/`;
+      const permanentDir = `${FileSystem.documentDirectory}photos/permanent/${destination}/`;
+      const fileName = localUri.split('/').pop() || `${generateTempId()}.jpg`;
+      const permanentUri = `${permanentDir}${fileName}`;
 
+      try {
         // Ensure permanent directory exists
         await FileSystem.makeDirectoryAsync(permanentDir, { intermediates: true });
-
-        const fileName = localUri.split('/').pop() || `${generateTempId()}.jpg`;
-        const permanentUri = `${permanentDir}${fileName}`;
 
         // Move from temporary to permanent location
         await FileSystem.moveAsync({
@@ -81,6 +87,7 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
           mediaType: 'image/jpeg',
         };
       } catch (error) {
+        console.error(`[LocalPhotoStorage] Error in moveToPermament:`, error);
         throw new Error(`Failed to move photo to permanent storage: ${error}`);
       }
     },
@@ -89,40 +96,35 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
       try {
         await FileSystem.deleteAsync(permanentUri, { idempotent: true });
       } catch (error) {
+        console.error(`[LocalPhotoStorage] Error in delete:`, error);
         throw new Error(`Failed to delete photo: ${error}`);
       }
     },
 
     async cleanupLocal(maxAgeMs: number): Promise<number> {
+      const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
+
       try {
-        // Clean up draft photos stored in the app document directory
-        const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
+        const files = await FileSystem.readDirectoryAsync(tmpDir);
 
-        try {
-          const files = await FileSystem.readDirectoryAsync(tmpDir);
-          const now = Date.now();
-          let deletedCount = 0;
+        const now = Date.now();
+        let deletedCount = 0;
 
-          for (const file of files) {
-            const filePath = `${tmpDir}${file}`;
-            const info = await FileSystem.getInfoAsync(filePath);
+        for (const file of files) {
+          const filePath = `${tmpDir}${file}`;
+          const info = await FileSystem.getInfoAsync(filePath);
 
-            if (info.exists && info.modificationTime) {
-              const fileAge = now - info.modificationTime * 1000;
-              if (fileAge > maxAgeMs) {
-                await FileSystem.deleteAsync(filePath);
-                deletedCount += 1;
-              }
+          if (info.exists && info.modificationTime) {
+            const fileAge = now - info.modificationTime * 1000;
+            if (fileAge > maxAgeMs) {
+              await FileSystem.deleteAsync(filePath);
+              deletedCount += 1;
             }
           }
-
-          return deletedCount;
-        } catch {
-          // Directory might not exist yet — ignore
-          return 0;
         }
-      } catch (error) {
-        throw new Error(`Failed to cleanup local photos: ${error}`);
+        return deletedCount;
+      } catch {
+        return 0;
       }
     },
   };

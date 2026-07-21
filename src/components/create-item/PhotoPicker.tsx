@@ -99,7 +99,6 @@ export const PhotoPicker = ({
           const localRef = await storageProvider.saveToLocal(photo);
           localRefs.push(localRef);
         }
-
         onPhotosSelected(localRefs);
       }
     } catch (error) {

@@ -100,6 +100,11 @@ export const ItemCover = ({
             source={{ uri: layerImages[0] }}
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
             contentFit="cover"
+            onError={(error) => {
+              if (layerImages[0]?.startsWith('file://')) {
+                console.error(`[ItemCover Layer1] Load error: ${layerImages[0]}`, error.error);
+              }
+            }}
           />
         ) : null}
       </View>

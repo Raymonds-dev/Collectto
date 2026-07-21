@@ -43,6 +43,7 @@ export const usePhotoSource = () => {
       return convertAssetToPhotoData(result.assets[0]);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Falha ao capturar foto';
+      console.error('[usePhotoSource] Error in launchCameraAsync:', err);
       setError(errorMsg);
       return null;
     } finally {
@@ -69,6 +70,7 @@ export const usePhotoSource = () => {
       return result.assets.map(convertAssetToPhotoData);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Falha ao selecionar fotos';
+      console.error('[usePhotoSource] Error in launchImageLibraryAsync:', err);
       setError(errorMsg);
       return [];
     } finally {

@@ -37,6 +37,9 @@ export const PhotoPreview = ({ photo, onRemove }: PhotoPreviewProps) => {
         style={{ width: 96, height: 96, borderRadius: 8 }}
         contentFit="cover"
         accessibilityLabel={`Foto do item - ${photo.tempId}`}
+        onError={(error) =>
+          console.error(`[PhotoPreview] Image load error: ${photo.localUri}`, error.error)
+        }
       />
 
       {/* Remove button */}

@@ -17,20 +17,24 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Collectto to access your photos.",
-          "cameraPermission": "Allow Collectto to use your camera."
+          "photosPermission": "Permita que o Collectto acesse suas fotos para selecionar imagens das coleções e itens.",
+          "cameraPermission": "Permita que o Collectto use sua câmera para tirar fotos dos seus itens."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./src/assets/splash.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ]
     ],
     "orientation": "portrait",
     "icon": "./src/assets/logo-default.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./src/assets/splash.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "assetBundlePatterns": [
       "**/*"
     ],

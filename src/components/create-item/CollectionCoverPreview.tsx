@@ -47,6 +47,12 @@ export const CollectionCoverPreview: React.FC<CollectionCoverPreviewProps> = ({
         style={{ width: '100%', height: 160, borderRadius: 12 }}
         contentFit="cover"
         accessibilityLabel="Preview da capa da coleção"
+        onError={(error) =>
+          console.error(
+            `[CollectionCoverPreview] Image load error: ${coverPhoto.localUri}`,
+            error.error
+          )
+        }
       />
       <Pressable
         onPress={onRemove}

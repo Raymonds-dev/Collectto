@@ -124,7 +124,10 @@ const getCurrentAuthorizationHeader = (): string => {
 
 const cleanupTempFile = async (uri: string): Promise<void> => {
   try {
-    if (uri.startsWith(FileSystem.cacheDirectory + 'photos/temp/')) {
+    if (
+      uri.startsWith(FileSystem.cacheDirectory + 'photos/temp/') ||
+      uri.startsWith(FileSystem.documentDirectory + 'photos/tmp/')
+    ) {
       await FileSystem.deleteAsync(uri, { idempotent: true });
     }
   } catch (err) {

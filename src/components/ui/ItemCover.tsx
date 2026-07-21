@@ -1,5 +1,6 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
+import { Image } from 'expo-image';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
 export interface ItemCoverProps {
@@ -25,6 +26,11 @@ const FALLBACK_COLORS = [
  * A standard UI component for displaying items as a backward stack.
  * It always composes three visual layers (duplicating the first image when needed)
  * and applies small vertical offsets so the stack is visible even with a single image.
+ *
+ * Uses expo-image instead of react-native Image to correctly render local
+ * file:// URIs in production Android builds (scoped storage safe). This is
+ * important because ItemCover is used in the item creation preview step where
+ * images are still in the app's local documentDirectory.
  */
 export const ItemCover = ({
   images = [],
@@ -52,10 +58,12 @@ export const ItemCover = ({
           zIndex: 1,
         }}>
         {layerImages[2] ? (
+          // expo-image is used here instead of react-native Image to handle
+          // local file:// URIs correctly on production Android builds.
           <Image
             source={{ uri: layerImages[2] }}
-            className="absolute inset-0 h-full w-full"
-            resizeMode="cover"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            contentFit="cover"
           />
         ) : null}
       </View>
@@ -72,8 +80,8 @@ export const ItemCover = ({
         {layerImages[1] ? (
           <Image
             source={{ uri: layerImages[1] }}
-            className="absolute inset-0 h-full w-full"
-            resizeMode="cover"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            contentFit="cover"
           />
         ) : null}
       </View>
@@ -90,8 +98,8 @@ export const ItemCover = ({
         {layerImages[0] ? (
           <Image
             source={{ uri: layerImages[0] }}
-            className="absolute inset-0 h-full w-full"
-            resizeMode="cover"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            contentFit="cover"
           />
         ) : null}
       </View>

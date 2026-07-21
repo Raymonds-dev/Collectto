@@ -1,4 +1,5 @@
-import { Image, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { ItemCover } from '@/components/ui/ItemCover';
 import type { Collection } from '@/types/collections';
@@ -70,8 +71,8 @@ export const CreateItemPreviewStep = ({
           {collection?.coverImageURL ? (
             <Image
               source={{ uri: collection.coverImageURL }}
-              className="h-12 w-12 rounded-xl"
-              resizeMode="cover"
+              style={{ width: 48, height: 48, borderRadius: 12 }}
+              contentFit="cover"
             />
           ) : (
             <View className="h-12 w-12 items-center justify-center rounded-xl border border-brand-100/30 bg-brand-50/50">
@@ -92,8 +93,8 @@ export const CreateItemPreviewStep = ({
                 className="h-14 w-14 overflow-hidden rounded-xl border border-surface-border">
                 <Image
                   source={{ uri: photo.localUri }}
-                  className="h-full w-full"
-                  resizeMode="cover"
+                  style={{ width: '100%', height: '100%' }}
+                  contentFit="cover"
                 />
               </View>
             ))}

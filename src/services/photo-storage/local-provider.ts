@@ -21,25 +21,28 @@ const generateTempId = (): string => {
  * LocalStorageProvider - Stores photos locally on device
  * Future: Can be replaced with FirebaseStorageProvider, S3StorageProvider, etc.
  *
- * Uses app-specific storage directories provided by expo-file-system
+ * Uses app-specific storage directories provided by expo-file-system.
+ * NOTE: documentDirectory is used instead of cacheDirectory because Android
+ * native builds (scoped storage) can silently block access to cache-area URIs
+ * when rendered by the Image component. documentDirectory is app-exclusive and
+ * always accessible via file:// URI in both Expo Go and production builds.
  */
 export const createLocalPhotoStorage = (): PhotoStorageProvider => {
   return {
     async saveToLocal(photoData: PhotoData): Promise<LocalPhotoReference> {
       try {
-        // Use the app's cache directory for storing temporary photos
         const tempId = generateTempId();
         const fileName = `${tempId}.jpg`;
 
-        // Store in app's temporary location
-        const tempPath = `${FileSystem.cacheDirectory}photos/temp/${fileName}`;
+        // Store in app-exclusive document directory so Android native builds
+        // can render the URI without scoped-storage restrictions.
+        const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
+        const tempPath = `${tmpDir}${fileName}`;
 
         // Ensure directory exists
-        await FileSystem.makeDirectoryAsync(`${FileSystem.cacheDirectory}photos/temp/`, {
-          intermediates: true,
-        });
+        await FileSystem.makeDirectoryAsync(tmpDir, { intermediates: true });
 
-        // Copy photo from camera/gallery URI to app storage
+        // Copy photo from camera/gallery URI to app-controlled storage
         await FileSystem.copyAsync({
           from: photoData.uri,
           to: tempPath,
@@ -92,15 +95,16 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
 
     async cleanupLocal(maxAgeMs: number): Promise<number> {
       try {
-        const tempDir = `${FileSystem.cacheDirectory}photos/temp/`;
+        // Clean up draft photos stored in the app document directory
+        const tmpDir = `${FileSystem.documentDirectory}photos/tmp/`;
 
         try {
-          const files = await FileSystem.readDirectoryAsync(tempDir);
+          const files = await FileSystem.readDirectoryAsync(tmpDir);
           const now = Date.now();
           let deletedCount = 0;
 
           for (const file of files) {
-            const filePath = `${tempDir}${file}`;
+            const filePath = `${tmpDir}${file}`;
             const info = await FileSystem.getInfoAsync(filePath);
 
             if (info.exists && info.modificationTime) {
@@ -114,7 +118,7 @@ export const createLocalPhotoStorage = (): PhotoStorageProvider => {
 
           return deletedCount;
         } catch {
-          // Directory might not exist yet - ignore
+          // Directory might not exist yet — ignore
           return 0;
         }
       } catch (error) {

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import * as FileSystem from 'expo-file-system/legacy';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
 export interface ItemCreationFormData {
@@ -12,8 +13,24 @@ export interface ItemCreationFormData {
 }
 
 /**
+ * Deletes a list of local draft photo files from the app's tmp directory.
+ * Called on reset/cancel to prevent orphaned files from accumulating.
+ */
+const deleteDraftPhotos = async (photos: LocalPhotoReference[]): Promise<void> => {
+  for (const photo of photos) {
+    try {
+      await FileSystem.deleteAsync(photo.localUri, { idempotent: true });
+    } catch {
+      // Best-effort: ignore individual deletion errors
+    }
+  }
+};
+
+/**
  * Hook to manage item creation form state
- * Handles photos (as LocalPhotoReference), metadata, and collection selection
+ * Handles photos (as LocalPhotoReference), metadata, and collection selection.
+ * On reset, cleans up draft photo files stored in the app's documentDirectory/photos/tmp/
+ * to prevent storage from growing silently over time.
  */
 export const useItemCreation = () => {
   const [formData, setFormData] = useState<ItemCreationFormData>({
@@ -37,7 +54,14 @@ export const useItemCreation = () => {
   }, []);
 
   const removePhoto = useCallback((tempId: string) => {
-    setLocalPhotos((prev) => prev.filter((photo) => photo.tempId !== tempId));
+    setLocalPhotos((prev) => {
+      const removed = prev.find((p) => p.tempId === tempId);
+      if (removed) {
+        // Best-effort delete of the tmp file when user removes a photo from the form
+        FileSystem.deleteAsync(removed.localUri, { idempotent: true }).catch(() => {});
+      }
+      return prev.filter((photo) => photo.tempId !== tempId);
+    });
   }, []);
 
   const setFormField = useCallback(
@@ -61,6 +85,11 @@ export const useItemCreation = () => {
   }, []);
 
   const reset = useCallback(() => {
+    // Capture current photos before clearing state, then delete tmp files
+    setLocalPhotos((prev) => {
+      deleteDraftPhotos(prev).catch(() => {});
+      return [];
+    });
     setFormData({
       name: '',
       description: '',
@@ -70,7 +99,6 @@ export const useItemCreation = () => {
       tags: [],
       attributes: {},
     });
-    setLocalPhotos([]);
   }, []);
 
   const isValid = (): boolean => {

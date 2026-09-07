@@ -17,15 +17,15 @@ export interface ItemCoverProps {
 }
 
 const FALLBACK_COLORS = [
-  tokens.colors.brand[100],
-  tokens.colors.brand[50],
-  tokens.colors.surface.muted,
+  tokens.colors.brand[400],
+  tokens.colors.brand[200],
+  tokens.colors.brand[600],
 ];
 
 /**
  * A standard UI component for displaying items as a backward stack.
- * It always composes three visual layers (duplicating the first image when needed)
- * and applies small vertical offsets so the stack is visible even with a single image.
+ * It composes three visual layers using the provided images, falling back to solid background colors
+ * for layers where images are not available.
  *
  * Uses expo-image instead of react-native Image to correctly render local
  * file:// URIs in production Android builds (scoped storage safe). This is
@@ -39,9 +39,9 @@ export const ItemCover = ({
   roundedClass = 'rounded-2xl',
   stackOffset = 8,
 }: ItemCoverProps) => {
-  const layerImages = [images[0], images[1] || images[0], images[2] || images[1] || images[0]];
-  const stackStep = stackOffset * 1.6;
-  const stackInset = stackStep * 2;
+  const layerImages = [images[0], images[1], images[2]];
+  const stackStep = stackOffset * 2;
+  const stackInset = stackStep * 1.6;
   const layerFrameStyle = { top: stackInset, left: 0, right: 0, bottom: 0 };
 
   return (

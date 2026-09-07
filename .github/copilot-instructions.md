@@ -108,5 +108,5 @@ Prefer the existing scripts above. Do not introduce alternate script names unles
 
 <!-- SPECKIT START -->
 For additional context about technologies to be used, project structure,
-shell commands, and other important information, read the current plan at [specs/018-implement-notifications/plan.md](file:///C:/Users/garam/.projetos/Collectto/frontend/specs/018-implement-notifications/plan.md)
+shell commands, and other important information, read the current plan at [specs/019-architecture-refactoring/plan.md](file:///C:/Users/garam/.projetos/Collectto/frontend/specs/019-architecture-refactoring/plan.md)
 <!-- SPECKIT END -->

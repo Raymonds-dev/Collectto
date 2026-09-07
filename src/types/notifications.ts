@@ -40,3 +40,10 @@ export interface UserFollowResponse {
   status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
   createdAt: string;
 }
+
+export interface NotificationService {
+  getNotifications: (page?: number, size?: number) => Promise<NotificationPageResponse>;
+  markAllAsRead: () => Promise<void>;
+  acceptFollowRequest: (followerId: string) => Promise<void>;
+  declineFollowRequest: (followerId: string) => Promise<void>;
+}

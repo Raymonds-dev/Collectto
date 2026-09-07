@@ -1,10 +1,9 @@
 import React, { createContext, useCallback, useEffect, useMemo, useState } from 'react';
 import type { NotificationSummary } from '@/types/notifications';
 import { isDebugModeEnabled } from '@/services/debug/debugFlags';
-import { getNotifications } from '@/services/api/notificationService';
-import { acceptFollowRequest, declineFollowRequest } from '@/services/api/api';
-import { useAuth } from '@/providers/AuthProvider';
+import { apiNotificationService } from '@/services/api/notificationService';
 import { mockNotificationService } from '@/services/debug/mockNotificationService';
+import { useAuth } from '@/providers/AuthProvider';
 
 export interface NotificationContextType {
   notifications: NotificationSummary[];
@@ -29,6 +28,11 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
   const [loading, setLoading] = useState<boolean>(false);
   const [refreshing, setRefreshing] = useState<boolean>(false);
 
+  const notificationService = useMemo(
+    () => (isDebugModeEnabled() ? mockNotificationService : apiNotificationService),
+    []
+  );
+
   const unreadCount = useMemo(() => {
     return notifications.filter((n) => !n.read).length;
   }, [notifications]);
@@ -41,81 +45,72 @@ export const NotificationProvider = ({ children }: NotificationProviderProps) =>
     setLoading(true);
     setRefreshing(true);
     try {
-      if (isDebugModeEnabled()) {
-        const response = await mockNotificationService.getNotifications(0, 50);
-        setNotifications(response.notifications || []);
-      } else {
-        const response = await getNotifications(0, 50);
-        setNotifications(response.notifications || []);
-      }
+      const response = await notificationService.getNotifications(0, 50);
+      setNotifications(response.notifications || []);
     } catch (error) {
       console.error('[NotificationProvider] Failed to fetch notifications:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [user]);
+  }, [user, notificationService]);
 
   const markAllAsRead = useCallback(async () => {
-    // Optimistically update notifications to read
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-
-    if (isDebugModeEnabled()) {
-      await mockNotificationService.markAllAsRead();
-    }
-  }, []);
-
-  const acceptRequest = useCallback(async (followerId: string) => {
     try {
-      if (isDebugModeEnabled()) {
-        await mockNotificationService.acceptFollowRequest(followerId);
-      } else {
-        await acceptFollowRequest(followerId);
-      }
-      // Update local state to accepted status
-      setNotifications((prev) =>
-        prev.map((n) => {
-          if (n.context === 'USER_FOLLOW_REQUESTED' && n.actor.id === followerId) {
-            return {
-              ...n,
-              read: true,
-              notificationId: `${n.notificationId}-accepted`,
-            };
-          }
-          return n;
-        })
-      );
+      await notificationService.markAllAsRead();
     } catch (error) {
-      console.error('[NotificationProvider] Failed to accept follow request:', error);
-      throw error;
+      console.warn('[NotificationProvider] Failed to mark all as read:', error);
     }
-  }, []);
+  }, [notificationService]);
 
-  const declineRequest = useCallback(async (followerId: string) => {
-    try {
-      if (isDebugModeEnabled()) {
-        await mockNotificationService.declineFollowRequest(followerId);
-      } else {
-        await declineFollowRequest(followerId);
+  const acceptRequest = useCallback(
+    async (followerId: string) => {
+      try {
+        await notificationService.acceptFollowRequest(followerId);
+        setNotifications((prev) =>
+          prev.map((n) => {
+            if (n.context === 'USER_FOLLOW_REQUESTED' && n.actor.id === followerId) {
+              return {
+                ...n,
+                read: true,
+                notificationId: `${n.notificationId}-accepted`,
+              };
+            }
+            return n;
+          })
+        );
+      } catch (error) {
+        console.error('[NotificationProvider] Failed to accept follow request:', error);
+        throw error;
       }
-      // Update local state to declined status
-      setNotifications((prev) =>
-        prev.map((n) => {
-          if (n.context === 'USER_FOLLOW_REQUESTED' && n.actor.id === followerId) {
-            return {
-              ...n,
-              read: true,
-              notificationId: `${n.notificationId}-declined`,
-            };
-          }
-          return n;
-        })
-      );
-    } catch (error) {
-      console.error('[NotificationProvider] Failed to decline follow request:', error);
-      throw error;
-    }
-  }, []);
+    },
+    [notificationService]
+  );
+
+  const declineRequest = useCallback(
+    async (followerId: string) => {
+      try {
+        await notificationService.declineFollowRequest(followerId);
+        setNotifications((prev) =>
+          prev.map((n) => {
+            if (n.context === 'USER_FOLLOW_REQUESTED' && n.actor.id === followerId) {
+              return {
+                ...n,
+                read: true,
+                notificationId: `${n.notificationId}-declined`,
+              };
+            }
+            return n;
+          })
+        );
+      } catch (error) {
+        console.error('[NotificationProvider] Failed to decline follow request:', error);
+        throw error;
+      }
+    },
+    [notificationService]
+  );
 
   useEffect(() => {
     fetchNotifications();

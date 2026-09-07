@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { mockPostService, type PostService } from '@/services/debug';
+import { isDebugModeEnabled } from '@/services/debug/debugFlags';
+import { mockPostService } from '@/services/debug/mockPostService';
+import { apiPostService } from '@/services/api/postService';
+import type { PostService } from '@/types/posts';
 
 interface PostContextValue {
   postService: PostService;
@@ -14,7 +17,7 @@ interface PostContextProviderProps {
 export const PostContextProvider = ({ children }: PostContextProviderProps) => {
   const value = useMemo<PostContextValue>(
     () => ({
-      postService: mockPostService,
+      postService: isDebugModeEnabled() ? mockPostService : apiPostService,
     }),
     []
   );

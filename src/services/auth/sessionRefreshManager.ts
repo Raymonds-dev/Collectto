@@ -1,39 +1,9 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
 import { authLogger } from '@/utils/authLogging';
+import { decodeJwtPayload } from '@/utils/jwt';
 import { getSessionRefreshToken, setSessionRefreshToken } from '@/services/storage/authSession';
 import type { TokenRefreshResponse } from '@/types/auth';
-
-const decodeBase64Url = (value: string): string | null => {
-  try {
-    const normalized = value.replace(/-/g, '+').replace(/_/g, '/');
-    const paddingLength = (4 - (normalized.length % 4)) % 4;
-    const padded = normalized + '='.repeat(paddingLength);
-
-    if (typeof globalThis.atob !== 'function') {
-      return null;
-    }
-    return globalThis.atob(padded);
-  } catch {
-    return null;
-  }
-};
-
-const decodeJwtPayload = (token: string): { exp?: number; iat?: number } | null => {
-  const parts = token.split('.');
-  if (parts.length < 2) return null;
-  const decodedPayload = decodeBase64Url(parts[1]);
-  if (!decodedPayload) return null;
-  try {
-    const claims = JSON.parse(decodedPayload);
-    if (!claims || typeof claims !== 'object' || typeof claims.exp !== 'number') {
-      return null;
-    }
-    return claims;
-  } catch {
-    return null;
-  }
-};
 
 export class SessionRefreshManager {
   private static instance: SessionRefreshManager | null = null;
@@ -44,7 +14,7 @@ export class SessionRefreshManager {
     null;
 
   private activeToken: string | null = null;
-  private refreshTimer: NodeJS.Timeout | null = null;
+  private refreshTimer: ReturnType<typeof setTimeout> | null = null;
   private attemptsLog: RefreshAttempt[] = [];
   private isRefreshing = false;
   private isHandlingUnauthorized = false;

@@ -3,7 +3,7 @@
   "compilerOptions": {
     "jsx": "react-jsx",
     "types": [
-      "node"
+      "node",
     ],
     "strict": true,
     "paths": {

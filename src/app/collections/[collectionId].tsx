@@ -6,12 +6,10 @@ import { BackHandler, Pressable, ScrollView, Share, Text, View } from 'react-nat
 
 import {
   type CollectionGridItem,
+  CollectionItemDetailView,
   CollectionItemsGrid,
-} from '@/components/collection-items-grid/CollectionItemsGrid';
-import { CollectionItemDetailView } from '@/components/item-collection/CollectionItemDetailView';
-import { ProfileActionsBar } from '@/components/profile-actions-bar/ProfileActionsBar';
-import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
-import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
+} from '@/components/collection';
+import { ProfileActionsBar, ProfileInfo, ProfileSectionDivider } from '@/components/profile';
 import { Card } from '@/components/ui/Card';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';

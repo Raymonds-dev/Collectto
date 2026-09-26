@@ -12,13 +12,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-import { ProfileHeader } from '@/components/profile-header/ProfileHeader';
-import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
-import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
-import {
-  type CollectionGridEntry,
-  CollectionsGrid,
-} from '@/components/collections-grid/CollectionsGrid';
+import { ProfileHeader, ProfileInfo, ProfileSectionDivider } from '@/components/profile';
+import { type CollectionGridEntry, CollectionsGrid } from '@/components/collection';
 import { SearchInput } from '@/components/ui/SearchInput';
 import { OptionsBar, type OptionsBarOption } from '@/components/ui/OptionsBar';
 import { AnimatedPressable } from '@/components/ui/animated';

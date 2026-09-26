@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { ProfilePhotoCropModal } from '@/components/settings/ProfilePhotoCropModal';
+import { ProfilePhotoCropModal } from '@/components/profile';
 import api, { getUserById } from '@/services/api/api';
 import {
   persistProfileFilePath,

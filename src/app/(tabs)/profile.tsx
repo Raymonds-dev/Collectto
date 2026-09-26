@@ -1,17 +1,17 @@
-import { ProfileHeader } from '@/components/profile-header/ProfileHeader';
+import {
+  ProfileBackgroundCropModal,
+  ProfileHeader,
+  ProfileInfo,
+  ProfileSectionDivider,
+} from '@/components/profile';
 import { SearchInput } from '@/components/ui/SearchInput';
-import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
 import { OptionsBar, OptionsBarOption } from '@/components/ui/OptionsBar';
 import { useAuth } from '@/hooks/useAuth';
 import { Alert, Modal, RefreshControl, ScrollView, Share, Text, View } from 'react-native';
-import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';
 import { resolveUserPhotoUrl } from '@/utils/profilePhoto';
-import {
-  type CollectionGridEntry,
-  CollectionsGrid,
-} from '@/components/collections-grid/CollectionsGrid';
+import { type CollectionGridEntry, CollectionsGrid } from '@/components/collection';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
@@ -25,7 +25,6 @@ import api, { getAuthenticatedUser } from '@/services/api/api';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { mapErrorToMessage } from '@/utils/errorMapping';
 import { MappedError } from '@/types/error';
-import { ProfileBackgroundCropModal } from '@/components/settings/ProfileBackgroundCropModal';
 
 const profileOptions: OptionsBarOption[] = [
   {

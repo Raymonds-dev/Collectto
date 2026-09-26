@@ -16,16 +16,10 @@ interface PhotoGalleryProps {
 }
 
 /**
- * A horizontal scrollable gallery for displaying selected photo previews.
+ * PhotoGallery
  *
- * Features:
- * - Displays thumbnails of all selected photos.
- * - Shows a counter of current vs maximum allowed photos.
- * - Provides a "Limit reached" indicator when the count equals maxPhotos.
- * - Integrates PhotoPreview for individual image rendering and removal.
- *
- * @param props - The component props.
- * @returns A React component for the horizontal photo gallery.
+ * O que faz: Exibe carrossel horizontal de miniaturas das fotos selecionadas pelo usuário com contador numérico (ex: 3/10) e botão de remoção para cada item.
+ * Onde usar: No topo do formulário de criação/edição de item (`CreateItemFlow`, `ItemForm`).
  */
 export const PhotoGallery = ({ photos, onRemovePhoto, maxPhotos = 10 }: PhotoGalleryProps) => {
   if (photos.length === 0) {

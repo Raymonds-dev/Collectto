@@ -23,6 +23,12 @@ const GRID_HORIZONTAL_PADDING = 20;
 const GRID_GAP = 12;
 const ITEM_STACK_LIMIT = 3;
 
+/**
+ * CollectionItemsGrid
+ *
+ * O que faz: Renderiza uma grade em 2 colunas com os itens pertencentes a uma coleção, exibindo foto de capa e título com suporte a toque.
+ * Onde usar: Na tela de detalhes da coleção (`src/app/collections/[collectionId].tsx`).
+ */
 export function CollectionItemsGrid({ items, onPressItem }: CollectionItemsGridProps) {
   const { width } = useWindowDimensions();
 

@@ -16,6 +16,12 @@ type CreateItemStepperProps = {
   onStepPress: (stepKey: string) => void;
 };
 
+/**
+ * CreateItemStepper
+ *
+ * O que faz: Indicador de progresso em abas superiores com linha animada deslizante (`useUnderlineSlideMotion`) para visualização e navegação entre etapas.
+ * Onde usar: No topo do fluxo de criação de itens (`CreateItemFlow`).
+ */
 export const CreateItemStepper = ({
   steps,
   activeStepKey,

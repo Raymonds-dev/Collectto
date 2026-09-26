@@ -18,8 +18,10 @@ const FALLBACK_COLORS = [
 ];
 
 /**
- * A standard UI component for displaying collection covers as a stack of cards.
- * It automatically handles up to 3 images and displays them with a dynamic stacked rotation effect.
+ * CollectionCover
+ *
+ * O que faz: Exibe a capa visual de uma coleção em efeito de cartões empilhados (stack rotacionado com até 3 camadas) e cores de fallback.
+ * Onde usar: Em cards da grade de coleções (`CollectionsGrid`).
  */
 export const CollectionCover = ({ images = [], size, className = '' }: CollectionCoverProps) => {
   const layerImages = [images[0], images[1], images[2]];

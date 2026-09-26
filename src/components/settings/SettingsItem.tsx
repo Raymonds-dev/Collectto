@@ -11,6 +11,12 @@ interface SettingsItemProps {
   showArrow?: boolean;
 }
 
+/**
+ * SettingsItem
+ *
+ * O que faz: Linha clicável de opção de configuração com rótulo, descrição secundária, seta de navegação e destaque visual para ações perigosas (ex: excluir conta).
+ * Onde usar: Dentro de seções de configurações (`SettingsSection`) em telas como `src/app/(tabs)/settings/support.tsx` e demais subrotas de settings.
+ */
 export function SettingsItem({
   label,
   description,

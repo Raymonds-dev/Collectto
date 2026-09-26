@@ -17,11 +17,10 @@ interface CollectionCreationSuccessProps {
 }
 
 /**
- * Displays a success message after a collection has been created.
- * Shows the collection name, cover image preview, and a confirmation button.
+ * CollectionCreationSuccess
  *
- * @param props - The component props.
- * @returns A React component showing the collection creation success state.
+ * O que faz: Feedback animado de sucesso após a criação de uma nova coleção, apresentando nome, prévia da capa e botão para continuar o fluxo.
+ * Onde usar: Exibido dentro do modal de criação rápida em `CollectionCreationForm`.
  */
 export const CollectionCreationSuccess: React.FC<CollectionCreationSuccessProps> = ({
   collectionName,

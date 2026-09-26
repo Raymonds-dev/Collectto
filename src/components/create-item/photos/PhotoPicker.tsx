@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { usePhotoSource } from '@/hooks/usePhotoSource';
 import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
-import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { createPhotoStorageProvider } from '@/services/media';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
@@ -22,17 +22,10 @@ interface PhotoPickerProps {
 }
 
 /**
- * A component providing options to select photos from the camera or the device gallery.
+ * PhotoPicker
  *
- * Features:
- * - Handles camera and gallery permission requests.
- * - Integrates with `usePhotoSource` to launch the device's image picking UI.
- * - Automatically saves selected images to local app storage using `PhotoStorageProvider`.
- * - Provides visual feedback and loading states during the selection process.
- * - Accessible buttons with appropriate roles and hints.
- *
- * @param props - The component props.
- * @returns A React component with camera and gallery selection buttons.
+ * O que faz: Botões de ação para captura de foto via câmera ou seleção a partir da galeria do dispositivo, gerenciando permissões e estados de carregamento.
+ * Onde usar: No fluxo de adição de fotos do item (`CreateItemFlow`, `ItemForm`) ou em formulários de capa de coleção (`CollectionEditForm`).
  */
 export const PhotoPicker = ({
   onPhotosSelected,

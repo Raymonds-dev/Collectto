@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import NetInfo, { NetInfoSubscription } from '@react-native-community/netinfo';
 import { AuthFallbackUI } from './AuthFallbackUI';
 import { AuthErrorInfo, RetryState } from '@/types/authError';
-import { clearSessionToken } from '@/services/storage/authSession';
+import { clearSessionToken } from '@/services/auth/storage/authSession';
 import api from '@/services/api/api';
 import { AxiosError } from 'axios';
 
@@ -66,6 +66,12 @@ export function classifyError(error: unknown): AuthErrorInfo {
   };
 }
 
+/**
+ * AuthErrorBoundary
+ *
+ * O que faz: Captura erros fatais de autenticação e bootstrap da aplicação, exibindo uma interface de recuperação graciosa e gerenciando reconexão de rede.
+ * Onde usar: Envolvendo a árvore raiz da aplicação em `src/app/_layout.tsx` para proteção global contra travamentos no carregamento de sessão.
+ */
 export class AuthErrorBoundary extends Component<AuthErrorBoundaryProps, AuthErrorBoundaryState> {
   private netInfoUnsubscribe: NetInfoSubscription | null = null;
 

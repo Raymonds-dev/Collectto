@@ -7,10 +7,8 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
-import { ItemCollection } from '@/components/item-collection/ItemCollection';
-import { ProfileActionsBar } from '@/components/profile-actions-bar/ProfileActionsBar';
-import { ProfileInfo } from '@/components/profile-info/ProfileInfo';
-import { ProfileSectionDivider } from '@/components/profile-section-divider/ProfileSectionDivider';
+import { ItemCollection } from './ItemCollection';
+import { ProfileActionsBar, ProfileInfo, ProfileSectionDivider } from '@/components/profile';
 
 type ItemCharacteristic = {
   label: string;
@@ -46,6 +44,12 @@ type CollectionItemDetailViewProps = {
   contentContainerClassName?: string;
 };
 
+/**
+ * CollectionItemDetailView
+ *
+ * O que faz: Exibe a visão completa e detalhada de um item, incluindo perfil do criador, ações sociais (seguir, compartilhar, notificações) e o componente ItemCollection com carrossel e atributos.
+ * Onde usar: Em modais ou telas de detalhe expandido de itens (ex: feed principal em `(tabs)/index.tsx` e tela de coleção em `collections/[collectionId].tsx`).
+ */
 export const CollectionItemDetailView = ({
   isOwner,
   profile,

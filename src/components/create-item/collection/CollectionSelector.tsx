@@ -4,10 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
-import {
-  type CollectionGridEntry,
-  CollectionsGrid,
-} from '@/components/collections-grid/CollectionsGrid';
+import { type CollectionGridEntry, CollectionsGrid } from '@/components/collection';
 
 /**
  * Props for the CollectionSelector component.
@@ -33,17 +30,10 @@ interface CollectionSelectorProps {
 }
 
 /**
- * A component for selecting from existing collections or initiating new collection creation.
+ * CollectionSelector
  *
- * Features:
- * - Fetches user collections automatically if not provided as props.
- * - Displays a scrollable list of collections with names and covers.
- * - Provides a "Create New" action.
- * - Supports an optional "Skip" state for uncategorized items.
- * - Includes loading skeletons and error handling.
- *
- * @param props - The component props.
- * @returns A React component for collection selection.
+ * O que faz: Seletor de coleção em grade visual (`CollectionsGrid`) ou lista, com opção de criar nova coleção e botão para pular associação de categoria.
+ * Onde usar: Na etapa de categoria do fluxo de criação (`CreateItemFlow`) ou em modais de transferência de itens em lote (`CollectionItemsBulkList`).
  */
 export const CollectionSelector: React.FC<CollectionSelectorProps> = ({
   selectedCollectionId,

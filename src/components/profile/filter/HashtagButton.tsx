@@ -8,6 +8,12 @@ type HashtagButtonProps = {
   onPress: () => void;
 };
 
+/**
+ * HashtagButton
+ *
+ * O que faz: Botão em formato de pílula (pill) para seleção de hashtag com estado visual alternado (ativo preenchido / inativo com borda).
+ * Onde usar: Internamente no componente `ProfileHashtagFilter`.
+ */
 export function HashtagButton({ label, isSelected, onPress }: HashtagButtonProps) {
   return (
     <AnimatedPressable

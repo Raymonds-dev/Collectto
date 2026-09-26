@@ -13,6 +13,12 @@ type TeaserCommentProps = {
   onPress?: (postId: string) => void;
 };
 
+/**
+ * TeaserComment
+ *
+ * O que faz: Exibe uma prévia compacta do último comentário em um post do feed, incentivando o usuário a abrir a thread completa.
+ * Onde usar: No rodapé do card de post (`src/components/post/Post.tsx`).
+ */
 export const TeaserComment: React.FC<TeaserCommentProps> = ({ comment, postId, onPress }) => {
   const [avatarLoadError, setAvatarLoadError] = useState(false);
   const [avatarLoading, setAvatarLoading] = useState(true);

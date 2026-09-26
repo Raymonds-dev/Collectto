@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
-import { PhotoPicker } from './PhotoPicker';
+import { PhotoPicker } from '../photos/PhotoPicker';
 import { CollectionCoverPreview } from './CollectionCoverPreview';
 import { TagInput } from '@/components/ui/TagInput';
 import type { LocalPhotoReference } from '@/types/photo-storage';
@@ -33,12 +33,10 @@ interface FormErrors {
 }
 
 /**
- * A form component for creating a new collection.
- * Includes fields for name, description, and a cover image picker.
- * Performs basic client-side validation before calling the onCreate callback.
+ * CollectionCreator
  *
- * @param props - The component props.
- * @returns A React component for the collection creation form.
+ * O que faz: Formulário para cadastro rápido de uma nova coleção com nome, descrição, visibilidade, tags e seleção de imagem de capa com validação.
+ * Onde usar: Exibido no modal acionado pelo `CollectionCreationForm` durante a criação de um item.
  */
 export const CollectionCreator: React.FC<CollectionCreatorProps> = ({
   isLoading = false,

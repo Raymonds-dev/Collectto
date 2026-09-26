@@ -33,6 +33,12 @@ type CollectionsGridProps = {
   contentContainerStyle?: StyleProp<ViewStyle>;
 };
 
+/**
+ * CollectionsGrid
+ *
+ * O que faz: Renderiza uma grade responsiva de coleções com capas empilhadas, suporte a seleção visual e estado vazio com CTA de criação.
+ * Onde usar: Em perfis de usuários (`profile.tsx`, `users/[userId].tsx`) e modais de seleção de coleção no fluxo de criação de itens.
+ */
 export function CollectionsGrid({
   collections,
   isOwner,

@@ -85,6 +85,12 @@ const AnimatedPickerOption = ({ item, isSelected, onSelect }: AnimatedPickerOpti
   );
 };
 
+/**
+ * CustomPicker
+ *
+ * O que faz: Seletor de opções com trigger personalizado e modal posicionado relativo ao botão disparador com animação de seleção (`AnimatedPickerOption`).
+ * Onde usar: Em formulários que necessitam de seleção única entre opções predefinidas (ex: categorias, status).
+ */
 export function CustomPicker({
   items,
   selectedValue,

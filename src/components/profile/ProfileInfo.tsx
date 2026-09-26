@@ -84,6 +84,12 @@ function StatChip({ label, value }: { label: string; value: number }) {
   );
 }
 
+/**
+ * ProfileInfo
+ *
+ * O que faz: Exibe a foto de perfil emoldurada por gradiente, nome, @username, bio com tags, estatísticas de seguidores/seguindo e ações de perfil (seguir/compartilhar).
+ * Onde usar: Na seção principal de identidade do usuário em `profile.tsx`, `users/[userId].tsx` e detalhes de item.
+ */
 export function ProfileInfo({
   isOwner,
   profileImage,

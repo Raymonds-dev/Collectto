@@ -69,20 +69,10 @@ const attributesToRecord = (attrs: Attribute[]): Record<string, unknown> => {
 };
 
 /**
- * A form component for capturing item metadata.
+ * ItemForm
  *
- * Features:
- * - Text input for item name (mandatory, max 255 chars).
- * - Text input for item description (optional, multiline).
- * - DatePicker for acquisition and last used dates.
- * - TagInput for categorization tags.
- * - AttributeInput for dynamic key-value metadata.
- * - Inline validation error display.
- * - Character count for the name field.
- * - Focus management (advances to description on name submit).
- *
- * @param props - The component props.
- * @returns A React component for the item metadata form.
+ * O que faz: Formulário completo de dados de um item, com campos de nome (obrigatório), descrição, datas (aquisição e último uso), tags e tabela de atributos dinâmicos chave-valor.
+ * Onde usar: Na etapa de preenchimento de detalhes do item (`CreateItemFlow`) ou em telas de edição de item.
  */
 export const ItemForm: React.FC<ItemFormProps> = ({
   name,

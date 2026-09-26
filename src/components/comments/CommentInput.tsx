@@ -28,9 +28,10 @@ type CommentInputProps = {
 const MAX_CHAR_COUNT = 500;
 
 /**
- * Input field for creating new comments
- * Validates non-empty input and provides character counter
- * Reusable across different comment threads
+ * CommentInput
+ *
+ * O que faz: Campo de entrada de texto para novo comentário com validação de limite de caracteres, estado de foco estilizado e botão de envio com loading.
+ * Onde usar: No rodapé do modal ou drawer de comentários (`CommentThread`).
  */
 export const CommentInput: React.FC<CommentInputProps> = ({
   value,

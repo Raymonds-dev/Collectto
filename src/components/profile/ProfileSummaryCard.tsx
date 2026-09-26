@@ -7,6 +7,12 @@ interface ProfileSummaryCardProps {
   photoUri?: string;
 }
 
+/**
+ * ProfileSummaryCard
+ *
+ * O que faz: Card compacto de resumo de perfil com avatar redondo, nome do usuário e e-mail.
+ * Onde usar: No topo da tela de configurações de conta ou menus contextuais de perfil.
+ */
 export function ProfileSummaryCard({ name, email, photoUri }: ProfileSummaryCardProps) {
   return (
     <Card className="flex-row items-center gap-4">

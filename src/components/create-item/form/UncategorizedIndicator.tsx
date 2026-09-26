@@ -3,9 +3,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { Text, View } from 'react-native';
 
 /**
- * UncategorizedIndicator component.
- * Displays a small visual badge indicating that an item is not associated
- * with any specific collection. Uses a warning-soft background and a pricetag icon.
+ * UncategorizedIndicator
+ *
+ * O que faz: Badge visual estilizado com ícone de etiqueta informando que o item está sem categoria / coleção associada.
+ * Onde usar: Em cabeçalhos de visualização de itens ou no fluxo de criação quando nenhuma coleção for selecionada.
  */
 export const UncategorizedIndicator: React.FC = () => {
   return (

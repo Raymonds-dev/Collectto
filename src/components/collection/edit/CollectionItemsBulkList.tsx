@@ -6,7 +6,7 @@ import { Modal } from '@/components/ui/Modal';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { ItemResponse } from '@/types/items';
 import type { CollectionResponse } from '@/types/collections';
-import { CollectionSelector } from '@/components/create-item/CollectionSelector';
+import { CollectionSelector } from '@/components/create-item';
 
 interface CollectionItemsBulkListProps {
   items: ItemResponse[];
@@ -18,8 +18,10 @@ interface CollectionItemsBulkListProps {
 }
 
 /**
- * List component for displaying collection items with multi-select and bulk actions.
- * Supports selecting multiple items for bulk delete or bulk move to another collection.
+ * CollectionItemsBulkList
+ *
+ * O que faz: Lista itens de uma coleção com seleção múltipla, permitindo ações em lote como exclusão ou movimentação de itens para outra coleção.
+ * Onde usar: Na tela de edição e gerenciamento de coleção (`src/app/collections/edit/[collectionId].tsx`).
  */
 export const CollectionItemsBulkList: React.FC<CollectionItemsBulkListProps> = ({
   items,

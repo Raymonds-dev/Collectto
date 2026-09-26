@@ -38,6 +38,12 @@ interface AttributeInputProps {
  * - Table layout with gray borders
  * - White background with black and orange details
  */
+/**
+ * AttributeInput
+ *
+ * O que faz: Editor dinâmico em formato de tabela para pares de atributos chave-valor com suporte a navegação por teclado e validação em tempo real.
+ * Onde usar: Em formulários de itens (`ItemForm`) para registrar características personalizadas (ex: "Ano: 1982", "Marca: Hot Wheels").
+ */
 export function AttributeInput({ attributes, onChange, label }: AttributeInputProps) {
   const inputRefs = useRef<{ [key: string]: TextInput | null }>({});
   const [pendingFocus, setPendingFocus] = useState<{ type: 'key' | 'value'; index: number } | null>(

@@ -12,18 +12,10 @@ interface PermissionGateProps {
 }
 
 /**
- * A wrapper component that ensures necessary permissions are granted before rendering its children.
- * Specifically checks for camera and photo gallery permissions.
+ * PermissionGate
  *
- * Features:
- * - Checks permission status on mount.
- * - Displays a specialized UI (PermissionRequest) to ask for missing permissions.
- * - Provides a fallback with an option to open device settings if permissions are denied.
- * - Pass-through behavior: renders children directly when all permissions are available.
- * - Uses `expo-image-picker` for broad compatibility.
- *
- * @param props - The component props.
- * @returns The children if permitted, otherwise a permission request UI.
+ * O que faz: Verifica se as permissões de câmera e galeria foram concedidas antes de exibir o conteúdo protegido, oferecendo interface de solicitação e link para configurações do sistema caso negadas.
+ * Onde usar: Envolvendo componentes de captura de mídia ou no fluxo de seleção de fotos de novos itens (`CreateItemFlow`).
  */
 export const PermissionGate = ({ children }: PermissionGateProps) => {
   const { getCameraPermission, getGalleryPermission, checkPermissions } = useImagePicker();

@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Button } from '@/components/ui/Button';
 import { TagInput } from '@/components/ui/TagInput';
-import { PhotoPicker } from '@/components/create-item/PhotoPicker';
-import { CollectionCoverPreview } from '@/components/create-item/CollectionCoverPreview';
+import { CollectionCoverPreview, PhotoPicker } from '@/components/create-item';
 import type { CollectionResponse, CollectionVisibility } from '@/types/collections';
 import type { LocalPhotoReference } from '@/types/photo-storage';
 
@@ -31,8 +30,10 @@ interface FormErrors {
 }
 
 /**
- * Full-screen form for editing an existing collection.
- * Reuses the visual structure of CollectionCreator but pre-fills with existing data.
+ * CollectionEditForm
+ *
+ * O que faz: Formulário para edição dos metadados de uma coleção existente (nome, descrição, visibilidade, foto de capa e tags), com validação de campos.
+ * Onde usar: Na tela de edição de coleção (`src/app/collections/edit/[collectionId].tsx`).
  */
 export const CollectionEditForm: React.FC<CollectionEditFormProps> = ({
   collection,

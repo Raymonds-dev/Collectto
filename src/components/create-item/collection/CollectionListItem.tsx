@@ -17,17 +17,10 @@ interface CollectionListItemProps {
 }
 
 /**
- * A selectable list item representing a collection.
+ * CollectionListItem
  *
- * Features:
- * - Displays collection cover image (or a placeholder if unavailable).
- * - Displays the collection name.
- * - Shows a visual selection indicator (checkmark).
- * - Optimized touch target size (minimum 44-48 units).
- * - Accessible as a radio button in a list.
- *
- * @param props - The component props.
- * @returns A React component for a collection list entry.
+ * O que faz: Item de lista clicável para seleção de coleção, exibindo foto de capa, nome e indicador visual de seleção ativa (radio style).
+ * Onde usar: Dentro do seletor em lista de coleções (`CollectionSelector`).
  */
 export const CollectionListItem: React.FC<CollectionListItemProps> = ({
   name,

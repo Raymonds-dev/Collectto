@@ -83,6 +83,12 @@ const PostActionButton = ({ accessibilityLabel, icon, count, onPress }: PostActi
   );
 };
 
+/**
+ * Post
+ *
+ * O que faz: Card principal do feed social que apresenta autor, texto da publicação, capa do item, botões de ação interativos (curtir, comentar, compartilhar, abrir coleção) e teaser de comentário.
+ * Onde usar: Na lista de publicações do feed principal (`src/app/(tabs)/index.tsx`).
+ */
 export const Post = ({
   id,
   author,

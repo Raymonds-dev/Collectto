@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { MotionView } from './ui/animated';
-import { Button } from './ui/Button';
+import { Button, MotionView } from '@/components/ui';
+
 import { AuthErrorInfo, RetryState } from '@/types/authError';
 
 interface AuthFallbackUIProps {
@@ -13,6 +13,12 @@ interface AuthFallbackUIProps {
   testID?: string;
 }
 
+/**
+ * AuthFallbackUI
+ *
+ * O que faz: Renderiza tela de feedback e ações de recuperação (tentar novamente, limpar dados) quando ocorre falha no fluxo de autenticação.
+ * Onde usar: Como visual padrão renderizado internamente pelo AuthErrorBoundary.
+ */
 export function AuthFallbackUI({
   error,
   retry,

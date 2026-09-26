@@ -16,6 +16,12 @@ interface CollectionCreationFormProps {
   allowSkip?: boolean;
 }
 
+/**
+ * CollectionCreationForm
+ *
+ * O que faz: Coordena a seleção de uma coleção existente ou a criação rápida de uma nova coleção inline através de modal e feedback de sucesso.
+ * Onde usar: Na etapa de vinculação de categoria do item (`CreateItemFlow`).
+ */
 export const CollectionCreationForm: React.FC<CollectionCreationFormProps> = ({
   selectedCollectionId,
   onSelectCollection,

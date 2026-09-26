@@ -15,18 +15,10 @@ interface PhotoPreviewProps {
 }
 
 /**
- * Displays a single photo thumbnail with an overlayed removal button.
+ * PhotoPreview
  *
- * Features:
- * - Renders the image from a local URI.
- * - Provides a "close" button in the corner to trigger removal.
- * - Accessible image and removal button with appropriate labels and hints.
- * - Optimized hit slop for the removal button.
- * - Uses expo-image instead of react-native Image to correctly render local
- *   file:// URIs in production Android builds (scoped storage safe).
- *
- * @param props - The component props.
- * @returns A React component for a single photo preview.
+ * O que faz: Renderiza a miniatura quadrada de uma foto local selecionada (usando `expo-image` para compatibilidade com scoped storage) com botão de exclusão sobreposto.
+ * Onde usar: Internamente na galeria de fotos `PhotoGallery`.
  */
 export const PhotoPreview = ({ photo, onRemove }: PhotoPreviewProps) => {
   return (

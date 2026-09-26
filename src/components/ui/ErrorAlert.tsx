@@ -10,6 +10,12 @@ export interface ErrorAlertProps {
   onRetry?: () => void;
 }
 
+/**
+ * ErrorAlert
+ *
+ * O que faz: Banner de alerta para erros mapeados (`MappedError`) com ícone, mensagem em pt-BR, código de diagnóstico técnico simplificado e botão de tentar novamente (retry).
+ * Onde usar: No topo ou rodapé de formulários e telas quando uma requisição à API falha (`profile.tsx`, `account.tsx`, etc.).
+ */
 export const ErrorAlert = ({ error, onRetry }: ErrorAlertProps) => {
   if (!error) return null;
 

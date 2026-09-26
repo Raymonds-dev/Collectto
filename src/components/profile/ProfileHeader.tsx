@@ -61,6 +61,12 @@ function HeaderAction({ isOwner, disabled, onEditPress, onOptionsPress }: Header
   );
 }
 
+/**
+ * ProfileHeader
+ *
+ * O que faz: Cabeçalho com banner de fundo do perfil, gradiente decorativo e botão de ação contextual (lápis para editar se for owner, três pontos para opções se for visitante).
+ * Onde usar: No topo das telas de perfil do próprio usuário (`src/app/(tabs)/profile.tsx`) ou de outros colecionadores (`src/app/users/[userId].tsx`).
+ */
 export function ProfileHeader({
   isOwner,
   bannerImage,

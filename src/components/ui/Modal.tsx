@@ -51,7 +51,10 @@ const typeConfig = {
 };
 
 /**
- * A branded modal component to display alerts, confirmations, or success messages.
+ * Modal
+ *
+ * O que faz: Modal de diálogo padronizado do Design System com ícone contextual, título, descrição e ações de confirmação/cancelamento por tipo (info, success, danger).
+ * Onde usar: Para diálogos de confirmação de exclusão, alertas de feedback ou avisos que necessitam de confirmação explícita.
  */
 export const Modal = ({
   visible,

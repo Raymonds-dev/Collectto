@@ -13,6 +13,12 @@ type ProfileActionsBarProps = {
   onNotificationPress?: () => void;
 };
 
+/**
+ * ProfileActionsBar
+ *
+ * O que faz: Barra de botões de interação social (Seguir/Seguindo, Notificações ativas/inativas e Compartilhar perfil).
+ * Onde usar: Abaixo das informações de perfil ou de coleção quando acessado por visitantes (`collections/[collectionId].tsx`, `CollectionItemDetailView`).
+ */
 export function ProfileActionsBar({
   isOwner,
   isFollowing,

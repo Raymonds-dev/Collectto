@@ -15,6 +15,12 @@ type ProfileHashtagFilterProps = {
 
 const ALL_TAG_LABEL = 'Todas';
 
+/**
+ * ProfileHashtagFilter
+ *
+ * O que faz: Barra horizontal com rolagem de botões de hashtag ordenada por popularidade, permitindo filtrar itens ou publicações por tag temática selecionada.
+ * Onde usar: Na tela de perfil ou feed para filtragem dinâmica de conteúdo.
+ */
 export function ProfileHashtagFilter({ hashtags, onTagChange }: ProfileHashtagFilterProps) {
   const [selectedTag, setSelectedTag] = useState<string>(ALL_TAG_LABEL);
 

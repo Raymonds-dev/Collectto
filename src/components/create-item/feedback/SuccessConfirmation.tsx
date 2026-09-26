@@ -3,7 +3,7 @@ import { Image, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
 import { MotionView } from '@/components/ui/animated';
-import { UncategorizedIndicator } from './UncategorizedIndicator';
+import { UncategorizedIndicator } from '../form/UncategorizedIndicator';
 
 /**
  * Props for the SuccessConfirmation component.
@@ -20,14 +20,10 @@ interface SuccessConfirmationProps {
 }
 
 /**
- * SuccessConfirmation component for item creation completion.
- * Displays a final success screen to the user after an item has been persisted.
+ * SuccessConfirmation
  *
- * - Shows a success checkmark and message.
- * - Displays the created item's thumbnail if provided.
- * - Shows an 'Uncategorized' badge if applicable.
- * - Provides a 'Concluir' button to exit the flow.
- * - Uses the FadeIn motion preset for its entrance.
+ * O que faz: Tela animada de confirmação de item criado com sucesso, exibindo ícone de check, miniatura do item, indicador se ficou sem categoria e botão para concluir.
+ * Onde usar: Renderizado pelo `ItemSaveFlow` após a conclusão bem-sucedida do salvamento.
  */
 export const SuccessConfirmation: React.FC<SuccessConfirmationProps> = ({
   itemName,

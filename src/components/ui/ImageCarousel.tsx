@@ -84,7 +84,13 @@ const CareosselItem: React.FC<CarrosselItemProps> = ({
   );
 };
 
-export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
+/**
+ * ImageCarousel
+ *
+ * O que faz: Carrossel infinito horizontal de imagens com rolagem automática suave (auto-scroll) e animação contínua baseada em Reanimated.
+ * Onde usar: Em telas de boas-vindas / onboarding (`src/app/(auth)/tela_inicial.tsx`) ou vitrines de destaque.
+ */
+export const ImageCarousel: React.FC<ImageCarouselProps> = ({ items }) => {
   const { width: windowWidth } = useWindowDimensions();
   const scrollX = useSharedValue(0);
   const flatListRef = useRef<FlatList<{ id: string; source: ImageSourcePropType }> | null>(null);
@@ -249,3 +255,6 @@ export const ImageCarrossel: React.FC<ImageCarouselProps> = ({ items }) => {
     </View>
   );
 };
+
+export const ImageCarrossel = ImageCarousel;
+export default ImageCarousel;

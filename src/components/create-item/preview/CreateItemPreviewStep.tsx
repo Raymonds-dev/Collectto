@@ -13,6 +13,12 @@ type CreateItemPreviewStepProps = {
   collection: Collection | null;
 };
 
+/**
+ * CreateItemPreviewStep
+ *
+ * O que faz: Etapa de pré-visualização que renderiza um card hero com o stack de capas do item, nome, descrição, categoria associada e grid de fotos anexadas antes do salvamento final.
+ * Onde usar: Na etapa de preview do fluxo `CreateItemFlow`.
+ */
 export const CreateItemPreviewStep = ({
   photos,
   itemName,

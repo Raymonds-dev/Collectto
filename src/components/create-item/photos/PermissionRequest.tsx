@@ -22,11 +22,10 @@ interface PermissionRequestProps {
 }
 
 /**
- * A UI component that provides context and actions for requesting specific device permissions.
- * Displays a descriptive title, icon, and explanatory text based on the permission type.
+ * PermissionRequest
  *
- * @param props - The component props.
- * @returns A React component for the permission request screen.
+ * O que faz: Apresenta interface visual informativa solicitando autorização do usuário para acesso à câmera ou à galeria com ações de permitir/cancelar.
+ * Onde usar: Renderizado pelo `PermissionGate` quando o app identifica ausência de permissões necessárias.
  */
 export const PermissionRequest = ({
   type,

@@ -4,7 +4,7 @@ import type { LocalPhotoReference } from '@/types/photo-storage';
 import { useItemSave } from '@/hooks/useItemSave';
 import { type CollectionCreationInput, useCollectionCreation } from '@/hooks/useCollectionCreation';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
-import { SaveButton } from './SaveButton';
+import { SaveButton } from '../form/SaveButton';
 import { SuccessConfirmation } from './SuccessConfirmation';
 
 /**
@@ -38,19 +38,10 @@ interface ItemSaveFlowProps {
 }
 
 /**
- * Orchestrates the multi-step process of saving a new item.
+ * ItemSaveFlow
  *
- * Features:
- * - Handles optional collection creation if a draft is provided.
- * - Manages photo migration/uploading via the storage provider.
- * - Creates the item record via the API service.
- * - Displays a loading state during the entire process.
- * - Shows a success confirmation once completed.
- * - Provides error handling and retry logic.
- * - Uses refs to prevent duplicate save attempts.
- *
- * @param props - The component props.
- * @returns A React component for the item saving orchestration.
+ * O que faz: Orquestrador da persistência assíncrona do item: faz upload das fotos, cria a coleção se houver rascunho, cria o item na API e exibe tela de sucesso ou erro com opção de retentativa.
+ * Onde usar: Na etapa final do fluxo de criação (`CreateItemFlow`).
  */
 export const ItemSaveFlow: React.FC<ItemSaveFlowProps> = ({
   photos,

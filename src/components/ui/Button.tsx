@@ -104,6 +104,12 @@ function normalizeVariant(
   return variant;
 }
 
+/**
+ * Button
+ *
+ * O que faz: Componente base de botão interativo com animação de toque (`usePressMotion`), suporte a variantes semânticas (primary, secondary, success, cancel, ghost, icon), tamanhos (sm, md, lg), ícones e estado de loading.
+ * Onde usar: Em todas as telas e formulários que requerem ações clicáveis do usuário.
+ */
 export function Button({
   label,
   variant = 'primary',

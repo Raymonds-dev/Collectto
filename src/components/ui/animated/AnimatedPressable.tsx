@@ -16,6 +16,12 @@ type AnimatedPressableProps = PressableProps & {
 
 const ReanimatedPressable = Animated.createAnimatedComponent(Pressable);
 
+/**
+ * AnimatedPressable
+ *
+ * O que faz: Componente Pressable com animação automática de escala e opacidade via Reanimated (`usePressMotion`) para fornecer microfeedback tátil consistente.
+ * Onde usar: Em substituição a `Pressable` ou `TouchableOpacity` comuns em cards, botões de ação rápida e links clicáveis.
+ */
 export const AnimatedPressable = ({
   motionStyle,
   onPressIn,

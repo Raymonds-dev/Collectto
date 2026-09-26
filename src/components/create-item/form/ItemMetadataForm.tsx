@@ -2,11 +2,11 @@ import React, { forwardRef, useImperativeHandle, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { usePhotoSource } from '@/hooks/usePhotoSource';
 import { usePhotoPermissions } from '@/hooks/usePhotoPermissions';
-import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { createPhotoStorageProvider } from '@/services/media';
 import { ItemForm } from './ItemForm';
-import { PhotoGallery } from './PhotoGallery';
-import { PhotoPicker } from './PhotoPicker';
-import { CollectionCreationForm } from '@/components/create-item/CollectionCreationForm';
+import { PhotoGallery } from '../photos/PhotoGallery';
+import { PhotoPicker } from '../photos/PhotoPicker';
+import { CollectionCreationForm } from '../collection/CollectionCreationForm';
 import { SaveButton } from './SaveButton';
 import type { Collection } from '@/types/collections';
 import type { LocalPhotoReference } from '@/types/photo-storage';
@@ -87,23 +87,16 @@ interface ValidationErrors {
   lastUsedDate?: string;
 }
 
-/**
- * A composite form component for entering all item metadata.
- *
- * Features:
- * - Integrates PhotoPicker and PhotoGallery for image management.
- * - Includes ItemForm for name and description.
- * - Incorporates CollectionCreationForm for collection selection/creation.
- * - Handles comprehensive form validation.
- * - Provides a "Save" button with loading and error states.
- *
- * @param props - The component props.
- * @returns A React component for the complete item metadata form.
- */
 export interface ItemMetadataFormHandle {
   validate: () => boolean;
 }
 
+/**
+ * ItemMetadataForm
+ *
+ * O que faz: Formulário composto com gerenciamento de ref (`ItemMetadataFormHandle`) que integra fotos, campos de texto, categoria e gatilho de validação imperativo.
+ * Onde usar: Na tela inicial do fluxo de criação de itens (`CreateItemFlow`) e na tela de edição (`src/app/collections/edit-item/[itemId].tsx`).
+ */
 export const ItemMetadataForm = forwardRef<ItemMetadataFormHandle, ItemMetadataFormProps>(
   (
     {

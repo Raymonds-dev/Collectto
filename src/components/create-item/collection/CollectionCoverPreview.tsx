@@ -18,13 +18,10 @@ interface CollectionCoverPreviewProps {
 }
 
 /**
- * Displays a preview of the selected collection cover image.
- * Provides a button to remove the selection and shows a placeholder if no image is selected.
- * Uses expo-image instead of react-native Image to correctly render local
- * file:// URIs in production Android builds (scoped storage safe).
+ * CollectionCoverPreview
  *
- * @param props - The component props.
- * @returns A React component for previewing or selecting a collection cover.
+ * O que faz: Exibe a imagem selecionada para capa de uma coleção em proporção 16:9 com botão para remoção, ou um placeholder se vazia.
+ * Onde usar: Em formulários de criação e edição de coleção (`CollectionCreationForm`, `CollectionEditForm`).
  */
 export const CollectionCoverPreview: React.FC<CollectionCoverPreviewProps> = ({
   coverPhoto,

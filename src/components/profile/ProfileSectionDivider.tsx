@@ -11,6 +11,12 @@ const topBorderGradient: readonly [string, string, string, string] = [
   brandJourney[3] ?? tokens.colors.feedback.info,
 ];
 
+/**
+ * ProfileSectionDivider
+ *
+ * O que faz: Linha divisória fina com gradiente das cores da marca (brand journey), usada para separar blocos visuais mantendo a identidade do app.
+ * Onde usar: Entre cabeçalhos/informações e listas/grades de conteúdo (`profile.tsx`, `collections/[collectionId].tsx`).
+ */
 export function ProfileSectionDivider() {
   return (
     <View className="mt-4 ">

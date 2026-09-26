@@ -52,6 +52,12 @@ function GradientDivider() {
   );
 }
 
+/**
+ * ItemCollection
+ *
+ * O que faz: Renderiza a galeria visual do item com visualização em tela cheia (zoom modal), divisor gradiente temático, descrição expansível e tabela de atributos.
+ * Onde usar: Dentro de `CollectionItemDetailView` ou em telas onde o conteúdo visual de um item individual precise ser apresentado com ricos detalhes.
+ */
 export function ItemCollection({
   title,
   images,

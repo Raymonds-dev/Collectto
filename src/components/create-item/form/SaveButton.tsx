@@ -16,12 +16,10 @@ interface SaveButtonProps {
 }
 
 /**
- * SaveButton component for the item creation flow.
- * Displays a button with an optional loading state and customized labeling.
+ * SaveButton
  *
- * - Shows 'Salvando...' when loading.
- * - Disables interaction when loading or when specified by isDisabled.
- * - Leverages the base UI Button component.
+ * O que faz: Botão principal de submissão do item com estados visuais de loading ("Salvando..."), acessibilidade e bloqueio quando desabilitado.
+ * Onde usar: No rodapé do formulário de criação ou edição de item (`CreateItemFlow`, `ItemMetadataForm`).
  */
 export const SaveButton: React.FC<SaveButtonProps> = ({
   isLoading = false,

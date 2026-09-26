@@ -5,11 +5,11 @@ import { useItemCreation } from '@/hooks/useItemCreation';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import type { Collection } from '@/types/collections';
 import { Button } from '@/components/ui/Button';
-import { PhotoPicker } from './PhotoPicker';
-import { ItemMetadataForm } from './ItemMetadataForm';
-import { ItemSaveFlow } from './ItemSaveFlow';
-import { CollectionCreationForm } from '@/components/create-item/CollectionCreationForm';
-import { CreateItemPreviewStep } from './CreateItemPreviewStep';
+import { PhotoPicker } from './photos';
+import { ItemMetadataForm } from './form';
+import { ItemSaveFlow } from './feedback';
+import { CollectionCreationForm } from './collection';
+import { CreateItemPreviewStep } from './preview';
 import { type CreateItemStepConfig, CreateItemStepper } from './CreateItemStepper';
 import { Modal } from '@/components/ui/Modal';
 
@@ -427,13 +427,10 @@ const CreateItemFlowContent: React.FC<CreateItemFlowProps> = ({
 };
 
 /**
- * The main component for the item creation flow.
- * Orchestrates the entire process of picking photos, adding metadata,
- * selecting a collection, and saving the item.
- * Includes an error boundary for robustness.
+ * CreateItemFlow
  *
- * @param props - The component props.
- * @returns A React component wrapping the item creation flow.
+ * O que faz: Orquestrador principal do wizard de criação de novos itens em 4 etapas (fotos/metadados, seleção de coleção, pré-visualização e upload/salvamento com feedback).
+ * Onde usar: Na tela dedicada de criação de itens (`src/app/(tabs)/create-item.tsx`).
  */
 export const CreateItemFlow: React.FC<CreateItemFlowProps> = (props) => {
   return (

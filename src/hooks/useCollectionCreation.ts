@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { Collection, CollectionVisibility } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
-import { uploadCollectionCover } from '@/services/api/uploadService';
+import { uploadCollectionCover } from '@/services/media';
 
 export interface CollectionCreationInput {
   name: string;

@@ -6,7 +6,5 @@ import { createLocalPhotoStorage } from './local-provider';
  * Currently returns LocalStorageProvider; can be configured to return cloud providers
  */
 export const createPhotoStorageProvider = (): PhotoStorageProvider => {
-  // TODO: Implement provider selection logic based on configuration
-  // e.g., if (config.useFirebase) return createFirebaseStorageProvider();
   return createLocalPhotoStorage();
 };

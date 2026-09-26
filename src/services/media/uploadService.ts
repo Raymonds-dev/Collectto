@@ -1,8 +1,7 @@
 import { isDebugModeEnabled } from '@/services/debug/debugFlags';
 import api, { generatePresignedUploadUrls, getAuthenticatedUser } from '@/services/api/api';
-import * as FileSystemLegacy from 'expo-file-system/legacy';
-
-const FileSystem = FileSystemLegacy;
+import { uploadAdapter } from './adapters/uploadAdapter';
+import type { UploadContext } from './adapters/uploadAdapter.types';
 
 export const uuidv4 = (): string => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
@@ -122,60 +121,18 @@ const getCurrentAuthorizationHeader = (): string => {
   return headerValue.replace(/^"|"$/g, '');
 };
 
-const cleanupTempFile = async (uri: string): Promise<void> => {
-  try {
-    if (
-      uri.startsWith(FileSystem.cacheDirectory + 'photos/temp/') ||
-      uri.startsWith(FileSystem.documentDirectory + 'photos/tmp/')
-    ) {
-      await FileSystem.deleteAsync(uri, { idempotent: true });
-    }
-  } catch (err) {
-    console.warn(`[upload] Failed to clean up temp file ${uri}:`, err);
-  }
-};
-
 const validateFileSize = async (uri: string): Promise<void> => {
-  try {
-    const info = await FileSystem.getInfoAsync(uri);
-    if (info.exists && info.size && info.size > 10 * 1024 * 1024) {
-      throw new Error('O arquivo excede o limite de tamanho permitido de 10MB.');
-    }
-  } catch (err) {
-    if (err instanceof Error && err.message.includes('excede')) {
-      throw err;
-    }
+  const size = await uploadAdapter.getFileSize(uri);
+  if (size > 10 * 1024 * 1024) {
+    throw new Error('O arquivo excede o limite de tamanho permitido de 10MB.');
   }
-};
-
-const handleMockUpload = async (
-  photoUri: string,
-  context: 'PROFILE_PICTURE' | 'PROFILE_BACKGROUND' | 'COLLECTION' | 'ITEM'
-): Promise<string> => {
-  const destination =
-    context === 'ITEM' ? 'items' : context === 'COLLECTION' ? 'collections' : 'profiles';
-  const permanentDir = `${FileSystem.documentDirectory}photos/permanent/${destination}/`;
-
-  await FileSystem.makeDirectoryAsync(permanentDir, { intermediates: true });
-
-  const fileName = photoUri.split('/').pop() || `${Date.now()}.jpg`;
-  const permanentUri = `${permanentDir}${fileName}`;
-
-  await FileSystem.copyAsync({
-    from: photoUri,
-    to: permanentUri,
-  });
-
-  await cleanupTempFile(photoUri);
-
-  return permanentUri;
 };
 
 const requestPresignedUpload = async (
   resourceId: string,
   photoUri: string,
   contentType: string,
-  context: 'PROFILE_PICTURE' | 'PROFILE_BACKGROUND' | 'COLLECTION' | 'ITEM',
+  context: UploadContext,
   authorization: string,
   parentId?: string
 ): Promise<{ filePath: string; uploadUrl: string }> => {
@@ -193,10 +150,11 @@ const requestPresignedUpload = async (
       throw new Error('O backend não retornou dados para upload.');
     }
     return response[0];
-  } catch (error: any) {
-    const statusInfo = error.status ? `(Status: ${error.status})` : '';
-    const errorMsg = error.message || '';
-    const errorData = error.data ? JSON.stringify(error.data) : 'No data';
+  } catch (error: unknown) {
+    const err = error as { status?: number; message?: string; data?: unknown };
+    const statusInfo = err?.status ? `(Status: ${err.status})` : '';
+    const errorMsg = err?.message || '';
+    const errorData = err?.data ? JSON.stringify(err.data) : 'No data';
     console.error(
       `[upload] Falha ao obter URL pre-signed ${statusInfo} - Message: ${errorMsg} - Data: ${errorData}`
     );
@@ -210,7 +168,7 @@ export const uploadCollectionCover = async (
 ): Promise<string> => {
   await validateFileSize(photoUri);
   if (isDebugModeEnabled()) {
-    return handleMockUpload(photoUri, 'COLLECTION');
+    return await uploadAdapter.handleMockUpload(photoUri, 'COLLECTION');
   }
 
   const authorization = getCurrentAuthorizationHeader();
@@ -225,19 +183,17 @@ export const uploadCollectionCover = async (
     authorization
   );
 
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  const uploadResult = await uploadAdapter.uploadBinary({
+    uploadUrl,
+    photoUri,
+    contentType,
   });
 
   if (uploadResult.status < 200 || uploadResult.status >= 300) {
     throw new Error(`Falha ao enviar a capa da coleção. Status: ${uploadResult.status}`);
   }
 
-  await cleanupTempFile(photoUri);
+  await uploadAdapter.cleanupTempFile(photoUri);
 
   return filePath;
 };
@@ -249,7 +205,7 @@ export const uploadItemPhoto = async (
 ): Promise<string> => {
   await validateFileSize(photoUri);
   if (isDebugModeEnabled()) {
-    return handleMockUpload(photoUri, 'ITEM');
+    return await uploadAdapter.handleMockUpload(photoUri, 'ITEM');
   }
 
   const authorization = getCurrentAuthorizationHeader();
@@ -265,19 +221,17 @@ export const uploadItemPhoto = async (
     collectionId
   );
 
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  const uploadResult = await uploadAdapter.uploadBinary({
+    uploadUrl,
+    photoUri,
+    contentType,
   });
 
   if (uploadResult.status < 200 || uploadResult.status >= 300) {
     throw new Error(`Falha ao enviar a foto do item. Status: ${uploadResult.status}`);
   }
 
-  await cleanupTempFile(photoUri);
+  await uploadAdapter.cleanupTempFile(photoUri);
 
   return filePath;
 };
@@ -289,7 +243,7 @@ export const uploadProfilePhoto = async (
 ): Promise<string> => {
   await validateFileSize(photoUri);
   if (isDebugModeEnabled()) {
-    return handleMockUpload(photoUri, 'PROFILE_PICTURE');
+    return await uploadAdapter.handleMockUpload(photoUri, 'PROFILE_PICTURE');
   }
 
   const authorization = getCurrentAuthorizationHeader();
@@ -303,19 +257,17 @@ export const uploadProfilePhoto = async (
     authorization
   );
 
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  const uploadResult = await uploadAdapter.uploadBinary({
+    uploadUrl,
+    photoUri,
+    contentType,
   });
 
   if (uploadResult.status < 200 || uploadResult.status >= 300) {
     throw new Error(`Falha ao enviar a foto de perfil. Status: ${uploadResult.status}`);
   }
 
-  await cleanupTempFile(photoUri);
+  await uploadAdapter.cleanupTempFile(photoUri);
 
   return filePath;
 };
@@ -327,7 +279,7 @@ export const uploadProfileBackground = async (
 ): Promise<string> => {
   await validateFileSize(photoUri);
   if (isDebugModeEnabled()) {
-    return handleMockUpload(photoUri, 'PROFILE_BACKGROUND');
+    return await uploadAdapter.handleMockUpload(photoUri, 'PROFILE_BACKGROUND');
   }
 
   const authorization = getCurrentAuthorizationHeader();
@@ -341,19 +293,17 @@ export const uploadProfileBackground = async (
     authorization
   );
 
-  const uploadResult = await FileSystem.uploadAsync(uploadUrl, photoUri, {
-    httpMethod: 'PUT',
-    headers: {
-      'Content-Type': contentType,
-    },
-    uploadType: FileSystem.FileSystemUploadType.BINARY_CONTENT,
+  const uploadResult = await uploadAdapter.uploadBinary({
+    uploadUrl,
+    photoUri,
+    contentType,
   });
 
   if (uploadResult.status < 200 || uploadResult.status >= 300) {
     throw new Error(`Falha ao enviar a imagem de capa do perfil. Status: ${uploadResult.status}`);
   }
 
-  await cleanupTempFile(photoUri);
+  await uploadAdapter.cleanupTempFile(photoUri);
 
   return filePath;
 };

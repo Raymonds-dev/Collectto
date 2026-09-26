@@ -2,7 +2,7 @@ import { AppState, AppStateStatus } from 'react-native';
 import { RefreshAttempt } from '@/types/auth-refresh';
 import { authLogger } from '@/utils/authLogging';
 import { decodeJwtPayload } from '@/utils/jwt';
-import { getSessionRefreshToken, setSessionRefreshToken } from '@/services/storage/authSession';
+import { getSessionRefreshToken, setSessionRefreshToken } from './storage/authSession';
 import type { TokenRefreshResponse } from '@/types/auth';
 
 export class SessionRefreshManager {

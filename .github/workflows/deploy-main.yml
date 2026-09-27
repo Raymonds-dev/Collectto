@@ -1,0 +1,40 @@
+name: Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend-main
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci --legacy-peer-deps
+
+      - name: Validar qualidade (tipos, lint, formatação)
+        run: npm run validate
+
+  deploy:
+    needs: validate
+    runs-on: [self-hosted, frontend]
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Executar deploy na VPS
+        run: /home/dev/scripts/deploy-frontend.sh

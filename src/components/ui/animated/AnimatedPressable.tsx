@@ -6,12 +6,12 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { type useAnimatedStyle } from 'react-native-reanimated';
 
 import { usePressMotion } from '@/hooks/useAnimation';
 
 type AnimatedPressableProps = PressableProps & {
-  motionStyle?: StyleProp<ViewStyle>;
+  motionStyle?: StyleProp<ViewStyle> | ReturnType<typeof useAnimatedStyle>;
 };
 
 const ReanimatedPressable = Animated.createAnimatedComponent(Pressable);

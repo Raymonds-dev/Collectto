@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { ItemContextProvider } from '@/providers/ItemContextProvider';
 import { CollectionContextProvider } from '@/providers/CollectionContextProvider';
-import { CreateItemFlow } from '@/components/create-item/CreateItemFlow';
+import { CreateItemFlow } from '@/components/create-item';
 
 /**
  * Create Item Screen

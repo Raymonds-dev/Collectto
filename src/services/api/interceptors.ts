@@ -1,7 +1,7 @@
 import { AxiosError, AxiosInstance, AxiosRequestConfig, isAxiosError } from 'axios';
 import { ApiError, RetryConfig } from './types';
 import { DEFAULT_RETRY_CONFIG } from './config';
-import { getSessionToken } from '../storage/authSession';
+import { getSessionToken } from '../auth/storage/authSession';
 import { sessionRefreshManager } from '../auth/sessionRefreshManager';
 
 /**

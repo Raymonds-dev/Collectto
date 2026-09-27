@@ -1,15 +1,20 @@
 {
-  "version": "0.8.13",
+  "version": "1.0.13.dev0",
   "integration_state_schema": 1,
   "installed_integrations": [
+    "agy",
     "copilot"
   ],
   "integration_settings": {
+    "agy": {
+      "script": "sh",
+      "invoke_separator": "-"
+    },
     "copilot": {
       "script": "sh",
-      "invoke_separator": "."
+      "invoke_separator": "-"
     }
   },
-  "integration": "copilot",
-  "default_integration": "copilot"
+  "integration": "agy",
+  "default_integration": "agy"
 }

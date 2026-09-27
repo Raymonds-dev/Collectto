@@ -8,16 +8,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   type CollectionEditData,
   CollectionEditForm,
-} from '@/components/collection/CollectionEditForm';
-import { CollectionItemsBulkList } from '@/components/collection/CollectionItemsBulkList';
-import { CollectionSelector } from '@/components/create-item/CollectionSelector';
+  CollectionItemsBulkList,
+} from '@/components/collection';
+import { CollectionSelector } from '@/components/create-item';
 import { Modal } from '@/components/ui/Modal';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
 import { useItemService } from '@/providers/ItemContextProvider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { CollectionResponse, DeleteCollectionItemsStrategy } from '@/types/collections';
 import type { ItemResponse } from '@/types/items';
-import { uploadCollectionCover } from '@/services/api/uploadService';
+import { uploadCollectionCover } from '@/services/media';
 
 type EditTab = 'details' | 'items';
 

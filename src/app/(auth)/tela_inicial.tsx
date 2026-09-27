@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
 import { Image, Text, View } from 'react-native';
-import { ImageCarrossel } from '@/components/image-carrossel/image_carrossel'; // 1. Importe o carrossel
+import { ImageCarousel } from '@/components/ui';
 
 const carrossel_images = [
   { id: '1', source: require('@/assets/example/hotweels_3.jpeg') },
@@ -26,7 +26,7 @@ const inicialScreen = () => {
       </View>
 
       <View className="mb-1 h-[340px] w-full items-center justify-center pb-8">
-        <ImageCarrossel items={carrossel_images} />
+        <ImageCarousel items={carrossel_images} />
       </View>
 
       <View className="w-full items-center gap-4">

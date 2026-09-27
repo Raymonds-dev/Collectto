@@ -5,10 +5,12 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ItemForm } from '@/components/create-item/ItemForm';
-import { PhotoGallery } from '@/components/create-item/PhotoGallery';
-import { PhotoPicker } from '@/components/create-item/PhotoPicker';
-import { CollectionCreationForm } from '@/components/create-item/CollectionCreationForm';
+import {
+  CollectionCreationForm,
+  ItemForm,
+  PhotoGallery,
+  PhotoPicker,
+} from '@/components/create-item';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useItemEdit } from '@/hooks/useItemEdit';
@@ -17,8 +19,8 @@ import { useItemService } from '@/providers/ItemContextProvider';
 import { tokens } from '@/styles/tailwind/tokens.native';
 import type { Collection } from '@/types/collections';
 import type { ItemResponse } from '@/types/items';
-import { uploadItemPhoto } from '@/services/api/uploadService';
-import { getApiBaseUrl } from '@/services/api/env';
+import { uploadItemPhoto } from '@/services/media';
+import { getApiBaseUrl, getTargetApiBaseUrl } from '@/services/api/env';
 
 /**
  * Edit Item Screen.
@@ -112,12 +114,17 @@ export default function EditItemScreen() {
         uploadedPhotoPaths.push(filePath);
       }
 
-      // 2. Format existingPhotoUrls by removing the API base URL prefix
+      // 2. Format existingPhotoUrls by removing API base URL prefixes
       const baseUrl = getApiBaseUrl();
-      const cleanBase = baseUrl.endsWith('/') ? baseUrl : baseUrl + '/';
+      const targetBase = getTargetApiBaseUrl();
+      const cleanBase = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+      const cleanTarget = targetBase.endsWith('/') ? targetBase : `${targetBase}/`;
       const relativeExistingUrls = existingPhotoUrls.map((url) => {
         if (url.startsWith(cleanBase)) {
           return url.substring(cleanBase.length);
+        }
+        if (url.startsWith(cleanTarget)) {
+          return url.substring(cleanTarget.length);
         }
         return url;
       });

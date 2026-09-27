@@ -102,12 +102,11 @@ const updateDateYear = (dateString: string, year: number): string => {
  *
  * Design decisions:
  * - Single unified field with a calendar icon for clear affordance
- * - Compact date format on the trigger, full format in the modal header
- * - brand-500 accent for selection and confirmation
- * - surface tokens for backgrounds and borders to stay consistent with the form style
- * - info/infoSoft for the selected-date chip in the modal header for differentiation
- * - Confirm/Cancel pattern with disabled-state handling
- * - Full accessibility labels and roles
+/**
+ * DatePicker
+ *
+ * O que faz: Seletor de data interativo em modal com calendário em português (pt-BR), navegação de meses/anos, chip da data selecionada e botões de confirmar/cancelar.
+ * Onde usar: Em formulários de itens (`ItemForm`) ou configurações de perfil (`account.tsx`).
  */
 export function DatePicker({
   label,

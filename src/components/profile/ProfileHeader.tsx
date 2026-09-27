@@ -1,0 +1,135 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { tokens } from '@/styles/tailwind/tokens.native';
+import {
+  ActivityIndicator,
+  ImageBackground,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+
+type ProfileHeaderProps = {
+  isOwner: boolean;
+  bannerImage: string | null;
+  isUploading?: boolean;
+  onBannerLoad?: () => void;
+  onBannerError?: () => void;
+  onEditPress?: () => void;
+  onOptionsPress?: () => void;
+};
+
+type HeaderActionProps = {
+  isOwner: boolean;
+  disabled?: boolean;
+  onEditPress?: () => void;
+  onOptionsPress?: () => void;
+};
+
+function HeaderAction({ isOwner, disabled, onEditPress, onOptionsPress }: HeaderActionProps) {
+  const [isPressed, setIsPressed] = useState(false);
+  const iconName = isOwner ? 'pencil' : 'ellipsis-horizontal';
+  const accessibilityLabel = isOwner ? 'Editar perfil' : 'Abrir acoes do perfil';
+
+  function handlePress() {
+    if (disabled) {
+      return;
+    }
+
+    if (isOwner) {
+      onEditPress?.();
+      return;
+    }
+
+    onOptionsPress?.();
+  }
+
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={{ disabled: Boolean(disabled) }}
+      disabled={disabled}
+      onPress={handlePress}
+      onPressIn={() => setIsPressed(true)}
+      onPressOut={() => setIsPressed(false)}
+      className={`absolute right-3 top-3 z-10 h-9 w-9 items-center justify-center rounded-full border border-surface-border bg-overlay-scrimSoft ${isPressed ? 'opacity-75' : 'opacity-100'} ${disabled ? 'opacity-60' : ''}`}>
+      <Ionicons name={iconName} size={18} color={tokens.colors.text.inverse} />
+    </Pressable>
+  );
+}
+
+/**
+ * ProfileHeader
+ *
+ * O que faz: Cabeçalho com banner de fundo do perfil, gradiente decorativo e botão de ação contextual (lápis para editar se for owner, três pontos para opções se for visitante).
+ * Onde usar: No topo das telas de perfil do próprio usuário (`src/app/(tabs)/profile.tsx`) ou de outros colecionadores (`src/app/users/[userId].tsx`).
+ */
+export function ProfileHeader({
+  isOwner,
+  bannerImage,
+  isUploading = false,
+  onBannerLoad,
+  onBannerError,
+  onEditPress,
+  onOptionsPress,
+}: ProfileHeaderProps) {
+  const brandJourney = tokens.gradients.brandJourney as string[];
+  const dividerGradient: readonly [string, string, string, string] = [
+    brandJourney[0] ?? tokens.colors.brand.primary,
+    brandJourney[1] ?? tokens.colors.feedback.success,
+    brandJourney[2] ?? tokens.colors.feedback.error,
+    brandJourney[3] ?? tokens.colors.feedback.warning,
+  ];
+  const hasBannerImage = Boolean(bannerImage);
+
+  return (
+    <View className="relative h-[120px] w-full overflow-hidden bg-surface-muted">
+      {hasBannerImage ? (
+        <ImageBackground
+          source={{ uri: bannerImage as string }}
+          resizeMode="cover"
+          onLoad={onBannerLoad}
+          onError={onBannerError}
+          className="h-full w-full"
+        />
+      ) : (
+        <View className="h-full w-full bg-surface-muted" />
+      )}
+
+      <HeaderAction
+        isOwner={isOwner}
+        disabled={isUploading}
+        onEditPress={onEditPress}
+        onOptionsPress={onOptionsPress}
+      />
+
+      {isUploading ? (
+        <View className="absolute inset-0 items-center justify-center bg-overlay-scrim">
+          <ActivityIndicator size="small" color={tokens.colors.brand.primary} />
+          <Text className="mt-2 text-xs font-semibold text-text-inverse">Atualizando capa...</Text>
+        </View>
+      ) : null}
+
+      {/* expo-linear-gradient tem suporte parcial a NativeWind; usar style nativo evita inconsistencias */}
+      <LinearGradient
+        colors={dividerGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+        style={styles.bottomGradientLine}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  bottomGradientLine: {
+    bottom: 0,
+    height: 1.5,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
+});

@@ -5,7 +5,7 @@ import {
   getSessionToken,
   setSessionRefreshToken,
   setSessionToken,
-} from '@/services/storage/authSession';
+} from '@/services/auth/storage/authSession';
 import { AuthUser, Credentials, RegisterData } from '@/types/auth';
 import {
   createContext,

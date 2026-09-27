@@ -8,7 +8,7 @@ import type {
 } from '@/types/debug';
 import type { PostService } from '@/types/posts';
 import { extractBasePostId } from '@/utils/extractBasePostId';
-import { getSessionToken } from '@/services/storage/authSession';
+import { getSessionToken } from '@/services/auth/storage/authSession';
 
 const decodeUserIdFromToken = async (): Promise<string | null> => {
   try {

@@ -7,13 +7,13 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { AuthErrorBoundary } from '@/components/AuthErrorBoundary';
+import { AuthErrorBoundary } from '@/components/auth';
 
 import '../styles/global.css';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { createItemCollectionProviders as Providers } from '@/providers';
 
-import { createPhotoStorageProvider } from '@/services/photo-storage';
+import { createPhotoStorageProvider } from '@/services/media';
 
 import { NotificationProvider } from '@/providers/NotificationProvider';
 import { tokens } from '@/styles/tailwind/tokens.native';

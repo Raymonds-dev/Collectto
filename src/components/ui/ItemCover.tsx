@@ -23,14 +23,10 @@ const FALLBACK_COLORS = [
 ];
 
 /**
- * A standard UI component for displaying items as a backward stack.
- * It composes three visual layers using the provided images, falling back to solid background colors
- * for layers where images are not available.
+ * ItemCover
  *
- * Uses expo-image instead of react-native Image to correctly render local
- * file:// URIs in production Android builds (scoped storage safe). This is
- * important because ItemCover is used in the item creation preview step where
- * images are still in the app's local documentDirectory.
+ * O que faz: Renderiza a capa do item com efeito de profundidade através de cartões sobrepostos em camadas regressivas (backward stack), usando `expo-image` para compatibilidade com scoped storage nativo.
+ * Onde usar: Em publicações do feed (`Post`), grades de itens (`CollectionItemsGrid`) e telas de preview (`CreateItemPreviewStep`).
  */
 export const ItemCover = ({
   images = [],

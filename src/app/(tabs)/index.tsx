@@ -1,6 +1,6 @@
 import { Post, type PostItemPreview } from '@/components/post';
 import { CommentThread } from '@/components/comments';
-import { CollectionItemDetailView } from '@/components/item-collection/CollectionItemDetailView';
+import { CollectionItemDetailView } from '@/components/collection';
 import { AnimatedPressable } from '@/components/ui/animated';
 import { Card } from '@/components/ui/Card';
 import { BrandIcon } from '@/components/ui/svgs/BrandIcon';

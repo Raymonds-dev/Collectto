@@ -30,6 +30,12 @@ const formatTimeAgo = (dateStr: string): string => {
   }
 };
 
+/**
+ * NotificationCard
+ *
+ * O que faz: Exibe um item de notificação com ícone semântico por tipo, timestamp, avatar do remetente e botões contextuais de aprovar/recusar (para solicitações de seguidor).
+ * Onde usar: Dentro de listagens e menus de notificações como `NotificationDropdown`.
+ */
 export const NotificationCard = ({
   notification,
   onPress,

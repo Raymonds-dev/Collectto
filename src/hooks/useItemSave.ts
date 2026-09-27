@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useItemService } from '@/providers/ItemContextProvider';
-import { uploadItemPhoto } from '@/services/api/uploadService';
+import { uploadItemPhoto } from '@/services/media';
 
 interface ItemSaveInput {
   name: string;

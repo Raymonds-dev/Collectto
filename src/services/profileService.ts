@@ -11,7 +11,7 @@ import { mapErrorToMessage } from '@/utils/errorMapping';
 import {
   uploadProfileBackground as uploadProfileBackgroundInternal,
   uploadProfilePhoto as uploadProfilePhotoInternal,
-} from '@/services/api/uploadService';
+} from '@/services/media';
 
 const getCurrentAuthorizationHeader = (): string => {
   const headerValue = api.defaults.headers.common.Authorization;

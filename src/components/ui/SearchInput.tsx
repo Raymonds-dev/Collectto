@@ -10,6 +10,12 @@ export interface SearchInputProps extends Omit<TextInputProps, 'value' | 'onChan
   className?: string;
 }
 
+/**
+ * SearchInput
+ *
+ * O que faz: Campo de busca estilizado com ícone de lupa, botão para limpar texto quando preenchido e suporte a todas as propriedades de TextInput.
+ * Onde usar: Em cabeçalhos de busca em telas como Explorar (`explore.tsx`) ou perfil (`profile.tsx`, `users/[userId].tsx`).
+ */
 export const SearchInput = ({
   value,
   onChangeText,

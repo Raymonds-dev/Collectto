@@ -10,6 +10,12 @@ interface SettingsSectionProps {
   children?: React.ReactNode;
 }
 
+/**
+ * SettingsSection
+ *
+ * O que faz: Agrupa itens de configuração em um bloco visual com ícone temático, título, descrição e container de card estilizado.
+ * Onde usar: Em telas de configurações (`src/app/(tabs)/settings/support.tsx`, `help.tsx`, etc.) para categorizar opções relacionadas.
+ */
 export function SettingsSection({ icon, title, description, children }: SettingsSectionProps) {
   return (
     <View className="gap-3 px-4">

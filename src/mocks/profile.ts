@@ -1,4 +1,4 @@
-import { type CollectionGridEntry } from '@/components/collections-grid/CollectionsGrid';
+import { type CollectionGridEntry } from '@/components/collection';
 import { Asset } from 'expo-asset';
 
 export type ProfileHashtag = {

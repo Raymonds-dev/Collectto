@@ -5,6 +5,12 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      build_apk:
+        description: 'Compilar APK do Android?'
+        required: true
+        type: boolean
+        default: true
 
 concurrency:
   group: deploy-frontend-main
@@ -38,4 +44,6 @@ jobs:
 
       - name: Executar deploy na VPS
         shell: bash
+        env:
+          BUILD_APK: ${{ (contains(github.event.head_commit.message, '[skip-apk]') || contains(github.event.head_commit.message, '[skip apk]')) && 'false' || (inputs.build_apk != '' && inputs.build_apk || 'true') }}
         run: /home/dev/scripts/deploy-frontend.sh

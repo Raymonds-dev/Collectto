@@ -34,4 +34,5 @@ jobs:
     runs-on: [self-hosted, frontend]
     steps:
       - name: Executar deploy na VPS
+        shell: /bin/bash
         run: /home/dev/scripts/deploy-frontend.sh

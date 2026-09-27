@@ -27,8 +27,10 @@ module.exports = {
       },
 
       fontFamily: {
-        ...fontFamily, // Adicione sua nova fonte aqui
-        poetsenone: ['PoetsenOne-Regular'], // O nome deve corresponder ao nome do arquivo da fonte
+        ...fontFamily,
+        poetsenone: ['PoetsenOne-Regular', 'Poetsen One', 'Baloo 2', 'sans-serif'],
+        mono: ['IBM Plex Mono', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -85,6 +85,7 @@ function AppBootstrap({ fontsLoaded }: { fontsLoaded: boolean }) {
         }}>
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="+not-found" options={{ title: 'Não Encontrado' }} />
       </Stack>
     </>
   );

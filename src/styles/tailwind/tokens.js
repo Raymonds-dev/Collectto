@@ -50,6 +50,16 @@ const colors = {
     scrim: 'rgba(21, 21, 21, 0.55)',
     scrimSoft: 'rgba(21, 21, 21, 0.35)',
   },
+  landing: {
+    paper: '#FFF9F3',
+    ink: '#1C1612',
+    muted: '#8C7F73',
+    sub: '#4D443B',
+    line: '#EADFD3',
+    card: '#FFFFFF',
+    orange: '#FE5E00',
+    orangeDeep: '#CC4B00',
+  },
   dark: {
     surface: {
       base: '#111111',
@@ -116,6 +126,7 @@ const gradients = {
   brandJourney: ['#D9534F', '#85AF24', '#FFCC01', '#155CA2'],
   brandJourneyStops: [0, 0.35, 0.73, 1],
   brandWarm: ['#FE5E00', '#FFCC01'],
+  landingGrad: ['#FE5E00', '#FFB200', '#2D6CF6'],
   darkBrandJourney: ['#7A2E2B', '#536C1A', '#A68600', '#114575'],
   darkBrandJourneyStops: [0, 0.35, 0.73, 1],
 };

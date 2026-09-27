@@ -33,6 +33,9 @@ jobs:
     needs: validate
     runs-on: [self-hosted, frontend]
     steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
       - name: Executar deploy na VPS
         shell: bash
         run: /home/dev/scripts/deploy-frontend.sh

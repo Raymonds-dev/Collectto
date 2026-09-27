@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { SearchInput } from '@/components/ui/SearchInput';
 import type { Collection } from '@/types/collections';
 import { useCollectionService } from '@/providers/CollectionContextProvider';
-import { type CollectionGridEntry, CollectionsGrid } from '@/components/collection';
+import { type CollectionGridEntry, CollectionsGrid } from '@/components/collection/grid';
 
 /**
  * Props for the CollectionSelector component.

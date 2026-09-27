@@ -38,6 +38,12 @@ module.exports = defineConfig([
           ],
         },
       ],
+      // Regras do React Compiler introduzidas no Expo 57 que conflitam com Reanimated SharedValues (.value =) e component patterns existentes
+      'react-hooks/immutability': 'off',
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/refs': 'off',
+      'react-hooks/static-components': 'off',
+      'react-hooks/preserve-manual-memoization': 'off',
     },
   },
 ]);

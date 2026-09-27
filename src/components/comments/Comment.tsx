@@ -32,7 +32,7 @@ export const Comment = ({ comment, onPressAuthor, onDelete }: CommentProps) => {
 
   return (
     <View className="flex-row gap-3 px-4 py-3">
-      {avatarLoadError ? (
+      {avatarLoadError || !comment.authorAvatar?.trim() ? (
         <View className="h-10 w-10 items-center justify-center rounded-full">
           <Ionicons name="person-circle" size={38} color={tokens.colors.text.subtle} />
         </View>

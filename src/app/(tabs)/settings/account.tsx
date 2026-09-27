@@ -19,7 +19,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { usePhotoPermissionsFlow } from '@/hooks/usePhotoPermissionsFlow';
 import { DatePicker } from '@/components/ui/DatePicker';
-import { ProfilePhotoCropModal } from '@/components/settings/ProfilePhotoCropModal';
+import { ProfilePhotoCropModal } from '@/components/profile';
 import api, { getUserById } from '@/services/api/api';
 import {
   persistProfileFilePath,
@@ -342,7 +342,7 @@ export default function AccountScreen() {
         <View className="items-center py-6">
           <Pressable onPress={handleChoosePhoto} disabled={isUpdatingPhoto}>
             <View className="h-36 w-36 items-center justify-center rounded-full border-2 border-brand-primary bg-brand-100">
-              {displayPhotoUrl ? (
+              {displayPhotoUrl && displayPhotoUrl.trim().length > 0 ? (
                 <Image
                   source={{ uri: displayPhotoUrl }}
                   className="h-full w-full rounded-full"

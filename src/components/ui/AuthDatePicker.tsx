@@ -72,16 +72,10 @@ const updateDateYear = (dateString: string, year: number): string => {
 };
 
 /**
- * Auth-themed DatePicker.
+ * AuthDatePicker
  *
- * Matches the bold dark-input style of the registration flow in user_create.tsx.
- * Shows a single unified date field; tapping opens a branded calendar modal.
- *
- * Design decisions:
- * - Uses neutral.black background with white text to match auth inputs
- * - PoetsenOne font for consistency with the registration screen
- * - Brand primary (#FE5E00) for selected date highlight and confirm action
- * - Scrim overlay for modal backdrop
+ * O que faz: Seletor de data estilizado com a temática visual escura do fluxo de autenticação (fundo preto, tipografia PoetsenOne e destaque laranja).
+ * Onde usar: Nas telas de cadastro de usuário (`src/app/(auth)/user_create.tsx`) para seleção de data de nascimento.
  */
 export function AuthDatePicker({ label, value, onDateChange, error }: AuthDatePickerProps) {
   const [isCalendarVisible, setIsCalendarVisible] = useState(false);

@@ -22,15 +22,17 @@ type CommentProps = {
 };
 
 /**
- * Displays a single comment with author avatar, name, text, and timestamp
- * Pure presentation component - no state management
+ * Comment
+ *
+ * O que faz: Renderiza um comentário individual com avatar do autor, nome, texto formatado, timestamp relativo e ação de exclusão quando permitido.
+ * Onde usar: Dentro de listas de comentários como `CommentThread`.
  */
 export const Comment = ({ comment, onPressAuthor, onDelete }: CommentProps) => {
   const [avatarLoadError, setAvatarLoadError] = useState(false);
 
   return (
     <View className="flex-row gap-3 px-4 py-3">
-      {avatarLoadError ? (
+      {avatarLoadError || !comment.authorAvatar?.trim() ? (
         <View className="h-10 w-10 items-center justify-center rounded-full">
           <Ionicons name="person-circle" size={38} color={tokens.colors.text.subtle} />
         </View>

@@ -62,6 +62,12 @@ const getTagColor = (index: number) => TAG_COLORS[index % TAG_COLORS.length];
  * - Minimum 44px touch target for remove button (hitSlop)
  * - Input at the bottom with clear add affordance via submit
  */
+/**
+ * TagInput
+ *
+ * O que faz: Componente de entrada para criação dinâmica de tags com chips coloridos, botão de remoção e validação de duplicatas.
+ * Onde usar: Em formulários de criação e edição de itens (`ItemForm`) e coleções (`CollectionEditForm`).
+ */
 export function TagInput({
   tags,
   onChange,

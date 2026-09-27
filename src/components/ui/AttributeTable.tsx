@@ -12,6 +12,12 @@ interface AttributeTableProps {
   label?: string;
 }
 
+/**
+ * AttributeTable
+ *
+ * O que faz: Tabela estilizada somente-leitura com linhas alternadas para visualização de especificações técnicas e características de um item.
+ * Onde usar: Em telas de detalhes do item (`ItemCollection`).
+ */
 export function AttributeTable({ attributes, label }: AttributeTableProps) {
   if (!attributes || attributes.length === 0) {
     return null;

@@ -152,3 +152,27 @@ export function validateBirthday(birthdayStr: string): ValidationResult {
 
   return [true, null];
 }
+
+export function validateRegisterPayload(data: {
+  email?: string;
+  password?: string;
+  name?: string;
+  username?: string;
+  birthdayDate?: string;
+}): void {
+  if (!data.email || !data.password || !data.name || !data.username || !data.birthdayDate) {
+    throw new Error('Preencha todos os campos');
+  }
+
+  const usernameIsValid = /^[a-z0-9_]+$/.test(data.username);
+  if (!usernameIsValid) {
+    throw new Error(
+      'Nome de usuário inválido. Use apenas letras minúsculas, números e underscore (_).'
+    );
+  }
+
+  const birthdayDateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(data.birthdayDate);
+  if (!birthdayDateIsValid) {
+    throw new Error('Data de nascimento inválida. Use o formato yyyy-MM-dd.');
+  }
+}

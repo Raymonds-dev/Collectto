@@ -16,6 +16,12 @@ type MotionViewProps = {
   children: React.ReactNode;
 };
 
+/**
+ * MotionView
+ *
+ * O que faz: Wrapper de animação oficial de entrada e saída baseado nos presets do sistema (fade, slideUp, scale, stagger) utilizando `useComposedMotion`.
+ * Onde usar: Para transições suaves de visibilidade em telas de confirmação, modais, cards expansíveis e listas.
+ */
 export const MotionView = ({
   visible,
   presets = ['fade'],

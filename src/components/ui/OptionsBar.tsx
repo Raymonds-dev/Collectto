@@ -41,6 +41,12 @@ function DefaultTabContent({ activeTab }: { activeTab: string }) {
   );
 }
 
+/**
+ * OptionsBar
+ *
+ * O que faz: Barra de abas com alternância de ícones coloridos, indicador animado de sublinhado deslizante e renderização dinâmica do conteúdo da aba ativa.
+ * Onde usar: Em telas de perfil (`profile.tsx`, `users/[userId].tsx`) para alternar entre coleções, posts curtidos ou itens.
+ */
 export function OptionsBar({ options, renderContent }: OptionsBarProps) {
   const firstKey = useMemo(() => options[0]?.key ?? '', [options]);
   const [activeTab, setActiveTab] = useState(firstKey);

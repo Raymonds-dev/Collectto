@@ -29,7 +29,7 @@ import {
   updateCollection,
   updateItem,
 } from '@/services/api/api';
-import { getSessionToken } from '@/services/storage/authSession';
+import { getSessionToken } from '@/services/auth/storage/authSession';
 import { ApiError } from '@/services/api/types';
 import { getApiBaseUrl } from '@/services/api/env';
 

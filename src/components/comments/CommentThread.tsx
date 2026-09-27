@@ -32,8 +32,10 @@ type CommentThreadProps = {
 };
 
 /**
- * Displays comment thread for a specific feed item
- * Manages comments list, input state, and submission logic
+ * CommentThread
+ *
+ * O que faz: Gerencia a listagem completa de comentários de uma publicação, incluindo busca via serviço, estados de loading/vazio, criação e exclusão de comentários.
+ * Onde usar: Em modais ou painéis inferiores abertos ao clicar no botão de comentários de um post (`src/app/(tabs)/index.tsx`).
  */
 export const CommentThread: React.FC<CommentThreadProps> = ({
   postId,

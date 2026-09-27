@@ -12,6 +12,12 @@ const skeletonActionButtonGradient: readonly [string, string, string, string] = 
   brandJourney[3] ?? tokens.colors.feedback.warning,
 ];
 
+/**
+ * PostSkeleton
+ *
+ * O que faz: Skeleton placeholder que espelha fielmente a anatomia de um `Post` (avatar, linhas de texto, card de capa e botões) durante o carregamento de dados.
+ * Onde usar: No feed inicial (`src/app/(tabs)/index.tsx`) enquanto a lista de publicações está sendo carregada via rede.
+ */
 export const PostSkeleton = () => {
   return (
     <View className="w-full rounded-2xl bg-surface-base p-[10px]">

@@ -24,6 +24,12 @@ const NotificationCardSkeleton = () => (
   </View>
 );
 
+/**
+ * NotificationDropdown
+ *
+ * O que faz: Painel dropdown / modal overlay posicionado a partir do topo que consome o hook `useNotifications`, exibindo lista rolável de notificações com skeleton e atualização em tempo real.
+ * Onde usar: No cabeçalho global do feed ou perfil quando o usuário toca no ícone de sino de notificações.
+ */
 export const NotificationDropdown = ({
   visible,
   onClose,

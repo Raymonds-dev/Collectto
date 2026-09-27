@@ -82,6 +82,19 @@ reduced with guard clauses, and public contracts SHOULD use explicit TypeScript 
 Accessibility labels, touch feedback, and safe interaction states are required for
 user-facing actions.
 
+### Arquitetura Multiplataforma (Web & Native)
+
+- **Isolamento de Infraestrutura por Adaptadores**: Serviços de infraestrutura, armazenamento e upload com dependências de plataforma (ex: `SecureStore`, `FileSystem`, `localStorage`) MUST ser isolados via adaptadores e extensões de arquivo nativas do bundler (`.web.ts` e `.native.ts`) ou subpastas de adaptadores.
+- **Componente Único e Responsividade**: Telas e componentes visuais MUST ser mantidos em arquivo único utilizando NativeWind com utilitários responsivos (`md:`, `lg:`) e containers delimitadores (`max-w-* mx-auto`), sendo expressamente vedada a duplicação de telas inteiras apenas para suporte à Web.
+- **Fallbacks Nativos**: Quando bibliotecas nativas de UI/corte (ex: `ViewShot`) não tiverem suporte equivalente direto na Web, MUST-SE utilizar adaptadores visuais isolados (ex: HTML5 Canvas para corte de imagem) preservando o componente de tela principal intacto.
+
+### Organização e Modularização de Componentes
+
+- **Camada UI / Design System (`src/components/ui/`)**: Componentes atômicos e agnósticos (`Button`, `Card`, `Modal`, `SearchInput`). Expressamente vedada lógica de negócio ou dependência direta de stores de entidades.
+- **Features e Domínios Simples (`src/components/<feature>/`)**: Para funcionalidades com até 5-6 arquivos (ex: `settings/`, `comments/`, `notifications/`), deve-se manter uma pasta plana com arquivo barrel `index.ts`.
+- **Fluxos Complexos e Wizards Multi-etapas (`src/components/<fluxo>/`)**: Fluxos extensos (ex: `create-item/`) MUST ser decompostos em subpastas funcionais por etapa ou responsabilidade (`photos/`, `form/`, `collection/`, `preview/`, `feedback/`), mantendo o orquestrador raiz da tela e steppers na raiz da feature.
+- **Encapsulamento e API Pública (`index.ts`)**: Componentes externos e telas de rotas (`src/app/`) MUST consumir a feature exclusivamente através do barrel export público (`index.ts`). É expressamente vedado o acoplamento ou import direto de telas a subpastas internas de implementação.
+
 ### Padrões de Código Escrito e Qualidade
 
 - **Uso de Arrow Functions**: Funções auxiliares, helpers, utilitários, hooks e callbacks globais MUST ser declarados através de arrow functions atribuídas a constantes. Componentes React, métodos de classe e callbacks inline são exceções permitidas.
@@ -91,7 +104,7 @@ user-facing actions.
 - **Tratamento Resiliente de Erros**: Falhas de comunicação externa MUST ser tratadas usando o mapeador centralizado em português (pt-BR) com códigos de diagnósticos simplificados anexados para o usuário.
 - **Segurança de Logs**: Logs gerados pelo aplicativo MUST sanitizar e omitir qualquer informação pessoal identificável (PII), incluindo e-mails, tokens JWT e credenciais brutas, priorizando armazenamento temporário em memória (buffer FIFO circular).
 - **Padrão de Branches e Commits**: Branches de desenvolvimento MUST seguir o formato `<tipo>/<descricao-curta>`, onde o tipo é uma categoria semântica (`feature/`, `fix/`, `refactor/`, `chore/`). As mensagens de commit correspondentes MUST ser curtas e indicar o objetivo principal em português.
-- **Desenvolvimento Multiplataforma**: Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa tanto em Android quanto em iOS. Deve-se evitar depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto). Em vez disso, deve-se adotar soluções multiplataforma explícitas e consistentes, como o uso de `KeyboardAvoidingView` para garantir que o teclado não oculte áreas de entrada de dados ou conteúdo interativo em ambas as plataformas. Caso não exista uma solução nativa viável ou performática, o uso de bibliotecas de terceiros devidamente avaliadas é permitido.
+- **Desenvolvimento Multiplataforma**: Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa em Android, iOS e Web. Deve-se adotar soluções multiplataforma explícitas e consistentes, como o uso de adaptadores de plataforma (`.web.ts` e `.native.ts`) para APIs de sistema e NativeWind para responsividade de tela.
 
 ## Governance
 

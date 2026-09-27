@@ -17,20 +17,16 @@ export interface ItemCoverProps {
 }
 
 const FALLBACK_COLORS = [
-  tokens.colors.brand[100],
-  tokens.colors.brand[50],
-  tokens.colors.surface.muted,
+  tokens.colors.brand[400],
+  tokens.colors.brand[200],
+  tokens.colors.brand[600],
 ];
 
 /**
- * A standard UI component for displaying items as a backward stack.
- * It always composes three visual layers (duplicating the first image when needed)
- * and applies small vertical offsets so the stack is visible even with a single image.
+ * ItemCover
  *
- * Uses expo-image instead of react-native Image to correctly render local
- * file:// URIs in production Android builds (scoped storage safe). This is
- * important because ItemCover is used in the item creation preview step where
- * images are still in the app's local documentDirectory.
+ * O que faz: Renderiza a capa do item com efeito de profundidade através de cartões sobrepostos em camadas regressivas (backward stack), usando `expo-image` para compatibilidade com scoped storage nativo.
+ * Onde usar: Em publicações do feed (`Post`), grades de itens (`CollectionItemsGrid`) e telas de preview (`CreateItemPreviewStep`).
  */
 export const ItemCover = ({
   images = [],
@@ -39,9 +35,9 @@ export const ItemCover = ({
   roundedClass = 'rounded-2xl',
   stackOffset = 8,
 }: ItemCoverProps) => {
-  const layerImages = [images[0], images[1] || images[0], images[2] || images[1] || images[0]];
-  const stackStep = stackOffset * 1.6;
-  const stackInset = stackStep * 2;
+  const layerImages = [images[0], images[1], images[2]];
+  const stackStep = stackOffset * 2;
+  const stackInset = stackStep * 1.6;
   const layerFrameStyle = { top: stackInset, left: 0, right: 0, bottom: 0 };
 
   return (

@@ -1,5 +1,5 @@
 import { sessionRefreshManager } from '../auth/sessionRefreshManager';
-import { getSessionRefreshToken } from '../storage/authSession';
+import { getSessionRefreshToken } from '../auth/storage/authSession';
 
 /**
  * Script utilitário temporário para testar a rotação do Refresh Token.

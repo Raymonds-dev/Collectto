@@ -111,6 +111,13 @@ npm run validate
 6. Para estados invalidos ou faltantes, aplique fallback seguro, escondendo a acao privilegiada e exibindo apenas opcoes publicas.
 7. Escreva tipagem explicita para estados de permissao, usando union types quando houver mais de dois perfis.
 
+### 8.2 Organizacao e modularizacao de componentes
+
+1. Design System (`src/components/ui/`): componentes atomicos, puros e agnosticos (`Button`, `Card`, `Modal`, `SearchInput`). Proibida logica de negocio ou acoplamento com entidades.
+2. Features e Dominios Simples (`src/components/<feature>/`): pastas com ate 5-6 arquivos devem manter estrutura plana acompanhada de `index.ts`.
+3. Fluxos Complexos e Wizards (`src/components/<fluxo>/`): fluxos extensos (ex: `create-item/`) MUST ser organizados em subpastas funcionais por etapa ou responsabilidade (`photos/`, `form/`, `collection/`, `preview/`, `feedback/`), mantendo o orquestrador raiz da tela e steppers na raiz do modulo.
+4. Encapsulamento e API Publica: telas e rotas (`src/app/`) MUST importar componentes exclusivamente atraves do barrel export principal da feature (`index.ts`). E proibido o acoplamento ou import direto de telas a arquivos internos de subpastas.
+
 ## 9. Acessibilidade minima
 
 1. Todo botao deve ter `accessibilityRole` e `accessibilityLabel`.
@@ -132,12 +139,13 @@ npm run validate
 4. `Pull-to-refresh` deve ser nao destrutivo: so resetar snapshot quando houver posts novos; sem novidade, manter estado e ordem atual.
 5. Em paginação com `onEndReached`, aplique guardas de momentum e `in-flight` para evitar disparos duplicados, flicker e travamentos.
 
-### 10.2 Desenvolvimento Multiplataforma
+### 10.2 Desenvolvimento Multiplataforma (Android, iOS e Web)
 
-1. Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade nativa tanto em Android quanto em iOS.
-2. Evite depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto).
-3. Adote soluções multiplataforma explícitas e consistentes, como o uso de `KeyboardAvoidingView` para garantir que o teclado não oculte áreas de entrada de dados ou conteúdo interativo em ambas as plataformas.
-4. Caso não exista uma solução nativa viável ou performática para tratar a disparidade entre as plataformas, é permitido o uso de bibliotecas de terceiros devidamente avaliadas.
+1. Funcionalidades e componentes desenvolvidos MUST priorizar a compatibilidade tanto em Android, iOS quanto Web.
+2. Isolamento de Infraestrutura: APIs nativas e serviços que diferem entre celular e navegador (ex: storage, upload, captura de imagem) MUST ser abstraídos via adaptadores usando extensões do Metro bundler (`.web.ts` e `.native.ts`) ou pastas de adaptadores dedicadas.
+3. Componente Único de UI: É proibido duplicar telas inteiras para suporte a WEB (`Tela.web.tsx` vs `Tela.native.tsx`). A interface MUST utilizar arquivo único com Tailwind/NativeWind responsivo (`md:`, `lg:`) e containers delimitadores (`max-w-* mx-auto`).
+4. Evite depender exclusivamente de comportamentos automáticos nativos de uma única plataforma (como a rolagem automática de FlatList no Android com o teclado aberto). Adote soluções multiplataforma explícitas e consistentes (ex: `KeyboardAvoidingView`).
+5. Caso não exista uma solução nativa viável ou performática para tratar a disparidade entre plataformas, é permitido o uso de adaptadores visuais isolados (ex: HTML5 Canvas para corte de foto na Web).
 
 ## 11. Performance e seguranca
 

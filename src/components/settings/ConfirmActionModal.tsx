@@ -13,6 +13,12 @@ interface ConfirmActionModalProps {
   onCancel: () => void;
 }
 
+/**
+ * ConfirmActionModal
+ *
+ * O que faz: Modal de diálogo para confirmação de ações sensíveis ou irreversíveis (sair da conta, excluir item, etc.), com botões de confirmar e cancelar.
+ * Onde usar: Em fluxos de configurações ou áreas administrativas antes de disparar operações de mutação crítica.
+ */
 export function ConfirmActionModal({
   visible,
   title,

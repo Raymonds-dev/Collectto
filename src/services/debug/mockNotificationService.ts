@@ -1,7 +1,7 @@
 import { debugSession } from './debugSession';
-import { NotificationPageResponse } from '@/types/notifications';
+import type { NotificationPageResponse, NotificationService } from '@/types/notifications';
 
-export const mockNotificationService = {
+export const mockNotificationService: NotificationService = {
   getNotifications: async (
     page: number = 0,
     size: number = 20

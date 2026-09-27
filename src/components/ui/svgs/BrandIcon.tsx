@@ -6,6 +6,12 @@ type IconProps = Omit<SvgProps, 'width' | 'height' | 'color'> & {
   color?: string;
 };
 
+/**
+ * BrandIcon
+ *
+ * O que faz: Ícone vetorial SVG da marca Collectto (símbolo geométrico oficial) com suporte a customização de tamanho e cor.
+ * Onde usar: Em headers, botões de marca e barras de opções (`OptionsBar`, `profile.tsx`).
+ */
 export function BrandIcon({ size = 20, color = '#FE5E00', ...props }: IconProps) {
   return (
     <Svg

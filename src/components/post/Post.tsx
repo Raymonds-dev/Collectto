@@ -83,6 +83,12 @@ const PostActionButton = ({ accessibilityLabel, icon, count, onPress }: PostActi
   );
 };
 
+/**
+ * Post
+ *
+ * O que faz: Card principal do feed social que apresenta autor, texto da publicação, capa do item, botões de ação interativos (curtir, comentar, compartilhar, abrir coleção) e teaser de comentário.
+ * Onde usar: Na lista de publicações do feed principal (`src/app/(tabs)/index.tsx`).
+ */
 export const Post = ({
   id,
   author,
@@ -101,8 +107,9 @@ export const Post = ({
   onPressShare,
   onPressProfile,
 }: PostProps) => {
-  const [avatarLoading, setAvatarLoading] = useState(true);
-  const [avatarError, setAvatarError] = useState(false);
+  const hasAvatar = Boolean(author.avatarUri && author.avatarUri.trim().length > 0);
+  const [avatarLoading, setAvatarLoading] = useState(hasAvatar);
+  const [avatarError, setAvatarError] = useState(!hasAvatar);
 
   return (
     <MotionView visible presets={['slideUp', 'fade']} delay={entranceDelay} className="w-full">
@@ -115,7 +122,7 @@ export const Post = ({
           {avatarLoading ? (
             <View className="h-10 w-10 rounded-full border border-surface-border bg-surface-muted" />
           ) : null}
-          {!avatarError ? (
+          {hasAvatar && !avatarError ? (
             <Image
               source={{ uri: author.avatarUri }}
               className="h-10 w-10 rounded-full border border-surface-border"

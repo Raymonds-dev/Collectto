@@ -172,8 +172,8 @@ export function Button({
   const currentVariant = variantStyles[normalizedVariant];
   const spinnerColor =
     normalizedVariant === 'secondary' ||
-      normalizedVariant === 'ghost' ||
-      normalizedVariant === 'icon'
+    normalizedVariant === 'ghost' ||
+    normalizedVariant === 'icon'
       ? '#151515'
       : '#F8F8F8';
 
@@ -207,11 +207,11 @@ export function Button({
   const webStyle =
     Platform.OS === 'web'
       ? {
-        cursor: isDisabled ? 'not-allowed' : 'pointer',
-        backgroundColor: isHovered ? currentVariant.hoverBg : currentVariant.bg,
-        borderColor: currentVariant.border,
-        transition: 'background-color 150ms ease, border-color 150ms ease',
-      }
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+          backgroundColor: isHovered ? currentVariant.hoverBg : currentVariant.bg,
+          borderColor: currentVariant.border,
+          transition: 'background-color 150ms ease, border-color 150ms ease',
+        }
       : undefined;
 
   const content = loading ? (

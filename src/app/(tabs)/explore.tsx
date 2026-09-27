@@ -1142,10 +1142,7 @@ const styles = StyleSheet.create({
     borderColor: tokens.colors.surface.border,
     backgroundColor: tokens.colors.surface.card,
     zIndex: 1000,
-    shadowColor: '#000000',
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
+    boxShadow: '0 10px 18px rgba(0, 0, 0, 0.16)',
     elevation: 10,
   },
   searchSuggestionsScroll: {

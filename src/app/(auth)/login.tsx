@@ -122,7 +122,7 @@ export default function LoginScreen() {
         <View className="w-full max-w-md rounded-2xl p-5">
           <TextInput
             autoCapitalize="none"
-            className="mt-15 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+            className="mt-15 rounded-xl bg-black px-4 font-body text-xl text-white"
             onChangeText={setEmail}
             placeholder="E-MAIL"
             placeholderTextColor="#D9D9D9"
@@ -130,7 +130,7 @@ export default function LoginScreen() {
             value={email}
           />
           <TextInput
-            className="mt-10 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+            className="mt-10 rounded-xl bg-black px-4 font-body text-xl text-white"
             onChangeText={setPassword}
             placeholder="SENHA"
             placeholderTextColor="#D9D9D9"

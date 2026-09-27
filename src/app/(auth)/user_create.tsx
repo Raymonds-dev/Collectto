@@ -295,7 +295,7 @@ export default function UserCreateScreen() {
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}>
       <View className="items-center px-6 pb-8 pt-10">
-        <View className="mb-4 items-center font-poetsenone">
+        <View className="mb-4 items-center">
           <Image source={require('@/assets/logo.png')} className="h-45 w-45" resizeMode="contain" />
           <Text className="mt-8 font-poetsenone text-4xl text-black">Crie sua conta</Text>
         </View>
@@ -305,7 +305,7 @@ export default function UserCreateScreen() {
             <View className="w-full max-w-md rounded-2xl p-5 ">
               <TextInput
                 autoCapitalize="words"
-                className="mt-15 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+                className="mt-15 rounded-xl bg-black px-4 font-body text-xl text-white"
                 onChangeText={handleNameChange}
                 placeholder="NOME"
                 placeholderTextColor="#D9D9D9"
@@ -315,7 +315,7 @@ export default function UserCreateScreen() {
 
               <TextInput
                 autoCapitalize="none"
-                className="mt-10 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+                className="mt-10 rounded-xl bg-black px-4 font-body text-xl text-white"
                 onChangeText={handleEmailChange}
                 placeholder="EMAIL"
                 placeholderTextColor="#D9D9D9"
@@ -353,7 +353,7 @@ export default function UserCreateScreen() {
             <View className="w-full max-w-md rounded-2xl p-6 ">
               <TextInput
                 autoCapitalize="none"
-                className="rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+                className="rounded-xl bg-black px-4 font-body text-xl text-white"
                 onChangeText={handleUsernameChange}
                 placeholder="NOME DE USUARIO"
                 placeholderTextColor="#D9D9D9"
@@ -367,7 +367,7 @@ export default function UserCreateScreen() {
               )}
 
               <TextInput
-                className="mt-10 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+                className="mt-10 rounded-xl bg-black px-4 font-body text-xl text-white"
                 onChangeText={handlePasswordChange}
                 placeholder="SENHA"
                 placeholderTextColor="#D9D9D9"
@@ -382,7 +382,7 @@ export default function UserCreateScreen() {
               )}
 
               <TextInput
-                className="mt-10 rounded-xl bg-black px-4 font-poetsenone text-xl text-white"
+                className="mt-10 rounded-xl bg-black px-4 font-body text-xl text-white"
                 onChangeText={handleConfirmPasswordChange}
                 placeholder="CONFIRME SUA SENHA"
                 placeholderTextColor="#D9D9D9"

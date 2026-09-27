@@ -46,22 +46,21 @@ const InicialScreen = () => {
       showsVerticalScrollIndicator={false}>
       <View className="mx-auto w-full max-w-xl px-5 py-7 md:py-10">
         {/* Header / Identidade da Marca */}
-        <View className="mb-6">
+        <View>
           <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-2.5">
-              <Image
-                source={require('@/assets/logo.png')}
-                className="h-[38px] w-[130px]"
-                resizeMode="contain"
-                accessibilityLabel="Collectto"
-              />
-            </View>
+            <Image
+              source={require('@/assets/logo.png')}
+              style={{ height: 60, width: 100 }}
+              resizeMode="contain"
+              accessibilityLabel="Collectto"
+            />
 
             <View className="flex-row items-center gap-2">
               <Button
                 label="Entrar"
                 variant="ghost"
                 size="sm"
+                className="w-26"
                 onPress={handleNavigateLogin}
                 accessibilityLabel="Entrar na conta"
               />
@@ -69,6 +68,7 @@ const InicialScreen = () => {
                 label="Cadastrar"
                 variant="primary"
                 size="sm"
+                className="w-26"
                 onPress={handleNavigateRegister}
                 accessibilityLabel="Criar nova conta"
               />

@@ -65,11 +65,8 @@ const CareosselItem: React.FC<CarrosselItemProps> = ({
           height: itemHeight,
           marginVertical: 10,
           borderRadius: 14,
-          shadowColor: '#1C1612',
-          shadowOpacity: 0.16,
-          shadowOffset: { width: 0, height: 6 },
-          shadowRadius: 14,
           elevation: 6,
+          boxShadow: '0 6px 14px rgba(28, 22, 18, 0.16)',
         },
         animatedStyle,
       ]}>

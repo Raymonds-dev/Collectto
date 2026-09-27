@@ -83,7 +83,7 @@ export function ProfileHeader({
     brandJourney[2] ?? tokens.colors.feedback.error,
     brandJourney[3] ?? tokens.colors.feedback.warning,
   ];
-  const hasBannerImage = Boolean(bannerImage);
+  const hasBannerImage = Boolean(bannerImage && bannerImage.trim().length > 0);
 
   return (
     <View className="relative h-[120px] w-full overflow-hidden bg-surface-muted">

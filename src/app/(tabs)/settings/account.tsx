@@ -342,7 +342,7 @@ export default function AccountScreen() {
         <View className="items-center py-6">
           <Pressable onPress={handleChoosePhoto} disabled={isUpdatingPhoto}>
             <View className="h-36 w-36 items-center justify-center rounded-full border-2 border-brand-primary bg-brand-100">
-              {displayPhotoUrl ? (
+              {displayPhotoUrl && displayPhotoUrl.trim().length > 0 ? (
                 <Image
                   source={{ uri: displayPhotoUrl }}
                   className="h-full w-full rounded-full"

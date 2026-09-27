@@ -60,11 +60,17 @@ const Header = ({
           hitSlop={10}
           onPress={onPressProfile}
           className="h-11 w-11 items-center justify-center rounded-full">
-          <Image
-            source={{ uri: resolveUserPhotoUrl(user) ?? undefined }}
-            className="h-8 w-8 rounded-full border border-surface-border bg-surface-muted"
-            accessibilityIgnoresInvertColors
-          />
+          {resolveUserPhotoUrl(user) ? (
+            <Image
+              source={{ uri: resolveUserPhotoUrl(user)! }}
+              className="h-8 w-8 rounded-full border border-surface-border bg-surface-muted"
+              accessibilityIgnoresInvertColors
+            />
+          ) : (
+            <View className="h-8 w-8 items-center justify-center rounded-full border border-surface-border bg-surface-muted">
+              <Ionicons name="person" size={16} color={tokens.colors.text.muted} />
+            </View>
+          )}
         </AnimatedPressable>
 
         <AnimatedPressable

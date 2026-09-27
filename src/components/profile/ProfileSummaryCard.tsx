@@ -14,9 +14,11 @@ interface ProfileSummaryCardProps {
  * Onde usar: No topo da tela de configurações de conta ou menus contextuais de perfil.
  */
 export function ProfileSummaryCard({ name, email, photoUri }: ProfileSummaryCardProps) {
+  const hasPhoto = Boolean(photoUri && photoUri.trim().length > 0);
+
   return (
     <Card className="flex-row items-center gap-4">
-      {photoUri ? (
+      {hasPhoto ? (
         <Image
           source={{ uri: photoUri }}
           className="h-14 w-14 rounded-full border border-surface-border"

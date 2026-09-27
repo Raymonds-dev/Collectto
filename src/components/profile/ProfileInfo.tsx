@@ -147,7 +147,7 @@ export function ProfileInfo({
             end={{ x: 1, y: 1 }}
             style={styles.avatarGradient}>
             <View className="h-full w-full items-center justify-center rounded-full bg-surface-base">
-              {profileImage ? (
+              {profileImage && profileImage.trim().length > 0 ? (
                 <Image source={{ uri: profileImage }} className="h-full w-full rounded-full" />
               ) : (
                 <Ionicons name="person" size={36} color={tokens.colors.text.muted} />

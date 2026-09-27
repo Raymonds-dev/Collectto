@@ -20,8 +20,9 @@ type TeaserCommentProps = {
  * Onde usar: No rodapé do card de post (`src/components/post/Post.tsx`).
  */
 export const TeaserComment: React.FC<TeaserCommentProps> = ({ comment, postId, onPress }) => {
+  const hasAvatar = Boolean(comment.authorAvatar && comment.authorAvatar.trim().length > 0);
   const [avatarLoadError, setAvatarLoadError] = useState(false);
-  const [avatarLoading, setAvatarLoading] = useState(true);
+  const [avatarLoading, setAvatarLoading] = useState(hasAvatar);
 
   return (
     <AnimatedPressable
@@ -32,8 +33,10 @@ export const TeaserComment: React.FC<TeaserCommentProps> = ({ comment, postId, o
       className="w-full px-[10px] py-[8px]">
       <View className="rounded-lg border border-surface-border bg-surface-muted px-3 py-2">
         <View className="mb-2 flex-row items-center gap-2">
-          {avatarLoading ? <View className="h-6 w-6 rounded-full bg-surface-border" /> : null}
-          {avatarLoadError ? (
+          {avatarLoading && hasAvatar ? (
+            <View className="h-6 w-6 rounded-full bg-surface-border" />
+          ) : null}
+          {!hasAvatar || avatarLoadError ? (
             <View className="h-6 w-6 items-center justify-center rounded-full bg-surface-muted">
               <Ionicons name="person-circle" size={20} color={tokens.colors.text.subtle} />
             </View>

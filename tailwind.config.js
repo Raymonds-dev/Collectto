@@ -12,6 +12,7 @@ const brandJourneyGradient = `linear-gradient(120deg, ${gradients.brandJourney[0
 const brandWarmGradient = `linear-gradient(120deg, ${gradients.brandWarm[0]} 0%, ${gradients.brandWarm[1]} 100%)`;
 
 module.exports = {
+  darkMode: 'class',
   content: ['./App.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
 
   presets: [require('nativewind/preset')],

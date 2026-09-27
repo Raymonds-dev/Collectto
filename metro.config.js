@@ -11,6 +11,49 @@ try {
   // @expo/env might already be loaded by Expo CLI
 }
 
+// Patch Metro DependencyGraph._onHasteChange to prevent crashes caused by legacy haste emit events
+// (e.g. from react-native-css-interop / nativewind emitting { eventsQueue } instead of { changes, rootDir })
+const metroDgPaths = [
+  'node_modules/@expo/metro/node_modules/metro/src/node-haste/DependencyGraph.js',
+  'node_modules/metro/src/node-haste/DependencyGraph.js',
+];
+for (const relPath of metroDgPaths) {
+  try {
+    const fullPath = require('path').resolve(__dirname, relPath);
+    const mod = require(fullPath);
+    const DG = mod.default || mod;
+    if (DG && DG.prototype && DG.prototype._onHasteChange && !DG.prototype.__hastePatched) {
+      const originalOnHasteChange = DG.prototype._onHasteChange;
+      DG.prototype._onHasteChange = function (changeEvent) {
+        if (!changeEvent || !changeEvent.changes) {
+          const eventsQueue = (changeEvent && changeEvent.eventsQueue) || [];
+          const modifiedFiles = new Map();
+          for (const ev of eventsQueue) {
+            if (ev.filePath) {
+              modifiedFiles.set(ev.filePath, {
+                modifiedTime: ev.metadata?.modifiedTime || Date.now(),
+                isSymlink: false,
+              });
+            }
+          }
+          changeEvent = {
+            changes: {
+              addedFiles: new Map(),
+              modifiedFiles,
+              removedFiles: new Map(),
+            },
+            rootDir: '',
+          };
+        }
+        return originalOnHasteChange.call(this, changeEvent);
+      };
+      DG.prototype.__hastePatched = true;
+    }
+  } catch {
+    // Graceful fallback if module path differs
+  }
+}
+
 const config = getDefaultConfig(__dirname);
 
 const TARGET_API_URL = process.env.EXPO_PUBLIC_API_BASE_URL || 'https://api.collectto.app';

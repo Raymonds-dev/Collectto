@@ -94,6 +94,11 @@ function AppBootstrap({ fontsLoaded }: { fontsLoaded: boolean }) {
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
     'PoetsenOne-Regular': require('../assets/fonts/PoetsenOne-Regular.ttf'),
+    Inter: require('../assets/fonts/Inter-Regular.ttf'),
+    'Inter-Regular': require('../assets/fonts/Inter-Regular.ttf'),
+    'Inter-Medium': require('../assets/fonts/Inter-Medium.ttf'),
+    'Inter-SemiBold': require('../assets/fonts/Inter-SemiBold.ttf'),
+    'Inter-Bold': require('../assets/fonts/Inter-Bold.ttf'),
   });
 
   useEffect(() => {

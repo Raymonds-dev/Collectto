@@ -29,9 +29,11 @@ module.exports = {
 
       fontFamily: {
         ...fontFamily,
-        poetsenone: ['PoetsenOne-Regular', 'Poetsen One', 'Baloo 2', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'monospace'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        poetsenone: ['PoetsenOne-Regular'],
+        mono: ['monospace'],
+        sans: ['Inter'],
+        body: ['Inter'],
+        heading: ['Inter'],
       },
     },
   },

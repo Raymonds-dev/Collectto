@@ -582,10 +582,7 @@ const styles = StyleSheet.create({
     elevation: 8,
     maxWidth: 400,
     overflow: 'visible',
-    shadowColor: tokens.colors.neutral.black,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
+    boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
     width: '100%',
   },
   modalHeader: {

@@ -166,10 +166,10 @@ const motion = {
 };
 
 const fontFamily = {
-  logo: ['PoetsenOne-Regular', 'System'],
-  sans: ['Inter', 'System'],
-  heading: ['Inter', 'System'],
-  body: ['Inter', 'System'],
+  logo: ['PoetsenOne-Regular'],
+  sans: ['Inter'],
+  heading: ['Inter'],
+  body: ['Inter'],
 };
 
 module.exports = {

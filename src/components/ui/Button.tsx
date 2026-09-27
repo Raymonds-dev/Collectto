@@ -6,12 +6,15 @@ import {
   Platform,
   Pressable,
   PressableProps,
+  StyleProp,
   Text,
   View,
+  ViewStyle,
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 
 import { usePressMotion } from '@/hooks/useAnimation';
+import { tokens } from '@/styles/tailwind/tokens.native';
 
 type ButtonVariant =
   | 'primary'
@@ -37,7 +40,7 @@ interface ButtonProps extends Omit<PressableProps, 'children'> {
 }
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'min-h-11 px-3 py-2',
+  sm: 'min-h-10 px-3 py-2',
   md: 'min-h-12 px-4 py-3',
   lg: 'min-h-14 px-5 py-4',
 };
@@ -46,6 +49,43 @@ const iconSizeClasses: Record<ButtonSize, string> = {
   sm: 'h-11 w-11',
   md: 'h-12 w-12',
   lg: 'h-14 w-14',
+};
+
+// Cores e bordas dos tokens para garantir fidelidade visual multiplataforma (regra 7.1 AGENTS.md)
+const variantStyles: Record<
+  'primary' | 'secondary' | 'success' | 'cancel' | 'ghost' | 'icon',
+  { bg: string; border: string; hoverBg: string }
+> = {
+  primary: {
+    bg: tokens.colors.brand.primary,
+    border: tokens.colors.brand[600],
+    hoverBg: tokens.colors.brand[600],
+  },
+  secondary: {
+    bg: tokens.colors.surface.card,
+    border: tokens.colors.surface.borderStrong,
+    hoverBg: tokens.colors.surface.muted,
+  },
+  success: {
+    bg: tokens.colors.feedback.success,
+    border: tokens.colors.feedback.success,
+    hoverBg: tokens.colors.feedback.success,
+  },
+  cancel: {
+    bg: tokens.colors.feedback.error,
+    border: tokens.colors.feedback.error,
+    hoverBg: tokens.colors.feedback.error,
+  },
+  ghost: {
+    bg: 'transparent',
+    border: 'transparent',
+    hoverBg: tokens.colors.brand[50],
+  },
+  icon: {
+    bg: tokens.colors.brand[100],
+    border: tokens.colors.brand[200],
+    hoverBg: tokens.colors.brand[200],
+  },
 };
 
 const containerByVariant: Record<
@@ -74,18 +114,6 @@ const textByVariant: Record<
   cancel: 'text-text-inverse',
   ghost: 'text-brand-primary',
   icon: 'text-brand-primary',
-};
-
-const hoverByVariant: Record<
-  'primary' | 'secondary' | 'success' | 'cancel' | 'ghost' | 'icon',
-  string
-> = {
-  primary: 'bg-brand-600',
-  secondary: 'bg-surface-muted',
-  success: 'bg-feedback-success',
-  cancel: 'bg-feedback-error',
-  ghost: 'bg-brand-50',
-  icon: 'bg-brand-200',
 };
 
 const ReanimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -137,12 +165,11 @@ export function Button({
     handlePressOut: animatePressOut,
   } = usePressMotion();
 
-  const baseContainerClasses =
-    'flex-row items-center justify-center rounded-2xl active:opacity-90 disabled:opacity-50';
-
+  const baseContainerClasses = 'flex-row items-center justify-center rounded-2xl active:opacity-90';
   const sizeClass = isIconButton ? iconSizeClasses[size] : sizeClasses[size];
   const textClass = `font-body text-base font-semibold ${isDisabled ? 'text-text-muted' : textByVariant[normalizedVariant]}`;
   const disabledContainerClass = isDisabled ? 'opacity-50' : '';
+  const currentVariant = variantStyles[normalizedVariant];
   const spinnerColor =
     normalizedVariant === 'secondary' ||
     normalizedVariant === 'ghost' ||
@@ -176,37 +203,58 @@ export function Button({
     onHoverOut?.(event);
   }
 
-  const hoverClass = isHovered ? hoverByVariant[normalizedVariant] : '';
+  // Regra 7.1 AGENTS.md: na web injeta estilos inline baseados em tokens para hover suave
+  const webStyle =
+    Platform.OS === 'web'
+      ? {
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
+          backgroundColor: isHovered ? currentVariant.hoverBg : currentVariant.bg,
+          borderColor: currentVariant.border,
+          transition: 'background-color 150ms ease, border-color 150ms ease',
+        }
+      : undefined;
 
-  return (
-    <ReanimatedPressable
-      accessibilityLabel={accessibilityLabel ?? label ?? 'Botao'}
-      accessibilityRole="button"
-      accessibilityState={{ disabled: isDisabled, ...(props.accessibilityState ?? {}) }}
-      disabled={isDisabled}
-      hitSlop={8}
-      onHoverIn={handleHoverIn}
-      onHoverOut={handleHoverOut}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={animatedStyle}
-      className={`${baseContainerClasses} ${disabledContainerClass} ${sizeClass} ${containerByVariant[normalizedVariant]} ${hoverClass} ${className ?? ''}`}
-      {...props}>
-      {loading ? (
-        <ActivityIndicator color={spinnerColor} />
+  const content = loading ? (
+    <ActivityIndicator color={spinnerColor} />
+  ) : (
+    <>
+      {isIconButton ? (
+        (icon ?? leftIcon ?? rightIcon)
       ) : (
         <>
-          {isIconButton ? (
-            (icon ?? leftIcon ?? rightIcon)
-          ) : (
-            <>
-              {leftIcon ? <View className="mr-2">{leftIcon}</View> : null}
-              {label ? <Text className={textClass}>{label}</Text> : null}
-              {rightIcon ? <View className="ml-2">{rightIcon}</View> : null}
-            </>
-          )}
+          {leftIcon ? <View className="mr-2">{leftIcon}</View> : null}
+          {label ? <Text className={textClass}>{label}</Text> : null}
+          {rightIcon ? <View className="ml-2">{rightIcon}</View> : null}
         </>
       )}
+    </>
+  );
+
+  const sharedProps = {
+    accessibilityLabel: accessibilityLabel ?? label ?? 'Botao',
+    accessibilityRole: 'button' as const,
+    accessibilityState: { disabled: isDisabled, ...(props.accessibilityState ?? {}) },
+    disabled: isDisabled,
+    hitSlop: 8,
+    onHoverIn: handleHoverIn,
+    onHoverOut: handleHoverOut,
+    onPressIn: handlePressIn,
+    onPressOut: handlePressOut,
+    className: `${baseContainerClasses} ${disabledContainerClass} ${sizeClass} ${containerByVariant[normalizedVariant]} ${className ?? ''}`,
+    ...props,
+  };
+
+  if (Platform.OS === 'web') {
+    return (
+      <Pressable {...sharedProps} style={webStyle as unknown as StyleProp<ViewStyle>}>
+        {content}
+      </Pressable>
+    );
+  }
+
+  return (
+    <ReanimatedPressable {...sharedProps} style={animatedStyle}>
+      {content}
     </ReanimatedPressable>
   );
 }

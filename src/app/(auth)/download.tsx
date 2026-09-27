@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Image, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image, Linking, Platform, ScrollView, Text, View } from 'react-native';
 import { Button } from '@/components/ui';
 import { tokens } from '@/styles/tailwind/tokens.native';
 
@@ -11,55 +11,6 @@ const gradientColors = (tokens.gradients.landingGrad ?? ['#FE5E00', '#FFB200', '
   string,
   ...string[],
 ];
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: '#FFF9F3',
-  },
-  hairline: {
-    height: 3,
-    borderRadius: 2,
-    marginTop: 12,
-  },
-  hairlineFooter: {
-    height: 2,
-    borderRadius: 1,
-    marginBottom: 16,
-  },
-  fichaTop: {
-    height: 4,
-  },
-  fichaCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#EADFD3',
-    borderWidth: 1,
-    borderRadius: 16,
-    overflow: 'hidden',
-    shadowColor: '#1C1612',
-    shadowOpacity: 0.12,
-    shadowOffset: { width: 0, height: 10 },
-    shadowRadius: 24,
-    elevation: 4,
-  },
-  stepCard: {
-    backgroundColor: '#FFFFFF',
-    borderColor: '#EADFD3',
-    borderWidth: 1,
-    borderRadius: 12,
-  },
-  badge: {
-    backgroundColor: '#FE5E00',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoImage: {
-    width: 130,
-    height: 38,
-  },
-});
 
 export default function DownloadScreen() {
   const router = useRouter();
@@ -82,8 +33,7 @@ export default function DownloadScreen() {
 
   return (
     <ScrollView
-      style={styles.container}
-      className="flex-1"
+      className="flex-1 bg-landing-paper"
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}>
       <View className="mx-auto w-full max-w-xl px-5 py-7 md:py-10">
@@ -93,7 +43,7 @@ export default function DownloadScreen() {
             <View className="flex-row items-center gap-2.5">
               <Image
                 source={require('@/assets/logo.png')}
-                style={styles.logoImage}
+                className="h-[38px] w-[130px]"
                 resizeMode="contain"
                 accessibilityLabel="Collectto"
               />
@@ -108,26 +58,26 @@ export default function DownloadScreen() {
             />
           </View>
 
-          {/* expo-linear-gradient tem suporte parcial a NativeWind; usar style nativo garante renderizacao web perfeita */}
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; o uso de style nativo pontual e necessario para medidas e raio */}
           <LinearGradient
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.hairline}
+            style={{ height: 3, borderRadius: 2, marginTop: 12 }}
           />
         </View>
 
         {/* Hero Section */}
         <View className="mb-8 pt-4">
-          <Text className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#8C7F73]">
+          <Text className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-landing-muted">
             Download Oficial · Android
           </Text>
 
-          <Text className="mb-3 font-poetsenone text-3xl leading-[1.12] text-[#1C1612] sm:text-4xl md:text-5xl">
-            Tenha sua coleção sempre no <Text style={{ color: '#FE5E00' }}>bolso</Text>.
+          <Text className="mb-3 font-poetsenone text-3xl leading-[1.12] text-landing-ink sm:text-4xl md:text-5xl">
+            Tenha sua coleção sempre no <Text className="text-landing-orange">bolso</Text>.
           </Text>
 
-          <Text className="font-sans text-[15px] leading-relaxed text-[#4D443B] sm:text-base">
+          <Text className="font-sans text-[15px] leading-relaxed text-landing-sub sm:text-base">
             Baixe o aplicativo oficial do Collectto para dispositivos Android. Desfrute de navegação
             rápida, câmera nativa para fotos dos seus itens e modo offline para levar seu acervo
             onde for.
@@ -135,17 +85,17 @@ export default function DownloadScreen() {
         </View>
 
         {/* Card Principal de Download */}
-        <View style={styles.fichaCard} className="mb-10">
-          {/* expo-linear-gradient tem suporte parcial a NativeWind; usar style nativo garante renderizacao web perfeita */}
+        <View className="mb-10 overflow-hidden rounded-2xl border border-landing-line bg-landing-card shadow-card">
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; altura controlada via style */}
           <LinearGradient
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.fichaTop}
+            style={{ height: 4 }}
           />
 
           <View className="p-5 sm:p-7">
-            <Text className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-[#CC4B00]">
+            <Text className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-landing-orangeDeep">
               Ficha de Download · APK Android
             </Text>
 
@@ -168,7 +118,7 @@ export default function DownloadScreen() {
                 className="w-full"
               />
 
-              <Text className="mt-1 text-center font-mono text-[11px] text-[#8C7F73]">
+              <Text className="mt-1 text-center font-mono text-[11px] text-landing-muted">
                 ✓ Versão 1.0.0 Oficial • Compilado na VPS • Android 8.0+
               </Text>
             </View>
@@ -177,52 +127,52 @@ export default function DownloadScreen() {
 
         {/* Instruções de Instalação Passo a Passo */}
         <View className="mb-10">
-          <Text className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-[#CC4B00]">
+          <Text className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-landing-orangeDeep">
             Instalação Descomplicada
           </Text>
-          <Text className="mb-4 font-poetsenone text-2xl text-[#1C1612]">
+          <Text className="mb-4 font-poetsenone text-2xl text-landing-ink">
             Como instalar no seu aparelho
           </Text>
 
           <View className="gap-3">
-            <View style={styles.stepCard} className="flex-row items-center gap-3.5 p-4">
-              <View style={styles.badge}>
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
                 <Text className="font-poetsenone text-sm font-bold text-white">1</Text>
               </View>
               <View className="flex-1">
-                <Text className="font-sans text-sm font-bold text-[#1C1612]">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
                   Baixe o arquivo .APK
                 </Text>
-                <Text className="font-sans text-xs text-[#4D443B]">
+                <Text className="font-sans text-xs text-landing-sub">
                   Toque no botão de download acima e aguarde a conclusão do download do arquivo.
                 </Text>
               </View>
             </View>
 
-            <View style={styles.stepCard} className="flex-row items-center gap-3.5 p-4">
-              <View style={styles.badge}>
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
                 <Text className="font-poetsenone text-sm font-bold text-white">2</Text>
               </View>
               <View className="flex-1">
-                <Text className="font-sans text-sm font-bold text-[#1C1612]">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
                   Permita a instalação
                 </Text>
-                <Text className="font-sans text-xs text-[#4D443B]">
+                <Text className="font-sans text-xs text-landing-sub">
                   Se o navegador exibir aviso de segurança, toque em Configurações e marque
                   &quot;Permitir desta fonte&quot;.
                 </Text>
               </View>
             </View>
 
-            <View style={styles.stepCard} className="flex-row items-center gap-3.5 p-4">
-              <View style={styles.badge}>
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
                 <Text className="font-poetsenone text-sm font-bold text-white">3</Text>
               </View>
               <View className="flex-1">
-                <Text className="font-sans text-sm font-bold text-[#1C1612]">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
                   Abra e comece sua coleção
                 </Text>
-                <Text className="font-sans text-xs text-[#4D443B]">
+                <Text className="font-sans text-xs text-landing-sub">
                   Toque em Instalar, abra o aplicativo, entre ou crie sua conta e comece a
                   catalogar!
                 </Text>
@@ -233,14 +183,14 @@ export default function DownloadScreen() {
 
         {/* Rodapé com Hairline Gradiente */}
         <View className="pb-12 pt-2">
-          {/* expo-linear-gradient tem suporte parcial a NativeWind; usar style nativo garante renderizacao web perfeita */}
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; altura e margem controladas via style */}
           <LinearGradient
             colors={gradientColors}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
-            style={styles.hairlineFooter}
+            style={{ height: 2, borderRadius: 1, marginBottom: 16 }}
           />
-          <Text className="font-mono text-[11px] leading-relaxed tracking-[0.08em] text-[#8C7F73]">
+          <Text className="font-mono text-[11px] leading-relaxed tracking-[0.08em] text-landing-muted">
             COLLECTTO · A REDE SOCIAL PARA COLECIONADORES{'\n'}
             PROJETO INTEGRADOR — ENGENHARIA DA COMPUTAÇÃO · UNISO · SOROCABA/SP
           </Text>

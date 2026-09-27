@@ -11,6 +11,7 @@ type AppColors = {
   text: ColorScale;
   feedback: ColorScale;
   overlay: ColorScale;
+  landing: ColorScale;
   dark: {
     surface: ColorScale;
     text: ColorScale;

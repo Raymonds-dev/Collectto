@@ -38,6 +38,7 @@ const CareosselItem: React.FC<CarrosselItemProps> = ({
   itemSeparatorWidth,
 }) => {
   const fullItemWidth = itemWidth + itemSeparatorWidth;
+  const itemHeight = Math.min(320, Math.round(itemWidth * 1.15));
 
   const animatedStyle = useAnimatedStyle(() => {
     const inputRange = [
@@ -61,24 +62,33 @@ const CareosselItem: React.FC<CarrosselItemProps> = ({
       style={[
         {
           width: itemWidth,
+          height: itemHeight,
           marginVertical: 10,
-          borderRadius: 10,
-          shadowColor: '#000',
-          shadowOpacity: 0.24,
-          shadowOffset: { width: 0, height: 4 },
-          shadowRadius: 10,
-          elevation: 8,
+          borderRadius: 14,
+          shadowColor: '#1C1612',
+          shadowOpacity: 0.16,
+          shadowOffset: { width: 0, height: 6 },
+          shadowRadius: 14,
+          elevation: 6,
         },
         animatedStyle,
       ]}>
       <View
         style={{
-          borderRadius: 10,
+          width: itemWidth,
+          height: itemHeight,
+          borderRadius: 14,
           borderWidth: 1,
-          borderColor: 'rgba(0, 0, 0, 0.5)',
+          borderColor: '#EADFD3',
           overflow: 'hidden',
+          backgroundColor: '#FFFFFF',
         }}>
-        <Image source={item.source} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+        <Image
+          source={item.source}
+          style={{ width: itemWidth, height: itemHeight }}
+          resizeMode="cover"
+          accessibilityIgnoresInvertColors
+        />
       </View>
     </Animated.View>
   );
@@ -97,7 +107,7 @@ export const ImageCarousel: React.FC<ImageCarouselProps> = ({ items }) => {
   const autoScrollTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const currentIndexRef = useRef(0);
 
-  const ITEM_WIDTH = windowWidth * 0.6;
+  const ITEM_WIDTH = Math.min(320, Math.max(240, windowWidth * 0.68));
   const ITEM_SEPARATOR_WIDTH = 20;
   const FULL_ITEM_WIDTH = ITEM_WIDTH + ITEM_SEPARATOR_WIDTH;
   const HORIZONTAL_INSET = (windowWidth - ITEM_WIDTH) / 2;

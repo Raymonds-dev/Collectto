@@ -1,9 +1,16 @@
 import { useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Image, Linking, Platform, ScrollView, Text, View } from 'react-native';
-import { Button, Card } from '@/components/ui';
+import { Button } from '@/components/ui';
+import { tokens } from '@/styles/tailwind/tokens.native';
 
 const APK_DOWNLOAD_URL = '/downloads/collectto.apk';
 const ABSOLUTE_APK_URL = 'https://collectto.app/downloads/collectto.apk';
+const gradientColors = (tokens.gradients.landingGrad ?? ['#FE5E00', '#FFB200', '#2D6CF6']) as [
+  string,
+  string,
+  ...string[],
+];
 
 export default function DownloadScreen() {
   const router = useRouter();
@@ -26,133 +33,166 @@ export default function DownloadScreen() {
 
   return (
     <ScrollView
-      className="flex-1 bg-surface-base"
+      className="flex-1 bg-landing-paper"
       contentContainerStyle={{ flexGrow: 1 }}
       showsVerticalScrollIndicator={false}>
-      <View className="mx-auto w-full max-w-3xl px-6 py-10 md:py-16">
+      <View className="mx-auto w-full max-w-xl px-5 py-7 md:py-10">
         {/* Header de navegação */}
-        <View className="mb-8 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-3">
-            <Image
-              source={require('@/assets/logo-default.png')}
-              className="h-10 w-10"
-              resizeMode="contain"
+        <View className="mb-6">
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-2.5">
+              <Image
+                source={require('@/assets/logo.png')}
+                className="h-[38px] w-[130px]"
+                resizeMode="contain"
+                accessibilityLabel="Collectto"
+              />
+            </View>
+
+            <Button
+              label="← Início"
+              variant="ghost"
+              size="sm"
+              onPress={handleNavigateHome}
+              accessibilityLabel="Voltar para a página inicial"
             />
-            <Text className="font-poetsenone text-2xl text-text-base">Collectto</Text>
           </View>
-          <Button
-            label="Início"
-            variant="ghost"
-            size="sm"
-            onPress={handleNavigateHome}
-            accessibilityLabel="Voltar para a página inicial"
+
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; o uso de style nativo pontual e necessario para medidas e raio */}
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: 3, borderRadius: 2, marginTop: 12 }}
           />
         </View>
 
+        {/* Hero Section */}
+        <View className="mb-8 pt-4">
+          <Text className="mb-3 font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-landing-muted">
+            Download Oficial · Android
+          </Text>
+
+          <Text className="mb-3 font-poetsenone text-3xl leading-[1.12] text-landing-ink sm:text-4xl md:text-5xl">
+            Tenha sua coleção sempre no <Text className="text-landing-orange">bolso</Text>.
+          </Text>
+
+          <Text className="font-sans text-[15px] leading-relaxed text-landing-sub sm:text-base">
+            Baixe o aplicativo oficial do Collectto para dispositivos Android. Desfrute de navegação
+            rápida, câmera nativa para fotos dos seus itens e modo offline para levar seu acervo
+            onde for.
+          </Text>
+        </View>
+
         {/* Card Principal de Download */}
-        <Card className="items-center p-8 text-center md:p-12">
-          <View className="mb-4 rounded-full bg-brand-100 p-4">
-            <Image
-              source={require('@/assets/logo_2.png')}
-              className="h-20 w-20"
-              resizeMode="contain"
-            />
-          </View>
+        <View className="mb-10 overflow-hidden rounded-2xl border border-landing-line bg-landing-card shadow-card">
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; altura controlada via style */}
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: 4 }}
+          />
 
-          <View className="mb-2 rounded-full bg-brand-50 px-3 py-1">
-            <Text className="text-xs font-semibold text-brand-primary">
-              Versão 1.0.0 Oficial • Android
+          <View className="p-5 sm:p-7">
+            <Text className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-landing-orangeDeep">
+              Ficha de Download · APK Android
             </Text>
-          </View>
 
-          <Text className="mb-3 text-center font-poetsenone text-3xl text-text-base md:text-4xl">
-            Baixe o Collectto para Android
-          </Text>
+            <View className="gap-3">
+              <Button
+                label="Baixar Aplicativo Collectto (.APK)"
+                variant="primary"
+                size="lg"
+                onPress={handleDownload}
+                accessibilityLabel="Baixar arquivo APK do Collectto para Android"
+                className="w-full"
+              />
 
-          <Text className="mb-8 max-w-lg text-center font-body text-base text-text-muted">
-            Tenha todas as suas coleções na palma da mão. Instale o aplicativo diretamente em seu
-            aparelho e comece a catalogar hoje mesmo.
-          </Text>
+              <Button
+                label="Usar no Navegador (Web)"
+                variant="secondary"
+                size="md"
+                onPress={handleNavigateLogin}
+                accessibilityLabel="Acessar versão Web do Collectto"
+                className="w-full"
+              />
 
-          <View className="w-full max-w-sm gap-4">
-            <Button
-              label="Baixar Aplicativo (.APK)"
-              variant="primary"
-              size="lg"
-              onPress={handleDownload}
-              accessibilityLabel="Baixar arquivo APK do Collectto para Android"
-            />
-
-            <Button
-              label="Acessar pelo Navegador"
-              variant="secondary"
-              size="md"
-              onPress={handleNavigateLogin}
-              accessibilityLabel="Acessar versão Web do Collectto"
-            />
-          </View>
-
-          <Text className="mt-4 text-center font-body text-xs text-text-disabled">
-            Compatível com Android 8.0 ou superior • Arquivo 100% seguro e direto
-          </Text>
-        </Card>
-
-        {/* Instruções de Instalação */}
-        <View className="mt-10">
-          <Text className="mb-4 font-poetsenone text-xl text-text-base">
-            Como instalar no seu celular Android:
-          </Text>
-
-          <View className="gap-3">
-            <Card className="flex-row items-center gap-4 p-4">
-              <View className="h-8 w-8 items-center justify-center rounded-full bg-brand-primary">
-                <Text className="font-bold text-text-inverse">1</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-body text-sm font-semibold text-text-base">
-                  Baixe o arquivo .APK
-                </Text>
-                <Text className="font-body text-xs text-text-muted">
-                  Toque no botão de download acima e aguarde o término do download no celular.
-                </Text>
-              </View>
-            </Card>
-
-            <Card className="flex-row items-center gap-4 p-4">
-              <View className="h-8 w-8 items-center justify-center rounded-full bg-brand-primary">
-                <Text className="font-bold text-text-inverse">2</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-body text-sm font-semibold text-text-base">
-                  Permita a instalação
-                </Text>
-                <Text className="font-body text-xs text-text-muted">
-                  Ao abrir o arquivo, se o Android solicitar, permita &quot;Instalar de fontes
-                  desconhecidas&quot;.
-                </Text>
-              </View>
-            </Card>
-
-            <Card className="flex-row items-center gap-4 p-4">
-              <View className="h-8 w-8 items-center justify-center rounded-full bg-brand-primary">
-                <Text className="font-bold text-text-inverse">3</Text>
-              </View>
-              <View className="flex-1">
-                <Text className="font-body text-sm font-semibold text-text-base">
-                  Abra e aproveite
-                </Text>
-                <Text className="font-body text-xs text-text-muted">
-                  Toque em Abrir, crie ou acesse sua conta e comece a registrar suas coleções!
-                </Text>
-              </View>
-            </Card>
+              <Text className="mt-1 text-center font-mono text-[11px] text-landing-muted">
+                ✓ Versão 1.0.0 Oficial • Compilado na VPS • Android 8.0+
+              </Text>
+            </View>
           </View>
         </View>
 
-        {/* Rodapé */}
-        <View className="mt-12 items-center">
-          <Text className="font-body text-xs text-text-subtle">
-            Collectto © 2026 • Feito com paixão para colecionadores
+        {/* Instruções de Instalação Passo a Passo */}
+        <View className="mb-10">
+          <Text className="mb-2 font-mono text-[11px] font-bold uppercase tracking-[0.13em] text-landing-orangeDeep">
+            Instalação Descomplicada
+          </Text>
+          <Text className="mb-4 font-poetsenone text-2xl text-landing-ink">
+            Como instalar no seu aparelho
+          </Text>
+
+          <View className="gap-3">
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
+                <Text className="font-poetsenone text-sm font-bold text-white">1</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
+                  Baixe o arquivo .APK
+                </Text>
+                <Text className="font-sans text-xs text-landing-sub">
+                  Toque no botão de download acima e aguarde a conclusão do download do arquivo.
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
+                <Text className="font-poetsenone text-sm font-bold text-white">2</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
+                  Permita a instalação
+                </Text>
+                <Text className="font-sans text-xs text-landing-sub">
+                  Se o navegador exibir aviso de segurança, toque em Configurações e marque
+                  &quot;Permitir desta fonte&quot;.
+                </Text>
+              </View>
+            </View>
+
+            <View className="flex-row items-center gap-3.5 rounded-xl border border-landing-line bg-landing-card p-4">
+              <View className="h-7 w-7 items-center justify-center rounded-full bg-landing-orange">
+                <Text className="font-poetsenone text-sm font-bold text-white">3</Text>
+              </View>
+              <View className="flex-1">
+                <Text className="font-sans text-sm font-bold text-landing-ink">
+                  Abra e comece sua coleção
+                </Text>
+                <Text className="font-sans text-xs text-landing-sub">
+                  Toque em Instalar, abra o aplicativo, entre ou crie sua conta e comece a
+                  catalogar!
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Rodapé com Hairline Gradiente */}
+        <View className="pb-12 pt-2">
+          {/* expo-linear-gradient possui suporte parcial a NativeWind; altura e margem controladas via style */}
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={{ height: 2, borderRadius: 1, marginBottom: 16 }}
+          />
+          <Text className="font-mono text-[11px] leading-relaxed tracking-[0.08em] text-landing-muted">
+            COLLECTTO · A REDE SOCIAL PARA COLECIONADORES{'\n'}
+            PROJETO INTEGRADOR — ENGENHARIA DA COMPUTAÇÃO · UNISO · SOROCABA/SP
           </Text>
         </View>
       </View>
